@@ -1,0 +1,228 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<title>SIMRS</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="pragma" content="no-cache" />
+<meta http-equiv="expires" content="-1" />
+<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0;"/> 
+<link rel="stylesheet" type="text/css" href="assets/sweetalert.css">
+<style type="text/css">
+
+@font-face{
+	src: url("VarelaRound-Regular.ttf");
+	font-family: varela;
+}
+body{
+	font-family: varela;
+	margin: 0;
+	color: white;
+}
+.filter{
+	background: rgba(44, 50, 48, 0.7);
+	left: 0px;
+	top: 0px;
+	margin: 0px;
+	padding: 0px;
+	height: 100%;
+	width: 100%;
+	z-index: -99999;
+	position: fixed;
+}
+.form{
+	margin: 0 auto;
+	width: 30%;
+	padding-top: 10%;
+}
+.form-header{
+	background: #3498db;
+	padding: 15px 15px;
+	text-align: center;
+	color: white;
+	font-size: 25px;
+	font-weight: bold;
+}
+.form-body{
+	padding-top: 10%;
+	padding-bottom: 5%;
+	border: 2px solid #cccce6;
+	background-color: white;
+}
+input[type=text],
+input[type=password]{
+	border-bottom: 2px solid #3498db;
+	border-top: 0px;
+	border-left: 0px;
+	border-right: 0px;
+	width: 70%;
+	margin: 0 auto;
+	display: block;
+	line-height: 30px;
+	background-color: white;
+	font-weight: bold;
+	font-size: 12px;
+	-webkit-transition: all 0.5s;
+	-moz-transition: all 0.5s;
+	-o-transition: all 0.5s;
+	-ms-transition: all 0.5s;
+	transition: all 0.5s;
+}
+input[type=text]:focus,
+input[type=password]:focus{
+	width: 74%;
+}
+input[type=submit]{
+	background: #3498DB;
+	border: 2px solid #3498db;
+	color: white;
+	width: 70%;
+	margin: 0 auto;
+	display: block;
+	padding: 10px;
+	font-weight: bold;
+	font-size: 12px;
+	cursor: pointer;
+	-webkit-transition: all 0.5s;
+	-moz-transition: all 0.5s;
+	-o-transition: all 0.5s;
+	-ms-transition: all 0.5s;
+	transition: all 0.5s;
+}
+input[type=submit]:hover{
+	background-color: transparent;
+	color: #3498db;
+}
+.error{
+	background: #FF2020;
+	width: 40%;
+	margin: 0 auto;
+	border-radius: 7px;
+	padding: 10px;
+	text-align: center;
+	color: #fff;
+	text-align: center;
+}
+@media screen and (max-width: 1000px){
+	.form{
+		width: 47%;
+	}
+	.error{
+		width: 60%;
+	}
+}
+@media screen and (max-width: 600px){
+	.form{
+		width: 80%;
+	}
+	.error{
+		width: 80%;
+	}
+}
+
+    .modal-lg {
+        width: 100%; 
+        padding: 7% 2% 7% 2%;
+    }
+
+</style>
+
+</head>
+
+<body class="bg-light">
+    <app-root></app-root>
+  <link rel="modulepreload" href="chunk-L5DXVBCY.js"><link rel="modulepreload" href="chunk-I6R2NPGL.js">
+  <link rel="modulepreload" href="chunk-3PS2FIME.js"><link rel="modulepreload" href="chunk-JD6JIJOO.js">
+  <link rel="modulepreload" href="chunk-DWKIKMYD.js"><link rel="modulepreload" href="chunk-P4PAYY2C.js">
+  <link rel="modulepreload" href="chunk-IDDMCM5J.js"><link rel="modulepreload" href="chunk-QG5PCDO6.js">
+  <link rel="modulepreload" href="chunk-YIQM4CGR.js"><link rel="modulepreload" href="chunk-XOBW5QCM.js">
+
+<script src="polyfills-2FCBYYJP.js" type="module"></script><script src="scripts-YDBPHZJT.js" defer>
+
+  </script>
+  </script><script src="main-BS22YEHA.js" type="module"></script></body>
+
+<div class="filter"></div>
+	<form name="sendin" action="" method="post">
+		<input type="hidden" name="username" />
+		<input type="hidden" name="password" />
+		<input type="hidden" name="dst" value="$(link-orig)" />
+		<input type="hidden" name="popup" value="true" />
+	</form> 
+
+	<div class="form"> <br />
+	<center>LOGIN SIMRS<br><br></center>
+
+		<!--<div class="form-header"> 
+		SILAHKAN LOGIN <br/><img src="<?php echo base_url();?>login/img/logobpjs.png" style="width: 190px; height: 80px;" /></div>
+        --> 
+        <form novalidate="" autocomplete="off" class="ng-untouched ng-pristine ng-invalid">
+		<div class="form-body">
+				<input type="hidden" name="dst" value="$(link-orig)" />
+				<input type="hidden" name="popup" value="true" />
+					<!--<input name="userid" value="" onchange="getNamaUser(this)" id="userid" type="text" required placeholder="User ID" /><br />-->
+					<input name="username" id="username" type="text" placeholder="email"   class="form-control ng-pristine ng-invalid is-invalid ng-touched" /><br />
+                    <input name="password" formcontrolname="password" 
+                     class="form-control ng-pristine ng-invalid is-invalid ng-touched" id="password" type="password" placeholder="Password" required /></br />
+                </br />
+                    <!--<div style="padding-left:25%;margin-bottom:-30px;"><?php echo $image; ?></div> -->
+                    <!--<div class="row px-3 mb-4"> 
+                    <p><h6 class="mb-0 text-sm">Masukkan Capctha</h6></label>
+                    <input type="text" style="font-size:34px;text-transform: uppercase;" maxlength="6" name="captcha" id="captcha"  required  placeholder="Masukkan Captcha"></p>
+                     <input type="hidden" name="kodecap" value="<?php echo $kode;?>" />
+                     </div> -->
+
+					<input type="submit" value="LOGIN" /><br/><br/>
+                </form>
+			<b>
+	</div>
+	</b>
+	</div> 
+
+
+	</b>
+	</div>
+
+
+<script type="text/javascript"> 
+</script>
+<script src="jquery/jquery.js"></script>
+<script src="jquery/jquery.backstretch.js"></script>
+<script>
+$(document).ready(function(){  
+    var a=5; 
+    console.log(a++);
+});     
+
+function make(x){
+    return function (y){
+        return x+y; 
+    }
+
+} 
+function modalshow(){
+	$("#detailsModal").modal("show");
+}
+  
+
+    $.backstretch([
+      "media/bg5.jpg",
+     "media/bg.jpg",
+    "media/bg3.jpg",  
+      ], {
+        fade: 750,
+        duration: 2000
+    });
+
+    function too(){
+        const foo={
+            bar(){
+                console.log("Hello World"); 
+            }, 
+            name:"1", 
+            age:"2",
+        }
+    }
+</script>
+</body>
+</html>
