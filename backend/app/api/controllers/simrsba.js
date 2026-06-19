@@ -2071,6 +2071,125 @@ module.exports = {
       });
     }
   },
+  // method getPasienLab (untuk indexing)
+  getPasienLab: async (req, res) => {
+    try {
+      const data = await Rincian.aggregate([
+        { $match: { pelayanan: "LAB" } },
+        {
+          $group: {
+            _id: "$noCheckin",
+            noCheckin: { $first: "$noCheckin" },
+            tglInput: { $first: "$tglInput" },
+            totalItem: { $sum: 1 },
+          },
+        },
+        {
+          $lookup: {
+            from: "checkins",
+            localField: "noCheckin",
+            foreignField: "noCheckin",
+            as: "dataCheckin",
+          },
+        },
+        { $unwind: "$dataCheckin" },
+        { $match: { "dataCheckin.status": "0" } },
+        {
+          $lookup: {
+            from: "pasiens",
+            localField: "dataCheckin.noMr",
+            foreignField: "norm",
+            as: "dataPasien",
+          },
+        },
+        { $unwind: { path: "$dataPasien", preserveNullAndEmpty: true } },
+        {
+          $project: {
+            _id: 0,
+            noCheckin: 1,
+            tglInput: 1,
+            totalItem: 1,
+            noMr: "$dataCheckin.noMr",
+            nama: "$dataCheckin.nama",
+            kelamin: "$dataCheckin.kelamin",
+            tglLahir: "$dataCheckin.tglLahir",
+            dpjp: "$dataCheckin.dpjp",
+            poli: "$dataCheckin.poli",
+            tglCheckin: "$dataCheckin.tglInput",
+          },
+        },
+        { $sort: { tglCheckin: -1 } },
+      ]);
+      res.json(data);
+    } catch (err) {
+      res.status(400).send({
+        error: err,
+        status: "error",
+        message: "ERROR_GET_PASIEN_LAB",
+        data: null,
+      });
+    }
+  },
+
+  //method getPasienRadiologi (untuk indexing)
+  getPasienRadiologi: async (req, res) => {
+    try {
+      const data = await Rincian.aggregate([
+        { $match: { pelayanan: "RADIOLOGI" } },
+        {
+          $group: {
+            _id: "$noCheckin",
+            noCheckin: { $first: "$noCheckin" },
+            tglInput: { $first: "$tglInput" },
+            totalItem: { $sum: 1 },
+          },
+        },
+        {
+          $lookup: {
+            from: "checkins",
+            localField: "noCheckin",
+            foreignField: "noCheckin",
+            as: "dataCheckin",
+          },
+        },
+        { $unwind: "$dataCheckin" },
+        { $match: { "dataCheckin.status": "0" } },
+        {
+          $lookup: {
+            from: "pasiens",
+            localField: "dataCheckin.noMr",
+            foreignField: "norm",
+            as: "dataPasien",
+          },
+        },
+        { $unwind: { path: "$dataPasien", preserveNullAndEmpty: true } },
+        {
+          $project: {
+            _id: 0,
+            noCheckin: 1,
+            tglInput: 1,
+            totalItem: 1,
+            noMr: "$dataCheckin.noMr",
+            nama: "$dataCheckin.nama",
+            kelamin: "$dataCheckin.kelamin",
+            tglLahir: "$dataCheckin.tglLahir",
+            dpjp: "$dataCheckin.dpjp",
+            poli: "$dataCheckin.poli",
+            tglCheckin: "$dataCheckin.tglInput",
+          },
+        },
+        { $sort: { tglCheckin: -1 } },
+      ]);
+      res.json(data);
+    } catch (err) {
+      res.status(400).send({
+        error: err,
+        status: "error",
+        message: "ERROR_GET_PASIEN_RADIOLOGI",
+        data: null,
+      });
+    }
+  },
   getRincianLAB: async (req, res) => {
     var noCheckin = req.params.noCheckin;
     const dateTime = moment().format("YYYY-MM-DD HH:mm:ss");
