@@ -56024,6 +56024,12 @@ var rb = [{
         component: tk
     }]
 }, {
+    path: "lab/input/:norm/nocheckin/:noCheckin",
+    loadComponent: () => import("./chunk-LAB-DETAIL.js").then(m => m.LabDetailComponent)
+}, {
+    path: "radiologi/input/:norm/nocheckin/:noCheckin",
+    loadComponent: () => import("./chunk-RAD-DETAIL.js").then(m => m.RadDetailComponent)
+}, {
     path: "igd",
     component: I1,
     canActivate: [st]
