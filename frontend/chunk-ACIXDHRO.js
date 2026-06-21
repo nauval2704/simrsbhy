@@ -1,1 +1,97 @@
-import{a as D}from"./chunk-DWKIKMYD.js";import{k as f}from"./chunk-QJBCP6KK.js";import"./chunk-W7XVFZVJ.js";import{r as E,s as b}from"./chunk-CFNDTNZN.js";import{Db as x,Ec as i,Fc as r,Gc as v,Oa as c,Sc as d,Tc as m,dc as S,ec as u,fc as h,gc as e,hc as t,qb as a,ra as s}from"./chunk-UYVTZL26.js";function k(l,p){if(l&1&&(e(0,"tr")(1,"th",8),i(2),t(),e(3,"td"),i(4),t(),e(5,"td"),i(6),t(),e(7,"td"),i(8),t(),e(9,"td"),i(10),t(),e(11,"td"),i(12),t(),e(13,"td",9),i(14),d(15,"number"),t(),e(16,"td",9),i(17),d(18,"number"),t(),e(19,"td",9),i(20),d(21,"number"),t(),e(22,"td",9),i(23),d(24,"number"),t()()),l&2){let n=p.$implicit,o=p.$index;a(2),v("",o+1,"."),a(2),r(n.noCheckin),a(2),r(n.namaDpjp),a(2),r(n.nama),a(2),r(n.tglInput),a(2),r(n.tglOut),a(2),r(m(15,10,n.bhp)),a(3),r(m(18,12,n.inacbgs)),a(3),r(m(21,14,n.bruto)),a(3),r(m(24,16,n.jasa))}}function I(l,p){l&1&&(e(0,"tr")(1,"th",10),i(2,"No Data!."),t()())}var M=(()=>{class l{constructor(){this.toastr=s(f),this.keuanganService=s(D),this.filteredData=c.required({})}ngOnInit(){this.keuanganService.getJasaDokter(this.filteredData().tglMulai,this.filteredData().tglAkhir).subscribe({next:n=>{this.keuanganService.listJasaDokter.set(n.data),this.keuanganService.updateListFilteredPasien(n)},error:n=>{this.toastr.error(n.message)},complete:()=>{}})}static{this.\u0275fac=function(o){return new(o||l)}}static{this.\u0275cmp=x({type:l,selectors:[["app-jasa-dokter-list"]],inputs:{filteredData:[1,"filteredData"]},decls:32,vars:1,consts:[[1,"card"],[1,"card-body"],[1,"h4","pb-2","mb-4","text-danger","border-bottom","border-danger"],[1,"table-responsive"],[1,"table","table-sm","table-striped","table-hover"],["scope","col"],["scope","col",1,"text-end"],[1,"table-group-divider"],["scope","row"],[1,"text-end"],["scope","row","colspan","10",1,"text-center"]],template:function(o,g){o&1&&(e(0,"div",0)(1,"div",1)(2,"div",2),i(3," Jasa Dokter "),t(),e(4,"div",3)(5,"table",4)(6,"thead")(7,"tr")(8,"th",5),i(9,"#"),t(),e(10,"th",5),i(11,"ID"),t(),e(12,"th",5),i(13,"DPJP"),t(),e(14,"th",5),i(15,"NAMA"),t(),e(16,"th",5),i(17,"CHECKIN"),t(),e(18,"th",5),i(19,"CHECKOUT"),t(),e(20,"th",6),i(21,"BHP"),t(),e(22,"th",6),i(23,"INACBGS"),t(),e(24,"th",6),i(25,"JUMLAH"),t(),e(26,"th",6),i(27,"JASA"),t()()(),e(28,"tbody",7),u(29,k,25,18,"tr",null,S,!1,I,3,0,"tr"),t()()()()()),o&2&&(a(29),h(g.keuanganService.listJasaDokter()))},dependencies:[b,E],encapsulation:2})}}return l})();export{M as JasaDokterListComponent};
+import {
+    a as D
+} from "./chunk-DWKIKMYD.js";
+import {
+    k as f
+} from "./chunk-QJBCP6KK.js";
+import "./chunk-W7XVFZVJ.js";
+import {
+    r as E,
+    s as b
+} from "./chunk-CFNDTNZN.js";
+import {
+    Db as x,
+    Ec as i,
+    Fc as r,
+    Gc as v,
+    Oa as c,
+    Sc as d,
+    Tc as m,
+    dc as S,
+    ec as u,
+    fc as h,
+    gc as e,
+    hc as t,
+    qb as a,
+    ra as s
+} from "./chunk-UYVTZL26.js";
+
+function k(l, p) {
+    if (l & 1 && (e(0, "tr")(1, "th", 8), i(2), t(), e(3, "td"), i(4), t(), e(5, "td"), i(6), t(), e(7, "td"), i(8), t(), e(9, "td"), i(10), t(), e(11, "td"), i(12), t(), e(13, "td", 9), i(14), d(15, "number"), t(), e(16, "td", 9), i(17), d(18, "number"), t(), e(19, "td", 9), i(20), d(21, "number"), t(), e(22, "td", 9), i(23), d(24, "number"), t()()), l & 2) {
+        let n = p.$implicit,
+            o = p.$index;
+        a(2), v("", o + 1, "."), a(2), r(n.noCheckin), a(2), r(n.namaDpjp), a(2), r(n.nama), a(2), r(n.tglInput), a(2), r(n.tglOut), a(2), r(m(15, 10, n.bhp)), a(3), r(m(18, 12, n.inacbgs)), a(3), r(m(21, 14, n.bruto)), a(3), r(m(24, 16, n.jasa))
+    }
+}
+
+function I(l, p) {
+    l & 1 && (e(0, "tr")(1, "th", 10), i(2, "No Data!."), t()())
+}
+var M = (() => {
+    class l {
+        constructor() {
+            this.toastr = s(f), this.keuanganService = s(D), this.filteredData = c.required({})
+        }
+        ngOnInit() {
+            this.keuanganService.getJasaDokter(this.filteredData().tglMulai, this.filteredData().tglAkhir).subscribe({
+                next: n => {
+                    this.keuanganService.listJasaDokter.set(n.data), this.keuanganService.updateListFilteredPasien(n)
+                },
+                error: n => {
+                    this.toastr.error(n.message)
+                },
+                complete: () => {}
+            })
+        }
+        static {
+            this.\u0275fac = function(o) {
+                return new(o || l)
+            }
+        }
+        static {
+            this.\u0275cmp = x({
+                type: l,
+                selectors: [
+                    ["app-jasa-dokter-list"]
+                ],
+                inputs: {
+                    filteredData: [1, "filteredData"]
+                },
+                decls: 32,
+                vars: 1,
+                consts: [
+                    [1, "card"],
+                    [1, "card-body"],
+                    [1, "h4", "pb-2", "mb-4", "text-danger", "border-bottom", "border-danger"],
+                    [1, "table-responsive"],
+                    [1, "table", "table-sm", "table-striped", "table-hover"],
+                    ["scope", "col"],
+                    ["scope", "col", 1, "text-end"],
+                    [1, "table-group-divider"],
+                    ["scope", "row"],
+                    [1, "text-end"],
+                    ["scope", "row", "colspan", "10", 1, "text-center"]
+                ],
+                template: function(o, g) {
+                    o & 1 && (e(0, "div", 0)(1, "div", 1)(2, "div", 2), i(3, " Jasa Dokter "), t(), e(4, "div", 3)(5, "table", 4)(6, "thead")(7, "tr")(8, "th", 5), i(9, "#"), t(), e(10, "th", 5), i(11, "ID"), t(), e(12, "th", 5), i(13, "DPJP"), t(), e(14, "th", 5), i(15, "NAMA"), t(), e(16, "th", 5), i(17, "CHECKIN"), t(), e(18, "th", 5), i(19, "CHECKOUT"), t(), e(20, "th", 6), i(21, "BHP"), t(), e(22, "th", 6), i(23, "INACBGS"), t(), e(24, "th", 6), i(25, "JUMLAH"), t(), e(26, "th", 6), i(27, "JASA"), t()()(), e(28, "tbody", 7), u(29, k, 25, 18, "tr", null, S, !1, I, 3, 0, "tr"), t()()()()()), o & 2 && (a(29), h(g.keuanganService.listJasaDokter()))
+                },
+                dependencies: [b, E],
+                encapsulation: 2
+            })
+        }
+    }
+    return l
+})();
+export {
+    M as JasaDokterListComponent
+};

@@ -1,1 +1,647 @@
-import{a as pe}from"./chunk-QP6JOPE3.js";import{a as re,b as se,c as me,d as le}from"./chunk-TQRSAJWM.js";import{a as ae}from"./chunk-LP3CUFG4.js";import{a as L}from"./chunk-G2DQ3SJM.js";import{a as A}from"./chunk-3PS2FIME.js";import"./chunk-JD6JIJOO.js";import"./chunk-YIQM4CGR.js";import{a as ke}from"./chunk-FUXXJWDL.js";import{r as ne,s as oe}from"./chunk-QGNVLNC6.js";import"./chunk-IVTVBFQS.js";import"./chunk-UI7HE65P.js";import{b as W,c as _,e as H,f as J,g as Y,i as x,l as X,m as z,o as Q,p as Z,r as ee,s as te,y as ie}from"./chunk-NKLTBXW5.js";import{k as q}from"./chunk-QJBCP6KK.js";import"./chunk-W7XVFZVJ.js";import{i as k,j as V,m as j,r as U,s as b}from"./chunk-CFNDTNZN.js";import{Da as y,Db as p,Ea as R,Ec as r,Fc as g,Gc as S,Jc as P,Kb as v,Kc as T,La as E,Lc as D,Mc as M,Sc as w,Tc as O,Zb as f,g as Ie,gc as i,hc as n,ic as h,jc as N,kc as $,mc as F,qb as s,rb as c,sc as d,tc as I,wc as B,yc as K}from"./chunk-UYVTZL26.js";function xe(o,u){if(o&1){let e=F();i(0,"tr")(1,"td"),r(2),n(),i(3,"td"),r(4),n(),i(5,"td",10),r(6),n(),i(7,"td",10),r(8),n(),i(9,"td",10),r(10),n(),i(11,"td",10),r(12),n(),i(13,"td",10)(14,"button",11),d("click",function(){let a=y(e).index,m=I(2);return R(m.deleteByIndex(a))}),n()()()}if(o&2){let e=u.$implicit,t=u.index;s(2),S("",t+1,"."),s(2),g(e==null?null:e.nama),s(2),g(e==null?null:e.kategori),s(2),g(e==null?null:e.noFaktur),s(2),g(e==null?null:e.distributor),s(2),g(e==null?null:e.jumlah)}}function qe(o,u){if(o&1){let e=F();i(0,"div",1)(1,"div",2),N(2),i(3,"div",3)(4,"table",4)(5,"thead",5)(6,"tr")(7,"th",6),r(8,"NO."),n(),i(9,"th",6),r(10,"NAMA"),n(),i(11,"th",6),r(12,"KATEGORI"),n(),i(13,"th",6),r(14,"NO FAKTUR"),n(),i(15,"th",6),r(16,"DISTRIBUTOR"),n(),i(17,"th",6),r(18,"JUMLAH"),n(),h(19,"th",6),n()(),i(20,"tbody"),v(21,xe,15,6,"tr",7),n(),i(22,"button",8),d("click",function(){y(e);let a=I();return R(a.save())}),h(23,"i",9),r(24," Save "),n()()(),$(),n()()}if(o&2){let e=I();s(21),f("ngForOf",e.dataListItems$)}}var ue=(()=>{class o{constructor(e){this.toastr=e,this.onDelete=new E,this.onSave=new E}ngOnInit(){}deleteByIndex(e){this.onDelete.emit(e)}save(){this.onSave.emit()}static{this.\u0275fac=function(t){return new(t||o)(c(q))}}static{this.\u0275cmp=p({type:o,selectors:[["app-list-request-gudang"]],inputs:{dataListItems$:[0,"data","dataListItems$"]},outputs:{onDelete:"onDelete",onSave:"onSave"},decls:1,vars:1,consts:[["class","card mb-2",4,"ngIf"],[1,"card","mb-2"],[1,"card-body"],["id","print-section",1,"table-responsive"],[1,"table","table-bordered","table-sm","align-middle","d-print-table"],[1,"table-dark"],["scope","col"],[4,"ngFor","ngForOf"],["type","button",1,"btn","btn-success","mt-1",3,"click"],[1,"bi","bi-check-lg"],[1,"text-end"],["type","button",1,"btn","btn-close",3,"click"]],template:function(t,a){t&1&&v(0,qe,25,1,"div",0),t&2&&f("ngIf",a.dataListItems$.length>0)},dependencies:[b,k,V],encapsulation:2})}}return o})();var ge=Ie(ke());function Re(o,u){if(o&1&&h(0,"option",21),o&2){let e=u.$implicit;B("value",e.nama)}}function Ee(o,u){if(o&1&&(i(0,"option",21),r(1),w(2,"number"),w(3,"number"),n()),o&2){let e=u.$implicit;K("value","",e._id.nama," | ",e._id.noFaktur,""),s(),P(" stock: ",O(2,7,e.stock)," | harga: ",O(3,9,e.harga)," | no.faktur: ",e._id.noFaktur," | distributor: ",e.dataDistributor[0]==null?null:e.dataDistributor[0].nama," ")}}var fe=(()=>{class o{constructor(e,t,a){this.gudangService=e,this.farmasiService=t,this.toastr=a,this.today=(0,ge.default)().format("YYYY-MM-DD"),this.inputForm=new Y({kategori:new x("",[_.required,_.minLength(3)]),nama:new x("",[_.required,_.minLength(3)]),noFaktur:new x("",[_.required]),distributor:new x(""),jumlah:new x(0,[_.required,_.min(1)])}),this.dataRequest$=[],this.isLoading=!1,this.stockItem=0}ngOnInit(){this.initialValues()}initialValues(){this.gudangService.getKategori().subscribe(e=>{this.dataListKategori$=e})}validateItems(e){let t=e.split(" "),a=t[t.length-1].trim(),m=e.split("|")[0].trim(),l=this.dataListItems$.filter(G=>G._id.nama.trim()==m&&G._id.noFaktur==a);if(l){this.inputForm.patchValue({nama:l[0]?._id.nama,noFaktur:l[0]?._id.noFaktur,distributor:l[0]?.dataDistributor[0]?.nama}),this.stockItem=l[0]?.stock;return}}validateKategori(){this.inputForm.get("nama").reset();let e=this.dataListKategori$.filter(t=>t.nama==this.inputForm.value.kategori);if(e){if(this.inputForm.patchValue({kategori:e[0]?.nama}),this.namaKategori=e[0]?.nama,this.namaKategori=="OBAT"){this.gudangService.getDaftarItemsByStock("OBAT").subscribe(t=>{this.dataListItems$=t});return}if(this.namaKategori=="BHP"){this.gudangService.getDaftarItemsByStock("BHP").subscribe(t=>{this.dataListItems$=t});return}if(this.namaKategori=="ALKES"){this.gudangService.getDaftarItemsByStock("ALKES").subscribe(t=>{this.dataListItems$=t});return}return}}validateJumlah(){if(this.inputForm.value.jumlah>this.stockItem){this.inputForm.get("jumlah").reset(0),this.toastr.error("Jumlah permintaan lebih besar dari stock gudang","Error");return}}onDelete(e){this.dataRequest$.splice(e,1)}onSave(){this.gudangService.addRequestGudang(this.dataRequest$,"APOTEK").subscribe({next:e=>{this.inputForm.reset(),this.dataRequest$=[],this.toastr.success("Request Gudang berhasil di tambahkan","Success")},error:e=>{this.toastr.error(e,"Error")},complete:()=>{this.farmasiService.onLoadNotif$.next()}})}onSubmit(){this.dataRequest$=[...this.dataRequest$,this.inputForm.value],this.inputForm.get("nama").reset(),this.inputForm.get("jumlah").reset(0)}static{this.\u0275fac=function(t){return new(t||o)(c(ae),c(A),c(q))}}static{this.\u0275cmp=p({type:o,selectors:[["app-request-gudang"]],decls:42,vars:6,consts:[[1,"row"],[1,"col"],[1,"card","mb-2"],[1,"card-header","bg-warning","fw-bold"],[1,"card-body"],[3,"submit","formGroup"],[1,"mb-2","row"],["for","inputPassword",1,"col-sm-3","col-form-label"],[1,"col-sm-9"],["type","text","list","listKategori","formControlName","kategori",1,"form-control",3,"change"],["id","listKategori"],[3,"value",4,"ngFor","ngForOf"],["type","text","list","listItems","formControlName","nama",1,"form-control",3,"change"],["id","listItems"],[1,"mb-2","row","d-none"],["type","text","list","listKategori","formControlName","noFaktur","readonly","",1,"form-control-plaintext"],["type","text","list","listKategori","formControlName","distributor","readonly","",1,"form-control-plaintext"],["type","number","formControlName","jumlah",1,"form-control",3,"change"],["type","submit",1,"btn","btn-primary",3,"disabled"],[1,"bi","bi-plus-lg"],[3,"onDelete","onSave","data"],[3,"value"]],template:function(t,a){t&1&&(i(0,"div",0)(1,"div",1)(2,"div",2)(3,"div",3),r(4,"Request Gudang"),n(),i(5,"div",4)(6,"form",5),d("submit",function(){return a.onSubmit()}),i(7,"div",6)(8,"label",7),r(9,"KATEGORI"),n(),i(10,"div",8)(11,"input",9),d("change",function(){return a.validateKategori()}),n(),i(12,"datalist",10),v(13,Re,1,1,"option",11),n()()(),i(14,"div",6)(15,"label",7),r(16),n(),i(17,"div",8)(18,"input",12),d("change",function(l){return a.validateItems(l.target.value)}),n(),i(19,"datalist",13),v(20,Ee,4,11,"option",11),n()()(),i(21,"div",14)(22,"label",7),r(23,"NO.FAKTUR"),n(),i(24,"div",8),h(25,"input",15),n()(),i(26,"div",14)(27,"label",7),r(28,"DISTRIBUTOR"),n(),i(29,"div",8),h(30,"input",16),n()(),i(31,"div",6)(32,"label",7),r(33,"JUMLAH / BOX"),n(),i(34,"div",8)(35,"input",17),d("change",function(){return a.validateJumlah()}),n()()(),i(36,"button",18),h(37,"i",19),r(38," Add "),n()()()()()(),i(39,"div",0)(40,"div",1)(41,"app-list-request-gudang",20),d("onDelete",function(l){return a.onDelete(l)})("onSave",function(){return a.onSave()}),n()()()),t&2&&(s(6),f("formGroup",a.inputForm),s(7),f("ngForOf",a.dataListKategori$),s(3),S("NAMA ",a.namaKategori,""),s(4),f("ngForOf",a.dataListItems$),s(16),f("disabled",!a.inputForm.valid||a.isLoading),s(5),f("data",a.dataRequest$))},dependencies:[b,k,U,ie,X,ee,te,W,z,H,J,Q,Z,ue],encapsulation:2})}}return o})();var be=(()=>{class o{constructor(e,t,a,m){this.activeModal=e,this.apotekService=t,this.toastr=a,this.farmasiService=m,this.resetDataRequest=new E}ngOnInit(){}onSelesai(e){this.activeModal.dismiss(),this.apotekService.updateRequestApotekSelesai(e).subscribe({next:t=>{this.toastr.success("Request Gudang Selesai","Success"),this.resetDataRequest.emit(),this.activeModal.dismiss()},error:t=>{this.toastr.error(t,"Error"),this.activeModal.dismiss()},complete:()=>{this.farmasiService.onLoadNotif$.next()}})}onBatal(e){this.apotekService.updateRequestApotekBatal({id:e}).subscribe({next:t=>{this.toastr.warning("Request Gudang berhasil di batalkan","Success"),this.resetDataRequest.emit(),this.activeModal.dismiss()},error:t=>{this.toastr.error(t,"Error"),this.activeModal.dismiss()},complete:()=>{this.farmasiService.onLoadNotif$.next()}})}static{this.\u0275fac=function(t){return new(t||o)(c(ne),c(L),c(q),c(A))}}static{this.\u0275cmp=p({type:o,selectors:[["app-update-request-igd"]],inputs:{data:"data"},outputs:{resetDataRequest:"resetDataRequest"},decls:14,vars:0,consts:[[1,"modal-header","bg-warning"],[1,"modal-title"],[1,"bi","bi-exclamation-circle"],["type","button","aria-label","Close",1,"btn-close",3,"click"],[1,"modal-body"],["role","group","aria-label","Basic mixed styles example",1,"btn-group","w-100"],["type","button",1,"btn","btn-success",3,"click"],["type","button",1,"btn","btn-danger",3,"click"],[1,"modal-footer"],["type","button",1,"btn","btn-outline-dark",3,"click"]],template:function(t,a){t&1&&(i(0,"div",0)(1,"h4",1),h(2,"i",2),r(3," Konfirmasi "),n(),i(4,"button",3),d("click",function(){return a.activeModal.dismiss("Cross click")}),n()(),i(5,"div",4)(6,"div",5)(7,"button",6),d("click",function(){return a.onSelesai(a.data)}),r(8," Selesai "),n(),i(9,"button",7),d("click",function(){return a.onBatal(a.data._id)}),r(10," Batal "),n()()(),i(11,"div",8)(12,"button",9),d("click",function(){return a.activeModal.close("Close click")}),r(13," Close "),n()())},dependencies:[b],encapsulation:2})}}return o})();function Oe(o,u){if(o&1&&(i(0,"tr",12)(1,"th",9),r(2),n(),i(3,"td",13),r(4),n(),i(5,"td"),r(6),n(),i(7,"td"),r(8),n(),i(9,"td"),r(10),n(),i(11,"td",14),r(12),n()()),o&2){let e=u.$implicit,t=u.index;s(2),S("",t+1,"."),s(2),g(e.nama),s(2),g(e.kategori),s(2),g(e.noFaktur),s(2),g(e.distributor),s(2),g(e.jumlah)}}function Te(o,u){if(o&1){let e=F();i(0,"tr",8),d("click",function(){let a=y(e).$implicit,m=I();return R(m.onConfirm(a))}),i(1,"th",9),r(2),n(),i(3,"td"),r(4),n(),i(5,"td")(6,"table",10)(7,"tbody"),v(8,Oe,13,6,"tr",11),n()()()()}if(o&2){let e=u.$implicit,t=u.index;s(2),S("",t+1,"."),s(2),g(e.createdAt),s(4),f("ngForOf",e.items)}}var he=(()=>{class o{constructor(e,t){this.apotekService=e,this.modalService=t,this.dataUpdate=null,this.isUpdate=!1}ngOnInit(){this.initValues()}onConfirm(e){this.isUpdate=!0;let t=this.modalService.open(be);t.componentInstance.data=e,t.componentInstance.resetDataRequest.subscribe(()=>{this.initValues()})}initValues(){this.dataRequest$=this.apotekService.getRequestApotek()}static{this.\u0275fac=function(t){return new(t||o)(c(L),c(oe))}}static{this.\u0275cmp=p({type:o,selectors:[["app-request-igd"]],decls:17,vars:3,consts:[[1,"card","mb-2"],[1,"card-header","bg-warning","fw-bold"],[1,"card-body"],[1,"table","table-sm","table-hover","align-middle"],[1,"table-dark"],["scope","col"],[1,"table-group-divider"],["style","cursor: pointer",3,"click",4,"ngFor","ngForOf"],[2,"cursor","pointer",3,"click"],["scope","row"],[1,"table","table-borderless","table-sm","mt-3"],["class","text-center","style","cursor: pointer",4,"ngFor","ngForOf"],[1,"text-center",2,"cursor","pointer"],[1,"text-start","text-nowrap"],[1,"text-end"]],template:function(t,a){t&1&&(i(0,"div",0)(1,"div",1),r(2,"Request IGD"),n(),i(3,"div",2)(4,"div")(5,"table",3)(6,"thead",4)(7,"tr")(8,"th",5),r(9,"#"),n(),i(10,"th",5),r(11,"Tanggal"),n(),i(12,"th",5),r(13,"Request"),n()()(),i(14,"tbody",6),v(15,Te,9,3,"tr",7),w(16,"async"),n()()()()()),t&2&&(s(15),f("ngForOf",O(16,1,a.dataRequest$)))},dependencies:[b,k,j],encapsulation:2})}}return o})();var ve=(()=>{class o{constructor(){}ngOnInit(){}static{this.\u0275fac=function(t){return new(t||o)}}static{this.\u0275cmp=p({type:o,selectors:[["app-request-inap"]],decls:2,vars:0,template:function(t,a){t&1&&(i(0,"p"),r(1,"request-inap works!"),n())},dependencies:[b],encapsulation:2})}}return o})();var _e=(()=>{class o{constructor(){}ngOnInit(){}static{this.\u0275fac=function(t){return new(t||o)}}static{this.\u0275cmp=p({type:o,selectors:[["app-request-poli"]],decls:2,vars:0,template:function(t,a){t&1&&(i(0,"p"),r(1,"request-poli works!"),n())},dependencies:[b],encapsulation:2})}}return o})();var Se=(()=>{class o{constructor(){this.depo="apotek"}static{this.\u0275fac=function(t){return new(t||o)}}static{this.\u0275cmp=p({type:o,selectors:[["app-apotek-pengambilan-obat"]],decls:1,vars:1,consts:[[3,"depoChange","depo"]],template:function(t,a){t&1&&(i(0,"app-pengambilan-obat-bebas",0),M("depoChange",function(l){return D(a.depo,l)||(a.depo=l),l}),n()),t&2&&T("depo",a.depo)},dependencies:[re],encapsulation:2})}}return o})();var Ce=(()=>{class o{constructor(){this.depo="apotek"}static{this.\u0275fac=function(t){return new(t||o)}}static{this.\u0275cmp=p({type:o,selectors:[["app-apotek-penambahan-obat"]],decls:1,vars:1,consts:[[3,"depoChange","depo"]],template:function(t,a){t&1&&(i(0,"app-penambahan-obat-bebas",0),M("depoChange",function(l){return D(a.depo,l)||(a.depo=l),l}),n()),t&2&&T("depo",a.depo)},dependencies:[se],encapsulation:2})}}return o})();var ht=[{path:"request-gudang",component:fe},{path:"request-igd",component:he},{path:"request-inap",component:ve},{path:"request-poli",component:_e},{path:"pengambilan-obat",component:Se},{path:"penambahan-obat",component:Ce},{path:"stock-obat-luar",component:me},{path:"input-obat-luar",component:le},{path:"input/:stock",component:pe}];export{ht as APOTEK_ROUTES};
+import {
+    a as pe
+} from "./chunk-QP6JOPE3.js";
+import {
+    a as re,
+    b as se,
+    c as me,
+    d as le
+} from "./chunk-TQRSAJWM.js";
+import {
+    a as ae
+} from "./chunk-LP3CUFG4.js";
+import {
+    a as L
+} from "./chunk-G2DQ3SJM.js";
+import {
+    a as A
+} from "./chunk-3PS2FIME.js";
+import "./chunk-JD6JIJOO.js";
+import "./chunk-YIQM4CGR.js";
+import {
+    a as ke
+} from "./chunk-FUXXJWDL.js";
+import {
+    r as ne,
+    s as oe
+} from "./chunk-QGNVLNC6.js";
+import "./chunk-IVTVBFQS.js";
+import "./chunk-UI7HE65P.js";
+import {
+    b as W,
+    c as _,
+    e as H,
+    f as J,
+    g as Y,
+    i as x,
+    l as X,
+    m as z,
+    o as Q,
+    p as Z,
+    r as ee,
+    s as te,
+    y as ie
+} from "./chunk-NKLTBXW5.js";
+import {
+    k as q
+} from "./chunk-QJBCP6KK.js";
+import "./chunk-W7XVFZVJ.js";
+import {
+    i as k,
+    j as V,
+    m as j,
+    r as U,
+    s as b
+} from "./chunk-CFNDTNZN.js";
+import {
+    Da as y,
+    Db as p,
+    Ea as R,
+    Ec as r,
+    Fc as g,
+    Gc as S,
+    Jc as P,
+    Kb as v,
+    Kc as T,
+    La as E,
+    Lc as D,
+    Mc as M,
+    Sc as w,
+    Tc as O,
+    Zb as f,
+    g as Ie,
+    gc as i,
+    hc as n,
+    ic as h,
+    jc as N,
+    kc as $,
+    mc as F,
+    qb as s,
+    rb as c,
+    sc as d,
+    tc as I,
+    wc as B,
+    yc as K
+} from "./chunk-UYVTZL26.js";
+
+function xe(o, u) {
+    if (o & 1) {
+        let e = F();
+        i(0, "tr")(1, "td"), r(2), n(), i(3, "td"), r(4), n(), i(5, "td", 10), r(6), n(), i(7, "td", 10), r(8), n(), i(9, "td", 10), r(10), n(), i(11, "td", 10), r(12), n(), i(13, "td", 10)(14, "button", 11), d("click", function() {
+            let a = y(e).index,
+                m = I(2);
+            return R(m.deleteByIndex(a))
+        }), n()()()
+    }
+    if (o & 2) {
+        let e = u.$implicit,
+            t = u.index;
+        s(2), S("", t + 1, "."), s(2), g(e == null ? null : e.nama), s(2), g(e == null ? null : e.kategori), s(2), g(e == null ? null : e.noFaktur), s(2), g(e == null ? null : e.distributor), s(2), g(e == null ? null : e.jumlah)
+    }
+}
+
+function qe(o, u) {
+    if (o & 1) {
+        let e = F();
+        i(0, "div", 1)(1, "div", 2), N(2), i(3, "div", 3)(4, "table", 4)(5, "thead", 5)(6, "tr")(7, "th", 6), r(8, "NO."), n(), i(9, "th", 6), r(10, "NAMA"), n(), i(11, "th", 6), r(12, "KATEGORI"), n(), i(13, "th", 6), r(14, "NO FAKTUR"), n(), i(15, "th", 6), r(16, "DISTRIBUTOR"), n(), i(17, "th", 6), r(18, "JUMLAH"), n(), h(19, "th", 6), n()(), i(20, "tbody"), v(21, xe, 15, 6, "tr", 7), n(), i(22, "button", 8), d("click", function() {
+            y(e);
+            let a = I();
+            return R(a.save())
+        }), h(23, "i", 9), r(24, " Save "), n()()(), $(), n()()
+    }
+    if (o & 2) {
+        let e = I();
+        s(21), f("ngForOf", e.dataListItems$)
+    }
+}
+var ue = (() => {
+    class o {
+        constructor(e) {
+            this.toastr = e, this.onDelete = new E, this.onSave = new E
+        }
+        ngOnInit() {}
+        deleteByIndex(e) {
+            this.onDelete.emit(e)
+        }
+        save() {
+            this.onSave.emit()
+        }
+        static {
+            this.\u0275fac = function(t) {
+                return new(t || o)(c(q))
+            }
+        }
+        static {
+            this.\u0275cmp = p({
+                type: o,
+                selectors: [
+                    ["app-list-request-gudang"]
+                ],
+                inputs: {
+                    dataListItems$: [0, "data", "dataListItems$"]
+                },
+                outputs: {
+                    onDelete: "onDelete",
+                    onSave: "onSave"
+                },
+                decls: 1,
+                vars: 1,
+                consts: [
+                    ["class", "card mb-2", 4, "ngIf"],
+                    [1, "card", "mb-2"],
+                    [1, "card-body"],
+                    ["id", "print-section", 1, "table-responsive"],
+                    [1, "table", "table-bordered", "table-sm", "align-middle", "d-print-table"],
+                    [1, "table-dark"],
+                    ["scope", "col"],
+                    [4, "ngFor", "ngForOf"],
+                    ["type", "button", 1, "btn", "btn-success", "mt-1", 3, "click"],
+                    [1, "bi", "bi-check-lg"],
+                    [1, "text-end"],
+                    ["type", "button", 1, "btn", "btn-close", 3, "click"]
+                ],
+                template: function(t, a) {
+                    t & 1 && v(0, qe, 25, 1, "div", 0), t & 2 && f("ngIf", a.dataListItems$.length > 0)
+                },
+                dependencies: [b, k, V],
+                encapsulation: 2
+            })
+        }
+    }
+    return o
+})();
+var ge = Ie(ke());
+
+function Re(o, u) {
+    if (o & 1 && h(0, "option", 21), o & 2) {
+        let e = u.$implicit;
+        B("value", e.nama)
+    }
+}
+
+function Ee(o, u) {
+    if (o & 1 && (i(0, "option", 21), r(1), w(2, "number"), w(3, "number"), n()), o & 2) {
+        let e = u.$implicit;
+        K("value", "", e._id.nama, " | ", e._id.noFaktur, ""), s(), P(" stock: ", O(2, 7, e.stock), " | harga: ", O(3, 9, e.harga), " | no.faktur: ", e._id.noFaktur, " | distributor: ", e.dataDistributor[0] == null ? null : e.dataDistributor[0].nama, " ")
+    }
+}
+var fe = (() => {
+    class o {
+        constructor(e, t, a) {
+            this.gudangService = e, this.farmasiService = t, this.toastr = a, this.today = (0, ge.default)().format("YYYY-MM-DD"), this.inputForm = new Y({
+                kategori: new x("", [_.required, _.minLength(3)]),
+                nama: new x("", [_.required, _.minLength(3)]),
+                noFaktur: new x("", [_.required]),
+                distributor: new x(""),
+                jumlah: new x(0, [_.required, _.min(1)])
+            }), this.dataRequest$ = [], this.isLoading = !1, this.stockItem = 0
+        }
+        ngOnInit() {
+            this.initialValues()
+        }
+        initialValues() {
+            this.gudangService.getKategori().subscribe(e => {
+                this.dataListKategori$ = e
+            })
+        }
+        validateItems(e) {
+            let t = e.split(" "),
+                a = t[t.length - 1].trim(),
+                m = e.split("|")[0].trim(),
+                l = this.dataListItems$.filter(G => G._id.nama.trim() == m && G._id.noFaktur == a);
+            if (l) {
+                this.inputForm.patchValue({
+                    nama: l[0]?._id.nama,
+                    noFaktur: l[0]?._id.noFaktur,
+                    distributor: l[0]?.dataDistributor[0]?.nama
+                }), this.stockItem = l[0]?.stock;
+                return
+            }
+        }
+        validateKategori() {
+            this.inputForm.get("nama").reset();
+            let e = this.dataListKategori$.filter(t => t.nama == this.inputForm.value.kategori);
+            if (e) {
+                if (this.inputForm.patchValue({
+                        kategori: e[0]?.nama
+                    }), this.namaKategori = e[0]?.nama, this.namaKategori == "OBAT") {
+                    this.gudangService.getDaftarItemsByStock("OBAT").subscribe(t => {
+                        this.dataListItems$ = t
+                    });
+                    return
+                }
+                if (this.namaKategori == "BHP") {
+                    this.gudangService.getDaftarItemsByStock("BHP").subscribe(t => {
+                        this.dataListItems$ = t
+                    });
+                    return
+                }
+                if (this.namaKategori == "ALKES") {
+                    this.gudangService.getDaftarItemsByStock("ALKES").subscribe(t => {
+                        this.dataListItems$ = t
+                    });
+                    return
+                }
+                return
+            }
+        }
+        validateJumlah() {
+            if (this.inputForm.value.jumlah > this.stockItem) {
+                this.inputForm.get("jumlah").reset(0), this.toastr.error("Jumlah permintaan lebih besar dari stock gudang", "Error");
+                return
+            }
+        }
+        onDelete(e) {
+            this.dataRequest$.splice(e, 1)
+        }
+        onSave() {
+            this.gudangService.addRequestGudang(this.dataRequest$, "APOTEK").subscribe({
+                next: e => {
+                    this.inputForm.reset(), this.dataRequest$ = [], this.toastr.success("Request Gudang berhasil di tambahkan", "Success")
+                },
+                error: e => {
+                    this.toastr.error(e, "Error")
+                },
+                complete: () => {
+                    this.farmasiService.onLoadNotif$.next()
+                }
+            })
+        }
+        onSubmit() {
+            this.dataRequest$ = [...this.dataRequest$, this.inputForm.value], this.inputForm.get("nama").reset(), this.inputForm.get("jumlah").reset(0)
+        }
+        static {
+            this.\u0275fac = function(t) {
+                return new(t || o)(c(ae), c(A), c(q))
+            }
+        }
+        static {
+            this.\u0275cmp = p({
+                type: o,
+                selectors: [
+                    ["app-request-gudang"]
+                ],
+                decls: 42,
+                vars: 6,
+                consts: [
+                    [1, "row"],
+                    [1, "col"],
+                    [1, "card", "mb-2"],
+                    [1, "card-header", "bg-warning", "fw-bold"],
+                    [1, "card-body"],
+                    [3, "submit", "formGroup"],
+                    [1, "mb-2", "row"],
+                    ["for", "inputPassword", 1, "col-sm-3", "col-form-label"],
+                    [1, "col-sm-9"],
+                    ["type", "text", "list", "listKategori", "formControlName", "kategori", 1, "form-control", 3, "change"],
+                    ["id", "listKategori"],
+                    [3, "value", 4, "ngFor", "ngForOf"],
+                    ["type", "text", "list", "listItems", "formControlName", "nama", 1, "form-control", 3, "change"],
+                    ["id", "listItems"],
+                    [1, "mb-2", "row", "d-none"],
+                    ["type", "text", "list", "listKategori", "formControlName", "noFaktur", "readonly", "", 1, "form-control-plaintext"],
+                    ["type", "text", "list", "listKategori", "formControlName", "distributor", "readonly", "", 1, "form-control-plaintext"],
+                    ["type", "number", "formControlName", "jumlah", 1, "form-control", 3, "change"],
+                    ["type", "submit", 1, "btn", "btn-primary", 3, "disabled"],
+                    [1, "bi", "bi-plus-lg"],
+                    [3, "onDelete", "onSave", "data"],
+                    [3, "value"]
+                ],
+                template: function(t, a) {
+                    t & 1 && (i(0, "div", 0)(1, "div", 1)(2, "div", 2)(3, "div", 3), r(4, "Request Gudang"), n(), i(5, "div", 4)(6, "form", 5), d("submit", function() {
+                        return a.onSubmit()
+                    }), i(7, "div", 6)(8, "label", 7), r(9, "KATEGORI"), n(), i(10, "div", 8)(11, "input", 9), d("change", function() {
+                        return a.validateKategori()
+                    }), n(), i(12, "datalist", 10), v(13, Re, 1, 1, "option", 11), n()()(), i(14, "div", 6)(15, "label", 7), r(16), n(), i(17, "div", 8)(18, "input", 12), d("change", function(l) {
+                        return a.validateItems(l.target.value)
+                    }), n(), i(19, "datalist", 13), v(20, Ee, 4, 11, "option", 11), n()()(), i(21, "div", 14)(22, "label", 7), r(23, "NO.FAKTUR"), n(), i(24, "div", 8), h(25, "input", 15), n()(), i(26, "div", 14)(27, "label", 7), r(28, "DISTRIBUTOR"), n(), i(29, "div", 8), h(30, "input", 16), n()(), i(31, "div", 6)(32, "label", 7), r(33, "JUMLAH / BOX"), n(), i(34, "div", 8)(35, "input", 17), d("change", function() {
+                        return a.validateJumlah()
+                    }), n()()(), i(36, "button", 18), h(37, "i", 19), r(38, " Add "), n()()()()()(), i(39, "div", 0)(40, "div", 1)(41, "app-list-request-gudang", 20), d("onDelete", function(l) {
+                        return a.onDelete(l)
+                    })("onSave", function() {
+                        return a.onSave()
+                    }), n()()()), t & 2 && (s(6), f("formGroup", a.inputForm), s(7), f("ngForOf", a.dataListKategori$), s(3), S("NAMA ", a.namaKategori, ""), s(4), f("ngForOf", a.dataListItems$), s(16), f("disabled", !a.inputForm.valid || a.isLoading), s(5), f("data", a.dataRequest$))
+                },
+                dependencies: [b, k, U, ie, X, ee, te, W, z, H, J, Q, Z, ue],
+                encapsulation: 2
+            })
+        }
+    }
+    return o
+})();
+var be = (() => {
+    class o {
+        constructor(e, t, a, m) {
+            this.activeModal = e, this.apotekService = t, this.toastr = a, this.farmasiService = m, this.resetDataRequest = new E
+        }
+        ngOnInit() {}
+        onSelesai(e) {
+            this.activeModal.dismiss(), this.apotekService.updateRequestApotekSelesai(e).subscribe({
+                next: t => {
+                    this.toastr.success("Request Gudang Selesai", "Success"), this.resetDataRequest.emit(), this.activeModal.dismiss()
+                },
+                error: t => {
+                    this.toastr.error(t, "Error"), this.activeModal.dismiss()
+                },
+                complete: () => {
+                    this.farmasiService.onLoadNotif$.next()
+                }
+            })
+        }
+        onBatal(e) {
+            this.apotekService.updateRequestApotekBatal({
+                id: e
+            }).subscribe({
+                next: t => {
+                    this.toastr.warning("Request Gudang berhasil di batalkan", "Success"), this.resetDataRequest.emit(), this.activeModal.dismiss()
+                },
+                error: t => {
+                    this.toastr.error(t, "Error"), this.activeModal.dismiss()
+                },
+                complete: () => {
+                    this.farmasiService.onLoadNotif$.next()
+                }
+            })
+        }
+        static {
+            this.\u0275fac = function(t) {
+                return new(t || o)(c(ne), c(L), c(q), c(A))
+            }
+        }
+        static {
+            this.\u0275cmp = p({
+                type: o,
+                selectors: [
+                    ["app-update-request-igd"]
+                ],
+                inputs: {
+                    data: "data"
+                },
+                outputs: {
+                    resetDataRequest: "resetDataRequest"
+                },
+                decls: 14,
+                vars: 0,
+                consts: [
+                    [1, "modal-header", "bg-warning"],
+                    [1, "modal-title"],
+                    [1, "bi", "bi-exclamation-circle"],
+                    ["type", "button", "aria-label", "Close", 1, "btn-close", 3, "click"],
+                    [1, "modal-body"],
+                    ["role", "group", "aria-label", "Basic mixed styles example", 1, "btn-group", "w-100"],
+                    ["type", "button", 1, "btn", "btn-success", 3, "click"],
+                    ["type", "button", 1, "btn", "btn-danger", 3, "click"],
+                    [1, "modal-footer"],
+                    ["type", "button", 1, "btn", "btn-outline-dark", 3, "click"]
+                ],
+                template: function(t, a) {
+                    t & 1 && (i(0, "div", 0)(1, "h4", 1), h(2, "i", 2), r(3, " Konfirmasi "), n(), i(4, "button", 3), d("click", function() {
+                        return a.activeModal.dismiss("Cross click")
+                    }), n()(), i(5, "div", 4)(6, "div", 5)(7, "button", 6), d("click", function() {
+                        return a.onSelesai(a.data)
+                    }), r(8, " Selesai "), n(), i(9, "button", 7), d("click", function() {
+                        return a.onBatal(a.data._id)
+                    }), r(10, " Batal "), n()()(), i(11, "div", 8)(12, "button", 9), d("click", function() {
+                        return a.activeModal.close("Close click")
+                    }), r(13, " Close "), n()())
+                },
+                dependencies: [b],
+                encapsulation: 2
+            })
+        }
+    }
+    return o
+})();
+
+function Oe(o, u) {
+    if (o & 1 && (i(0, "tr", 12)(1, "th", 9), r(2), n(), i(3, "td", 13), r(4), n(), i(5, "td"), r(6), n(), i(7, "td"), r(8), n(), i(9, "td"), r(10), n(), i(11, "td", 14), r(12), n()()), o & 2) {
+        let e = u.$implicit,
+            t = u.index;
+        s(2), S("", t + 1, "."), s(2), g(e.nama), s(2), g(e.kategori), s(2), g(e.noFaktur), s(2), g(e.distributor), s(2), g(e.jumlah)
+    }
+}
+
+function Te(o, u) {
+    if (o & 1) {
+        let e = F();
+        i(0, "tr", 8), d("click", function() {
+            let a = y(e).$implicit,
+                m = I();
+            return R(m.onConfirm(a))
+        }), i(1, "th", 9), r(2), n(), i(3, "td"), r(4), n(), i(5, "td")(6, "table", 10)(7, "tbody"), v(8, Oe, 13, 6, "tr", 11), n()()()()
+    }
+    if (o & 2) {
+        let e = u.$implicit,
+            t = u.index;
+        s(2), S("", t + 1, "."), s(2), g(e.createdAt), s(4), f("ngForOf", e.items)
+    }
+}
+var he = (() => {
+    class o {
+        constructor(e, t) {
+            this.apotekService = e, this.modalService = t, this.dataUpdate = null, this.isUpdate = !1
+        }
+        ngOnInit() {
+            this.initValues()
+        }
+        onConfirm(e) {
+            this.isUpdate = !0;
+            let t = this.modalService.open(be);
+            t.componentInstance.data = e, t.componentInstance.resetDataRequest.subscribe(() => {
+                this.initValues()
+            })
+        }
+        initValues() {
+            this.dataRequest$ = this.apotekService.getRequestApotek()
+        }
+        static {
+            this.\u0275fac = function(t) {
+                return new(t || o)(c(L), c(oe))
+            }
+        }
+        static {
+            this.\u0275cmp = p({
+                type: o,
+                selectors: [
+                    ["app-request-igd"]
+                ],
+                decls: 17,
+                vars: 3,
+                consts: [
+                    [1, "card", "mb-2"],
+                    [1, "card-header", "bg-warning", "fw-bold"],
+                    [1, "card-body"],
+                    [1, "table", "table-sm", "table-hover", "align-middle"],
+                    [1, "table-dark"],
+                    ["scope", "col"],
+                    [1, "table-group-divider"],
+                    ["style", "cursor: pointer", 3, "click", 4, "ngFor", "ngForOf"],
+                    [2, "cursor", "pointer", 3, "click"],
+                    ["scope", "row"],
+                    [1, "table", "table-borderless", "table-sm", "mt-3"],
+                    ["class", "text-center", "style", "cursor: pointer", 4, "ngFor", "ngForOf"],
+                    [1, "text-center", 2, "cursor", "pointer"],
+                    [1, "text-start", "text-nowrap"],
+                    [1, "text-end"]
+                ],
+                template: function(t, a) {
+                    t & 1 && (i(0, "div", 0)(1, "div", 1), r(2, "Request IGD"), n(), i(3, "div", 2)(4, "div")(5, "table", 3)(6, "thead", 4)(7, "tr")(8, "th", 5), r(9, "#"), n(), i(10, "th", 5), r(11, "Tanggal"), n(), i(12, "th", 5), r(13, "Request"), n()()(), i(14, "tbody", 6), v(15, Te, 9, 3, "tr", 7), w(16, "async"), n()()()()()), t & 2 && (s(15), f("ngForOf", O(16, 1, a.dataRequest$)))
+                },
+                dependencies: [b, k, j],
+                encapsulation: 2
+            })
+        }
+    }
+    return o
+})();
+var ve = (() => {
+    class o {
+        constructor() {}
+        ngOnInit() {}
+        static {
+            this.\u0275fac = function(t) {
+                return new(t || o)
+            }
+        }
+        static {
+            this.\u0275cmp = p({
+                type: o,
+                selectors: [
+                    ["app-request-inap"]
+                ],
+                decls: 2,
+                vars: 0,
+                template: function(t, a) {
+                    t & 1 && (i(0, "p"), r(1, "request-inap works!"), n())
+                },
+                dependencies: [b],
+                encapsulation: 2
+            })
+        }
+    }
+    return o
+})();
+var _e = (() => {
+    class o {
+        constructor() {}
+        ngOnInit() {}
+        static {
+            this.\u0275fac = function(t) {
+                return new(t || o)
+            }
+        }
+        static {
+            this.\u0275cmp = p({
+                type: o,
+                selectors: [
+                    ["app-request-poli"]
+                ],
+                decls: 2,
+                vars: 0,
+                template: function(t, a) {
+                    t & 1 && (i(0, "p"), r(1, "request-poli works!"), n())
+                },
+                dependencies: [b],
+                encapsulation: 2
+            })
+        }
+    }
+    return o
+})();
+var Se = (() => {
+    class o {
+        constructor() {
+            this.depo = "apotek"
+        }
+        static {
+            this.\u0275fac = function(t) {
+                return new(t || o)
+            }
+        }
+        static {
+            this.\u0275cmp = p({
+                type: o,
+                selectors: [
+                    ["app-apotek-pengambilan-obat"]
+                ],
+                decls: 1,
+                vars: 1,
+                consts: [
+                    [3, "depoChange", "depo"]
+                ],
+                template: function(t, a) {
+                    t & 1 && (i(0, "app-pengambilan-obat-bebas", 0), M("depoChange", function(l) {
+                        return D(a.depo, l) || (a.depo = l), l
+                    }), n()), t & 2 && T("depo", a.depo)
+                },
+                dependencies: [re],
+                encapsulation: 2
+            })
+        }
+    }
+    return o
+})();
+var Ce = (() => {
+    class o {
+        constructor() {
+            this.depo = "apotek"
+        }
+        static {
+            this.\u0275fac = function(t) {
+                return new(t || o)
+            }
+        }
+        static {
+            this.\u0275cmp = p({
+                type: o,
+                selectors: [
+                    ["app-apotek-penambahan-obat"]
+                ],
+                decls: 1,
+                vars: 1,
+                consts: [
+                    [3, "depoChange", "depo"]
+                ],
+                template: function(t, a) {
+                    t & 1 && (i(0, "app-penambahan-obat-bebas", 0), M("depoChange", function(l) {
+                        return D(a.depo, l) || (a.depo = l), l
+                    }), n()), t & 2 && T("depo", a.depo)
+                },
+                dependencies: [se],
+                encapsulation: 2
+            })
+        }
+    }
+    return o
+})();
+var ht = [{
+    path: "request-gudang",
+    component: fe
+}, {
+    path: "request-igd",
+    component: he
+}, {
+    path: "request-inap",
+    component: ve
+}, {
+    path: "request-poli",
+    component: _e
+}, {
+    path: "pengambilan-obat",
+    component: Se
+}, {
+    path: "penambahan-obat",
+    component: Ce
+}, {
+    path: "stock-obat-luar",
+    component: me
+}, {
+    path: "input-obat-luar",
+    component: le
+}, {
+    path: "input/:stock",
+    component: pe
+}];
+export {
+    ht as APOTEK_ROUTES
+};

@@ -1,1 +1,48 @@
-import{c as r}from"./chunk-KIIXQFYM.js";import"./chunk-FUXXJWDL.js";import"./chunk-QGNVLNC6.js";import"./chunk-IVTVBFQS.js";import"./chunk-UI7HE65P.js";import"./chunk-HSMKNQVK.js";import"./chunk-NKLTBXW5.js";import"./chunk-KT4J7VG7.js";import"./chunk-QJBCP6KK.js";import"./chunk-W7XVFZVJ.js";import"./chunk-CFNDTNZN.js";import{Db as t,Ec as i,gc as a,hc as o,ic as p}from"./chunk-UYVTZL26.js";var d=(()=>{class e{static{this.\u0275fac=function(n){return new(n||e)}}static{this.\u0275cmp=t({type:e,selectors:[["app-pelayanan-inap"]],decls:3,vars:0,template:function(n,l){n&1&&(a(0,"p"),i(1,"pelayanan-inap works!"),o(),p(2,"app-detail-encounter"))},dependencies:[r],encapsulation:2})}}return e})();export{d as PelayananInapComponent};
+import {
+    c as r
+} from "./chunk-KIIXQFYM.js";
+import "./chunk-FUXXJWDL.js";
+import "./chunk-QGNVLNC6.js";
+import "./chunk-IVTVBFQS.js";
+import "./chunk-UI7HE65P.js";
+import "./chunk-HSMKNQVK.js";
+import "./chunk-NKLTBXW5.js";
+import "./chunk-KT4J7VG7.js";
+import "./chunk-QJBCP6KK.js";
+import "./chunk-W7XVFZVJ.js";
+import "./chunk-CFNDTNZN.js";
+import {
+    Db as t,
+    Ec as i,
+    gc as a,
+    hc as o,
+    ic as p
+} from "./chunk-UYVTZL26.js";
+var d = (() => {
+    class e {
+        static {
+            this.\u0275fac = function(n) {
+                return new(n || e)
+            }
+        }
+        static {
+            this.\u0275cmp = t({
+                type: e,
+                selectors: [
+                    ["app-pelayanan-inap"]
+                ],
+                decls: 3,
+                vars: 0,
+                template: function(n, l) {
+                    n & 1 && (a(0, "p"), i(1, "pelayanan-inap works!"), o(), p(2, "app-detail-encounter"))
+                },
+                dependencies: [r],
+                encapsulation: 2
+            })
+        }
+    }
+    return e
+})();
+export {
+    d as PelayananInapComponent
+};

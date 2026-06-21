@@ -1,1 +1,131 @@
-import{a as n,b as a,f as h,l as p}from"./chunk-JD6JIJOO.js";import{a as N}from"./chunk-QG5PCDO6.js";import{c as l}from"./chunk-YIQM4CGR.js";import{a as I}from"./chunk-IVTVBFQS.js";import{a as R}from"./chunk-W7XVFZVJ.js";import{y as L}from"./chunk-CFNDTNZN.js";import{L as x,S as C,fa as d,la as G,p as T,qa as f,ra as s,t as _,x as k,yb as A}from"./chunk-UYVTZL26.js";var i=function(r){return r.LOGIN="[Auth] Login",r.LOGIN_SUCCESS="[Auth] Login success",r.LOGIN_FAILURE="[Auth] Login failure",r.GET_CURRENT_USER="[Auth] Get current user",r.GET_CURRENT_USER_SUCCESS="[Auth] Get current user success",r.GET_CURRENT_USER_FAILURE="[Auth] Get current user failure",r.GET_RESET_CURRENT_USER="[Auth] Get reset current user",r.GET_ACTIVATED_ROUTE="[Auth] Get Activated Route",r}(i||{});var B=n(i.LOGIN,a()),H=n(i.LOGIN_SUCCESS,a()),M=n(i.LOGIN_FAILURE,a()),w=n(i.GET_CURRENT_USER),V=n(i.GET_CURRENT_USER_SUCCESS,a()),P=n(i.GET_CURRENT_USER_FAILURE,a()),W=n(i.GET_RESET_CURRENT_USER);var m=class{constructor(E,t,e,o,c,u,U,S){this.nama=E,this.username=t,this.localId=e,this.role=o,this.umjkn=c,this.pmjkn=u,this._token=U,this._tokenExpirationDate=S}get token(){return!this._tokenExpirationDate||new Date>this._tokenExpirationDate?null:this._token}};var v=(()=>{class r{constructor(t,e){this.http=t,this.router=e,this.user=new T(null),this.activatedRoute=A(""),this.store=s(h),this.userSelector=this.store.select(p).pipe(I()).subscribe(o=>{this.currentUser=o})}getCurrentUser(){let t=R.apiUrl+"/users/current";return this.http.get(t)}login(t,e){return this.http.post(R.apiUrl+"/users/authenticate",{username:t,password:e}).pipe(x(this.handleError),d(o=>{this.handleAuthentication(o.nama,o.username,o.localId,o.role,o.umjkn,o.pmjkn,o.idToken,+o.expiresIn)}))}autoLogin(){let t=this.currentUser;if(!t)return;let e=new m(t.nama,t.username,t.localId,t.role,t.umjkn,t.pmjkn,t._token,new Date(t._tokenExpirationDate));if(e.token){this.user.next(e);let o=new Date(t._tokenExpirationDate).getTime()-new Date().getTime();this.autoLogout(o)}}logout(){localStorage.clear(),this.user.next(null),this.tokenExpirationTimer&&clearTimeout(this.tokenExpirationTimer),this.tokenExpirationTimer=null,this.store.dispatch(w()),this.router.navigate(["/auth"])}autoLogout(t){this.tokenExpirationTimer=setTimeout(()=>{this.logout()},t)}handleAuthentication(t,e,o,c,u,U,S,g){let j=new Date(new Date().getTime()+g*1e3),D=new m(t,e,o,c,u,U,S,j);this.user.next(D),this.autoLogout(g*1e3)}handleError(t){let e="An unknown error occured!!";if(!t||!t.error)return _(e);switch(t.error.message){case"EMAIL_NOT_FOUND":e="This email does not exist.";break;case"INVALID_PASSWORD":e="This password is not correct.";break}return _(e)}static{this.\u0275fac=function(e){return new(e||r)(f(L),f(l))}}static{this.\u0275prov=G({token:r,factory:r.\u0275fac,providedIn:"root"})}}return r})();var lt=(r,E)=>{let t=s(l),e=s(v),o=s(N),c=E.url;return e.activatedRoute.set(c),s(h).select(p).pipe(C(1),k(u=>u&&u.role?!0:(t.navigateByUrl("/auth"),!1)))};export{B as a,H as b,M as c,w as d,V as e,P as f,W as g,v as h,lt as i};
+import {
+    a as n,
+    b as a,
+    f as h,
+    l as p
+} from "./chunk-JD6JIJOO.js";
+import {
+    a as N
+} from "./chunk-QG5PCDO6.js";
+import {
+    c as l
+} from "./chunk-YIQM4CGR.js";
+import {
+    a as I
+} from "./chunk-IVTVBFQS.js";
+import {
+    a as R
+} from "./chunk-W7XVFZVJ.js";
+import {
+    y as L
+} from "./chunk-CFNDTNZN.js";
+import {
+    L as x,
+    S as C,
+    fa as d,
+    la as G,
+    p as T,
+    qa as f,
+    ra as s,
+    t as _,
+    x as k,
+    yb as A
+} from "./chunk-UYVTZL26.js";
+var i = function(r) {
+    return r.LOGIN = "[Auth] Login", r.LOGIN_SUCCESS = "[Auth] Login success", r.LOGIN_FAILURE = "[Auth] Login failure", r.GET_CURRENT_USER = "[Auth] Get current user", r.GET_CURRENT_USER_SUCCESS = "[Auth] Get current user success", r.GET_CURRENT_USER_FAILURE = "[Auth] Get current user failure", r.GET_RESET_CURRENT_USER = "[Auth] Get reset current user", r.GET_ACTIVATED_ROUTE = "[Auth] Get Activated Route", r
+}(i || {});
+var B = n(i.LOGIN, a()),
+    H = n(i.LOGIN_SUCCESS, a()),
+    M = n(i.LOGIN_FAILURE, a()),
+    w = n(i.GET_CURRENT_USER),
+    V = n(i.GET_CURRENT_USER_SUCCESS, a()),
+    P = n(i.GET_CURRENT_USER_FAILURE, a()),
+    W = n(i.GET_RESET_CURRENT_USER);
+var m = class {
+    constructor(E, t, e, o, c, u, U, S) {
+        this.nama = E, this.username = t, this.localId = e, this.role = o, this.umjkn = c, this.pmjkn = u, this._token = U, this._tokenExpirationDate = S
+    }
+    get token() {
+        return !this._tokenExpirationDate || new Date > this._tokenExpirationDate ? null : this._token
+    }
+};
+var v = (() => {
+    class r {
+        constructor(t, e) {
+            this.http = t, this.router = e, this.user = new T(null), this.activatedRoute = A(""), this.store = s(h), this.userSelector = this.store.select(p).pipe(I()).subscribe(o => {
+                this.currentUser = o
+            })
+        }
+        getCurrentUser() {
+            let t = R.apiUrl + "/users/current";
+            return this.http.get(t)
+        }
+        login(t, e) {
+            return this.http.post(R.apiUrl + "/users/authenticate", {
+                username: t,
+                password: e
+            }).pipe(x(this.handleError), d(o => {
+                this.handleAuthentication(o.nama, o.username, o.localId, o.role, o.umjkn, o.pmjkn, o.idToken, +o.expiresIn)
+            }))
+        }
+        autoLogin() {
+            let t = this.currentUser;
+            if (!t) return;
+            let e = new m(t.nama, t.username, t.localId, t.role, t.umjkn, t.pmjkn, t._token, new Date(t._tokenExpirationDate));
+            if (e.token) {
+                this.user.next(e);
+                let o = new Date(t._tokenExpirationDate).getTime() - new Date().getTime();
+                this.autoLogout(o)
+            }
+        }
+        logout() {
+            localStorage.clear(), this.user.next(null), this.tokenExpirationTimer && clearTimeout(this.tokenExpirationTimer), this.tokenExpirationTimer = null, this.store.dispatch(w()), this.router.navigate(["/auth"])
+        }
+        autoLogout(t) {
+            this.tokenExpirationTimer = setTimeout(() => {
+                this.logout()
+            }, t)
+        }
+        handleAuthentication(t, e, o, c, u, U, S, g) {
+            let j = new Date(new Date().getTime() + g * 1e3),
+                D = new m(t, e, o, c, u, U, S, j);
+            this.user.next(D), this.autoLogout(g * 1e3)
+        }
+        handleError(t) {
+            let e = "An unknown error occured!!";
+            if (!t || !t.error) return _(e);
+            switch (t.error.message) {
+                case "EMAIL_NOT_FOUND":
+                    e = "This email does not exist.";
+                    break;
+                case "INVALID_PASSWORD":
+                    e = "This password is not correct.";
+                    break
+            }
+            return _(e)
+        }
+        static {
+            this.\u0275fac = function(e) {
+                return new(e || r)(f(L), f(l))
+            }
+        }
+        static {
+            this.\u0275prov = G({
+                token: r,
+                factory: r.\u0275fac,
+                providedIn: "root"
+            })
+        }
+    }
+    return r
+})();
+var lt = (r, E) => {
+    let t = s(l),
+        e = s(v),
+        o = s(N),
+        c = E.url;
+    return e.activatedRoute.set(c), s(h).select(p).pipe(C(1), k(u => u && u.role ? !0 : (t.navigateByUrl("/auth"), !1)))
+};
+export {
+    B as a, H as b, M as c, w as d, V as e, P as f, W as g, v as h, lt as i
+};

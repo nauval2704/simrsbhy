@@ -119,7 +119,10 @@ router.get(
   "/getrincian/RADIOLOGI/:noCheckin",
   simrsBaController.getRincianRadiologi
 );
+router.get("/getpasienlab", simrsBaController.getPasienLab);
+router.get("/getpasienradiologi", simrsBaController.getPasienRadiologi);
 router.post("/inputrincian", simrsBaController.inputRincian);
+
 router.post("/deleterincian", simrsBaController.deleteRincian);
 router.get(
   "/home/dashboard/kunjungan",

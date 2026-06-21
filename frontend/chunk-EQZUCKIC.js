@@ -1,2 +1,172 @@
-import{a as A}from"./chunk-G2DQ3SJM.js";import{a as w}from"./chunk-UI7HE65P.js";import{e as k,k as v,q as x,r as M,s as B,x as E}from"./chunk-NKLTBXW5.js";import{k as T}from"./chunk-QJBCP6KK.js";import"./chunk-W7XVFZVJ.js";import"./chunk-CFNDTNZN.js";import{Da as d,Db as m,Ea as g,Ec as r,Kb as u,Kc as L,Lc as b,Mc as _,cc as h,gc as i,hc as a,ic as f,mc as S,qb as c,ra as p,sc as C,tc as y,zb as s}from"./chunk-UYVTZL26.js";function N(o,K){if(o&1){let t=S();i(0,"button",8),C("click",function(){d(t);let n=y();return g(n.onSubmit(n.selectedCategory))}),r(1,` Submit
-`),a()}}function O(o,K){o&1&&f(0,"app-loading")}var q=(()=>{class o{constructor(){this.apotekService=p(A),this.toastr=p(T),this.selectedCategory="",this.dataLaporan=s([]),this.kategori=s(""),this.depo=s(""),this.isLoading=!1}onSubmit(t){if(this.kategori.set(t),this.isLoading=!0,t.length<1){this.isLoading=!1;return}if(this.depo()==="apotek"){this.apotekService.getStockApotekByKategori(t).subscribe({next:e=>{this.dataLaporan.set(e)},error:e=>{this.toastr.error(e)},complete:()=>{this.isLoading=!1}});return}if(this.depo()==="inap"){this.apotekService.getStockInapkByKategori(t).subscribe({next:e=>{this.dataLaporan.set(e)},error:e=>{this.toastr.error(e)},complete:()=>{this.isLoading=!1}});return}if(this.depo()==="igd"){this.apotekService.getStockIgdkByKategori(t).subscribe({next:e=>{this.dataLaporan.set(e)},error:e=>{this.toastr.error(e)},complete:()=>{this.isLoading=!1}});return}if(this.depo()==="gudang"){this.apotekService.getStockGudangkByKategori(t).subscribe({next:e=>{this.dataLaporan.set(e)},error:e=>{this.toastr.error(e)},complete:()=>{this.isLoading=!1}});return}this.isLoading=!1}static{this.\u0275fac=function(e){return new(e||o)}}static{this.\u0275cmp=m({type:o,selectors:[["app-select-category-laporan"]],inputs:{dataLaporan:[1,"dataLaporan"],kategori:[1,"kategori"],depo:[1,"depo"]},outputs:{dataLaporan:"dataLaporanChange",kategori:"kategoriChange",depo:"depoChange"},decls:14,vars:2,consts:[[1,"mb-3","col-lg-4"],["for","category",1,"form-label"],["id","category",1,"form-select",3,"ngModelChange","ngModel"],["value",""],["value","OBAT"],["value","BHP"],["value","ALKES"],["type","button",1,"btn","btn-primary"],["type","button",1,"btn","btn-primary",3,"click"]],template:function(e,n){e&1&&(i(0,"div",0)(1,"label",1),r(2,"Kategori"),a(),i(3,"select",2),_("ngModelChange",function(l){return b(n.selectedCategory,l)||(n.selectedCategory=l),l}),i(4,"option",3),r(5,"-- Pilih --"),a(),i(6,"option",4),r(7,"OBAT"),a(),i(8,"option",5),r(9,"BHP"),a(),i(10,"option",6),r(11,"ALKES"),a()()(),u(12,N,2,0,"button",7)(13,O,1,0,"app-loading")),e&2&&(c(3),L("ngModel",n.selectedCategory),c(9),h(n.isLoading?13:12))},dependencies:[E,M,B,x,k,v,w],encapsulation:2})}}return o})();export{q as SelectCategoryLaporanComponent};
+import {
+    a as A
+} from "./chunk-G2DQ3SJM.js";
+import {
+    a as w
+} from "./chunk-UI7HE65P.js";
+import {
+    e as k,
+    k as v,
+    q as x,
+    r as M,
+    s as B,
+    x as E
+} from "./chunk-NKLTBXW5.js";
+import {
+    k as T
+} from "./chunk-QJBCP6KK.js";
+import "./chunk-W7XVFZVJ.js";
+import "./chunk-CFNDTNZN.js";
+import {
+    Da as d,
+    Db as m,
+    Ea as g,
+    Ec as r,
+    Kb as u,
+    Kc as L,
+    Lc as b,
+    Mc as _,
+    cc as h,
+    gc as i,
+    hc as a,
+    ic as f,
+    mc as S,
+    qb as c,
+    ra as p,
+    sc as C,
+    tc as y,
+    zb as s
+} from "./chunk-UYVTZL26.js";
+
+function N(o, K) {
+    if (o & 1) {
+        let t = S();
+        i(0, "button", 8), C("click", function() {
+            d(t);
+            let n = y();
+            return g(n.onSubmit(n.selectedCategory))
+        }), r(1, ` Submit
+`), a()
+    }
+}
+
+function O(o, K) {
+    o & 1 && f(0, "app-loading")
+}
+var q = (() => {
+    class o {
+        constructor() {
+            this.apotekService = p(A), this.toastr = p(T), this.selectedCategory = "", this.dataLaporan = s([]), this.kategori = s(""), this.depo = s(""), this.isLoading = !1
+        }
+        onSubmit(t) {
+            if (this.kategori.set(t), this.isLoading = !0, t.length < 1) {
+                this.isLoading = !1;
+                return
+            }
+            if (this.depo() === "apotek") {
+                this.apotekService.getStockApotekByKategori(t).subscribe({
+                    next: e => {
+                        this.dataLaporan.set(e)
+                    },
+                    error: e => {
+                        this.toastr.error(e)
+                    },
+                    complete: () => {
+                        this.isLoading = !1
+                    }
+                });
+                return
+            }
+            if (this.depo() === "inap") {
+                this.apotekService.getStockInapkByKategori(t).subscribe({
+                    next: e => {
+                        this.dataLaporan.set(e)
+                    },
+                    error: e => {
+                        this.toastr.error(e)
+                    },
+                    complete: () => {
+                        this.isLoading = !1
+                    }
+                });
+                return
+            }
+            if (this.depo() === "igd") {
+                this.apotekService.getStockIgdkByKategori(t).subscribe({
+                    next: e => {
+                        this.dataLaporan.set(e)
+                    },
+                    error: e => {
+                        this.toastr.error(e)
+                    },
+                    complete: () => {
+                        this.isLoading = !1
+                    }
+                });
+                return
+            }
+            if (this.depo() === "gudang") {
+                this.apotekService.getStockGudangkByKategori(t).subscribe({
+                    next: e => {
+                        this.dataLaporan.set(e)
+                    },
+                    error: e => {
+                        this.toastr.error(e)
+                    },
+                    complete: () => {
+                        this.isLoading = !1
+                    }
+                });
+                return
+            }
+            this.isLoading = !1
+        }
+        static {
+            this.\u0275fac = function(e) {
+                return new(e || o)
+            }
+        }
+        static {
+            this.\u0275cmp = m({
+                type: o,
+                selectors: [
+                    ["app-select-category-laporan"]
+                ],
+                inputs: {
+                    dataLaporan: [1, "dataLaporan"],
+                    kategori: [1, "kategori"],
+                    depo: [1, "depo"]
+                },
+                outputs: {
+                    dataLaporan: "dataLaporanChange",
+                    kategori: "kategoriChange",
+                    depo: "depoChange"
+                },
+                decls: 14,
+                vars: 2,
+                consts: [
+                    [1, "mb-3", "col-lg-4"],
+                    ["for", "category", 1, "form-label"],
+                    ["id", "category", 1, "form-select", 3, "ngModelChange", "ngModel"],
+                    ["value", ""],
+                    ["value", "OBAT"],
+                    ["value", "BHP"],
+                    ["value", "ALKES"],
+                    ["type", "button", 1, "btn", "btn-primary"],
+                    ["type", "button", 1, "btn", "btn-primary", 3, "click"]
+                ],
+                template: function(e, n) {
+                    e & 1 && (i(0, "div", 0)(1, "label", 1), r(2, "Kategori"), a(), i(3, "select", 2), _("ngModelChange", function(l) {
+                        return b(n.selectedCategory, l) || (n.selectedCategory = l), l
+                    }), i(4, "option", 3), r(5, "-- Pilih --"), a(), i(6, "option", 4), r(7, "OBAT"), a(), i(8, "option", 5), r(9, "BHP"), a(), i(10, "option", 6), r(11, "ALKES"), a()()(), u(12, N, 2, 0, "button", 7)(13, O, 1, 0, "app-loading")), e & 2 && (c(3), L("ngModel", n.selectedCategory), c(9), h(n.isLoading ? 13 : 12))
+                },
+                dependencies: [E, M, B, x, k, v, w],
+                encapsulation: 2
+            })
+        }
+    }
+    return o
+})();
+export {
+    q as SelectCategoryLaporanComponent
+};

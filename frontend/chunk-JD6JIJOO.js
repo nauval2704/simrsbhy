@@ -1,4 +1,922 @@
-import{b as ae}from"./chunk-IVTVBFQS.js";import{Ga as re,Ia as I,Ma as oe,R as X,Yc as ie,a as h,aa as ee,b as E,ba as te,ed as se,fd as ce,ga as ne,gd as ue,k as v,l as Y,la as R,oa as s,p as F,q as Q,qa as f,ra as a,sa as x,u as W,va as w,wa as O,x as J}from"./chunk-UYVTZL26.js";var D={};function Kt(e,r){if(D[e]=(D[e]||0)+1,typeof r=="function")return _(e,(...n)=>E(h({},r(...n)),{type:e}));switch(r?r._as:"empty"){case"empty":return _(e,()=>({type:e}));case"props":return _(e,n=>E(h({},n),{type:e}));default:throw new Error("Unexpected config.")}}function Lt(){return{_as:"props",_p:void 0}}function _(e,r){return Object.defineProperty(r,"type",{value:e,writable:!1})}function $e(e,r){if(e==null)throw new Error(`${r} must be defined.`)}var Ae="@ngrx/store/init",m=(()=>{class e extends F{constructor(){super({type:Ae})}next(t){if(typeof t=="function")throw new TypeError(`
+import {
+    b as ae
+} from "./chunk-IVTVBFQS.js";
+import {
+    Ga as re,
+    Ia as I,
+    Ma as oe,
+    R as X,
+    Yc as ie,
+    a as h,
+    aa as ee,
+    b as E,
+    ba as te,
+    ed as se,
+    fd as ce,
+    ga as ne,
+    gd as ue,
+    k as v,
+    l as Y,
+    la as R,
+    oa as s,
+    p as F,
+    q as Q,
+    qa as f,
+    ra as a,
+    sa as x,
+    u as W,
+    va as w,
+    wa as O,
+    x as J
+} from "./chunk-UYVTZL26.js";
+var D = {};
+
+function Kt(e, r) {
+    if (D[e] = (D[e] || 0) + 1, typeof r == "function") return _(e, (...n) => E(h({}, r(...n)), {
+        type: e
+    }));
+    switch (r ? r._as : "empty") {
+        case "empty":
+            return _(e, () => ({
+                type: e
+            }));
+        case "props":
+            return _(e, n => E(h({}, n), {
+                type: e
+            }));
+        default:
+            throw new Error("Unexpected config.")
+    }
+}
+
+function Lt() {
+    return {
+        _as: "props",
+        _p: void 0
+    }
+}
+
+function _(e, r) {
+    return Object.defineProperty(r, "type", {
+        value: e,
+        writable: !1
+    })
+}
+
+function $e(e, r) {
+    if (e == null) throw new Error(`${r} must be defined.`)
+}
+var Ae = "@ngrx/store/init",
+    m = (() => {
+        class e extends F {
+            constructor() {
+                super({
+                    type: Ae
+                })
+            }
+            next(t) {
+                if (typeof t == "function") throw new TypeError(`
         Dispatch expected an object, instead it received a function.
         If you're using the createAction function, make sure to invoke the function
-        before dispatching the action. For example, someAction should be someAction().`);if(typeof t>"u")throw new TypeError("Actions must be objects");if(typeof t.type>"u")throw new TypeError("Actions must have a type property");super.next(t)}complete(){}ngOnDestroy(){super.complete()}static{this.\u0275fac=function(n){return new(n||e)}}static{this.\u0275prov=R({token:e,factory:e.\u0275fac})}}return e})(),Ke=[m],Te=new s("@ngrx/store Internal Root Guard"),de=new s("@ngrx/store Internal Initial State"),z=new s("@ngrx/store Initial State"),xe=new s("@ngrx/store Reducer Factory"),le=new s("@ngrx/store Internal Reducer Factory Provider"),we=new s("@ngrx/store Initial Reducers"),C=new s("@ngrx/store Internal Initial Reducers"),fe=new s("@ngrx/store Store Features"),pe=new s("@ngrx/store Internal Store Reducers"),M=new s("@ngrx/store Internal Feature Reducers"),ye=new s("@ngrx/store Internal Feature Configs"),Oe=new s("@ngrx/store Internal Store Features"),he=new s("@ngrx/store Internal Feature Reducers Token"),_e=new s("@ngrx/store Feature Reducers"),Re=new s("@ngrx/store User Provided Meta Reducers"),j=new s("@ngrx/store Meta Reducers"),me=new s("@ngrx/store Internal Resolved Meta Reducers"),Ee=new s("@ngrx/store User Runtime Checks Config"),Se=new s("@ngrx/store Internal User Runtime Checks Config"),S=new s("@ngrx/store Internal Runtime Checks"),V=new s("@ngrx/store Check if Action types are unique"),U=new s("@ngrx/store Root Store Provider"),ge=new s("@ngrx/store Feature State Provider");function $(e,r={}){let t=Object.keys(e),n={};for(let o=0;o<t.length;o++){let c=t[o];typeof e[c]=="function"&&(n[c]=e[c])}let i=Object.keys(n);return function(c,d){c=c===void 0?r:c;let l=!1,p={};for(let u=0;u<i.length;u++){let y=i[u],Ve=n[y],Z=c[y],H=Ve(Z,d);p[y]=H,l=l||H!==Z}return l?p:c}}function Le(e,r){return Object.keys(e).filter(t=>t!==r).reduce((t,n)=>Object.assign(t,{[n]:e[n]}),{})}function Ce(...e){return function(r){if(e.length===0)return r;let t=e[e.length-1];return e.slice(0,-1).reduceRight((i,o)=>o(i),t(r))}}function Me(e,r){return Array.isArray(r)&&r.length>0&&(e=Ce.apply(null,[...r,e])),(t,n)=>{let i=e(t);return(o,c)=>(o=o===void 0?n:o,i(o,c))}}function qe(e){let r=Array.isArray(e)&&e.length>0?Ce(...e):t=>t;return(t,n)=>(t=r(t),(i,o)=>(i=i===void 0?n:i,t(i,o)))}var g=class extends v{},b=class extends m{},Be="@ngrx/store/update-reducers",A=(()=>{class e extends F{get currentReducers(){return this.reducers}constructor(t,n,i,o){super(o(i,n)),this.dispatcher=t,this.initialState=n,this.reducers=i,this.reducerFactory=o}addFeature(t){this.addFeatures([t])}addFeatures(t){let n=t.reduce((i,{reducers:o,reducerFactory:c,metaReducers:d,initialState:l,key:p})=>{let u=typeof o=="function"?qe(d)(o,l):Me(c,d)(o,l);return i[p]=u,i},{});this.addReducers(n)}removeFeature(t){this.removeFeatures([t])}removeFeatures(t){this.removeReducers(t.map(n=>n.key))}addReducer(t,n){this.addReducers({[t]:n})}addReducers(t){this.reducers=h(h({},this.reducers),t),this.updateReducers(Object.keys(t))}removeReducer(t){this.removeReducers([t])}removeReducers(t){t.forEach(n=>{this.reducers=Le(this.reducers,n)}),this.updateReducers(t)}updateReducers(t){this.next(this.reducerFactory(this.reducers,this.initialState)),this.dispatcher.next({type:Be,features:t})}ngOnDestroy(){this.complete()}static{this.\u0275fac=function(n){return new(n||e)(f(b),f(z),f(we),f(xe))}}static{this.\u0275prov=R({token:e,factory:e.\u0275fac})}}return e})(),Ge=[A,{provide:g,useExisting:A},{provide:b,useExisting:m}],K=(()=>{class e extends Y{ngOnDestroy(){this.complete()}static{this.\u0275fac=(()=>{let t;return function(i){return(t||(t=re(e)))(i||e)}})()}static{this.\u0275prov=R({token:e,factory:e.\u0275fac})}}return e})(),Ze=[K],T=class extends v{},ve=(()=>{class e extends F{static{this.INIT=Ae}constructor(t,n,i,o){super(o);let d=t.pipe(W(Q)).pipe(ne(n)),l={state:o},p=d.pipe(ee(He,l));this.stateSubscription=p.subscribe(({state:u,action:y})=>{this.next(u),i.next(y)}),this.state=ae(this,{manualCleanup:!0,requireSync:!0})}ngOnDestroy(){this.stateSubscription.unsubscribe(),this.complete()}static{this.\u0275fac=function(n){return new(n||e)(f(m),f(g),f(K),f(z))}}static{this.\u0275prov=R({token:e,factory:e.\u0275fac})}}return e})();function He(e={state:void 0},[r,t]){let{state:n}=e;return{state:t(n,r),action:r}}var Ye=[ve,{provide:T,useExisting:ve}],L=(()=>{class e extends v{constructor(t,n,i,o){super(),this.actionsObserver=n,this.reducerManager=i,this.injector=o,this.source=t,this.state=t.state}select(t,...n){return We.call(null,t,...n)(this)}selectSignal(t,n){return se(()=>t(this.state()),n)}lift(t){let n=new e(this,this.actionsObserver,this.reducerManager);return n.operator=t,n}dispatch(t,n){if(typeof t=="function")return this.processDispatchFn(t,n);this.actionsObserver.next(t)}next(t){this.actionsObserver.next(t)}error(t){this.actionsObserver.error(t)}complete(){this.actionsObserver.complete()}addReducer(t,n){this.reducerManager.addReducer(t,n)}removeReducer(t){this.reducerManager.removeReducer(t)}processDispatchFn(t,n){$e(this.injector,"Store Injector");let i=n?.injector??Je()??this.injector;return ue(()=>{let o=t();ce(()=>this.dispatch(o))},{injector:i})}static{this.\u0275fac=function(n){return new(n||e)(f(T),f(m),f(A),f(I))}}static{this.\u0275prov=R({token:e,factory:e.\u0275fac})}}return e})(),Qe=[L];function We(e,r,...t){return function(i){let o;if(typeof e=="string"){let c=[r,...t].filter(Boolean);o=i.pipe(te(e,...c))}else if(typeof e=="function")o=i.pipe(J(c=>e(c,r)));else throw new TypeError(`Unexpected type '${typeof e}' in select operator, expected 'string' or 'function'`);return o.pipe(X())}}function Je(){try{return a(I)}catch{return}}var q="https://ngrx.io/guide/store/configuration/runtime-checks";function Fe(e){return e===void 0}function Ie(e){return e===null}function De(e){return Array.isArray(e)}function Xe(e){return typeof e=="string"}function et(e){return typeof e=="boolean"}function tt(e){return typeof e=="number"}function Ue(e){return typeof e=="object"&&e!==null}function nt(e){return Ue(e)&&!De(e)}function rt(e){if(!nt(e))return!1;let r=Object.getPrototypeOf(e);return r===Object.prototype||r===null}function k(e){return typeof e=="function"}function ot(e){return k(e)&&e.hasOwnProperty("\u0275cmp")}function it(e,r){return Object.prototype.hasOwnProperty.call(e,r)}function je(e,r){return e===r}function st(e,r,t){for(let n=0;n<e.length;n++)if(!t(e[n],r[n]))return!0;return!1}function ke(e,r=je,t=je){let n=null,i=null,o;function c(){n=null,i=null}function d(u=void 0){o={result:u}}function l(){o=void 0}function p(){if(o!==void 0)return o.result;if(!n)return i=e.apply(null,arguments),n=arguments,i;if(!st(arguments,n,r))return i;let u=e.apply(null,arguments);return n=arguments,t(i,u)?i:(i=u,u)}return{memoized:p,reset:c,setResult:d,clearResult:l}}function B(...e){return ut(ke)(...e)}function ct(e,r,t,n){if(t===void 0){let o=r.map(c=>c(e));return n.memoized.apply(null,o)}let i=r.map(o=>o(e,t));return n.memoized.apply(null,[...i,t])}function ut(e,r={stateFn:ct}){return function(...t){let n=t;if(Array.isArray(n[0])){let[u,...y]=n;n=[...u,...y]}else n.length===1&&at(n[0])&&(n=dt(n[0]));let i=n.slice(0,n.length-1),o=n[n.length-1],c=i.filter(u=>u.release&&typeof u.release=="function"),d=e(function(...u){return o.apply(null,u)}),l=ke(function(u,y){return r.stateFn.apply(null,[u,i,y,d])});function p(){l.reset(),d.reset(),c.forEach(u=>u.release())}return Object.assign(l.memoized,{release:p,projector:d.memoized,setResult:l.setResult,clearResult:l.clearResult})}}function at(e){return!!e&&typeof e=="object"&&Object.values(e).every(r=>typeof r=="function")}function dt(e){let r=Object.values(e),t=Object.keys(e),n=(...i)=>t.reduce((o,c,d)=>E(h({},o),{[c]:i[d]}),{});return[...r,n]}function lt(e){return e instanceof s?a(e):e}function ft(e,r){return r.map((t,n)=>{if(e[n]instanceof s){let i=a(e[n]);return{key:t.key,reducerFactory:i.reducerFactory?i.reducerFactory:$,metaReducers:i.metaReducers?i.metaReducers:[],initialState:i.initialState}}return t})}function pt(e){return e.map(r=>r instanceof s?a(r):r)}function Ne(e){return typeof e=="function"?e():e}function yt(e,r){return e.concat(r)}function ht(){if(a(L,{optional:!0,skipSelf:!0}))throw new TypeError("The root Store has been provided more than once. Feature modules should provide feature states instead.");return"guarded"}function Rt(e,r){return function(t,n){let i=r.action(n)?N(n):n,o=e(t,i);return r.state()?N(o):o}}function N(e){Object.freeze(e);let r=k(e);return Object.getOwnPropertyNames(e).forEach(t=>{if(!t.startsWith("\u0275")&&it(e,t)&&(!r||t!=="caller"&&t!=="callee"&&t!=="arguments")){let n=e[t];(Ue(n)||k(n))&&!Object.isFrozen(n)&&N(n)}}),e}function mt(e,r){return function(t,n){if(r.action(n)){let o=P(n);be(o,"action")}let i=e(t,n);if(r.state()){let o=P(i);be(o,"state")}return i}}function P(e,r=[]){return(Fe(e)||Ie(e))&&r.length===0?{path:["root"],value:e}:Object.keys(e).reduce((n,i)=>{if(n)return n;let o=e[i];return ot(o)?n:Fe(o)||Ie(o)||tt(o)||et(o)||Xe(o)||De(o)?!1:rt(o)?P(o,[...r,i]):{path:[...r,i],value:o}},!1)}function be(e,r){if(e===!1)return;let t=e.path.join("."),n=new Error(`Detected unserializable ${r} at "${t}". ${q}#strict${r}serializability`);throw n.value=e.value,n.unserializablePath=t,n}function Et(e,r){return function(t,n){if(r.action(n)&&!oe.isInAngularZone())throw new Error(`Action '${n.type}' running outside NgZone. ${q}#strictactionwithinngzone`);return e(t,n)}}function St(e){return ie()?h({strictStateSerializability:!1,strictActionSerializability:!1,strictStateImmutability:!0,strictActionImmutability:!0,strictActionWithinNgZone:!1,strictActionTypeUniqueness:!1},e):{strictStateSerializability:!1,strictActionSerializability:!1,strictStateImmutability:!1,strictActionImmutability:!1,strictActionWithinNgZone:!1,strictActionTypeUniqueness:!1}}function gt({strictActionSerializability:e,strictStateSerializability:r}){return t=>e||r?mt(t,{action:n=>e&&!G(n),state:()=>r}):t}function vt({strictActionImmutability:e,strictStateImmutability:r}){return t=>e||r?Rt(t,{action:n=>e&&!G(n),state:()=>r}):t}function G(e){return e.type.startsWith("@ngrx")}function Ft({strictActionWithinNgZone:e}){return r=>e?Et(r,{action:t=>e&&!G(t)}):r}function It(e){return[{provide:Se,useValue:e},{provide:Ee,useFactory:jt,deps:[Se]},{provide:S,deps:[Ee],useFactory:St},{provide:j,multi:!0,deps:[S],useFactory:vt},{provide:j,multi:!0,deps:[S],useFactory:gt},{provide:j,multi:!0,deps:[S],useFactory:Ft}]}function Pe(){return[{provide:V,multi:!0,deps:[S],useFactory:bt}]}function jt(e){return e}function bt(e){if(!e.strictActionTypeUniqueness)return;let r=Object.entries(D).filter(([,t])=>t>1).map(([t])=>t);if(r.length)throw new Error(`Action types are registered more than once, ${r.map(t=>`"${t}"`).join(", ")}. ${q}#strictactiontypeuniqueness`)}function qt(e,r,t={}){return O([..._t(e,r,t),Ot])}function At(e={},r={}){return[{provide:Te,useFactory:ht},{provide:de,useValue:r.initialState},{provide:z,useFactory:Ne,deps:[de]},{provide:C,useValue:e},{provide:pe,useExisting:e instanceof s?e:C},{provide:we,deps:[C,[new x(pe)]],useFactory:lt},{provide:Re,useValue:r.metaReducers?r.metaReducers:[]},{provide:me,deps:[j,Re],useFactory:yt},{provide:le,useValue:r.reducerFactory?r.reducerFactory:$},{provide:xe,deps:[le,me],useFactory:Me},Ke,Ge,Ze,Ye,Qe,It(r.runtimeChecks),Pe()]}function Tt(){a(m),a(g),a(K),a(L),a(Te,{optional:!0}),a(V,{optional:!0})}var xt=[{provide:U,useFactory:Tt},{provide:w,multi:!0,useFactory(){return()=>a(U)}}];function Bt(e,r){return O([...At(e,r),xt])}function wt(){a(U);let e=a(Oe),r=a(_e),t=a(A);a(V,{optional:!0});let n=e.map((i,o)=>{let d=r.shift()[o];return E(h({},i),{reducers:d,initialState:Ne(i.initialState)})});t.addFeatures(n)}var Ot=[{provide:ge,useFactory:wt},{provide:w,multi:!0,useFactory(){return()=>a(ge)}}];function _t(e,r,t={}){return[{provide:ye,multi:!0,useValue:e instanceof Object?{}:t},{provide:fe,multi:!0,useValue:{key:e instanceof Object?e.name:e,reducerFactory:!(t instanceof s)&&t.reducerFactory?t.reducerFactory:$,metaReducers:!(t instanceof s)&&t.metaReducers?t.metaReducers:[],initialState:!(t instanceof s)&&t.initialState?t.initialState:void 0}},{provide:Oe,deps:[ye,fe],useFactory:ft},{provide:M,multi:!0,useValue:e instanceof Object?e.reducer:r},{provide:he,multi:!0,useExisting:r instanceof s?r:M},{provide:_e,multi:!0,deps:[M,[new x(he)]],useFactory:pt},Pe()]}function Gt(...e){let r=e.pop(),t=e.map(n=>n.type);return{reducer:r,types:t}}function Zt(e,...r){let t=new Map;for(let n of r)for(let i of n.types){let o=t.get(i);if(o){let c=(d,l)=>n.reducer(o(d,l),l);t.set(i,c)}else t.set(i,n.reducer)}return function(n=e,i){let o=t.get(i.type);return o?o(n,i):n}}var ze=e=>e.auth,Wt=B(ze,e=>e.isSubmitting),Jt=B(ze,e=>e.currentUser);export{Kt as a,Lt as b,U as c,ge as d,K as e,L as f,qt as g,Bt as h,Gt as i,Zt as j,Wt as k,Jt as l};
+        before dispatching the action. For example, someAction should be someAction().`);
+                if (typeof t > "u") throw new TypeError("Actions must be objects");
+                if (typeof t.type > "u") throw new TypeError("Actions must have a type property");
+                super.next(t)
+            }
+            complete() {}
+            ngOnDestroy() {
+                super.complete()
+            }
+            static {
+                this.\u0275fac = function(n) {
+                    return new(n || e)
+                }
+            }
+            static {
+                this.\u0275prov = R({
+                    token: e,
+                    factory: e.\u0275fac
+                })
+            }
+        }
+        return e
+    })(),
+    Ke = [m],
+    Te = new s("@ngrx/store Internal Root Guard"),
+    de = new s("@ngrx/store Internal Initial State"),
+    z = new s("@ngrx/store Initial State"),
+    xe = new s("@ngrx/store Reducer Factory"),
+    le = new s("@ngrx/store Internal Reducer Factory Provider"),
+    we = new s("@ngrx/store Initial Reducers"),
+    C = new s("@ngrx/store Internal Initial Reducers"),
+    fe = new s("@ngrx/store Store Features"),
+    pe = new s("@ngrx/store Internal Store Reducers"),
+    M = new s("@ngrx/store Internal Feature Reducers"),
+    ye = new s("@ngrx/store Internal Feature Configs"),
+    Oe = new s("@ngrx/store Internal Store Features"),
+    he = new s("@ngrx/store Internal Feature Reducers Token"),
+    _e = new s("@ngrx/store Feature Reducers"),
+    Re = new s("@ngrx/store User Provided Meta Reducers"),
+    j = new s("@ngrx/store Meta Reducers"),
+    me = new s("@ngrx/store Internal Resolved Meta Reducers"),
+    Ee = new s("@ngrx/store User Runtime Checks Config"),
+    Se = new s("@ngrx/store Internal User Runtime Checks Config"),
+    S = new s("@ngrx/store Internal Runtime Checks"),
+    V = new s("@ngrx/store Check if Action types are unique"),
+    U = new s("@ngrx/store Root Store Provider"),
+    ge = new s("@ngrx/store Feature State Provider");
+
+function $(e, r = {}) {
+    let t = Object.keys(e),
+        n = {};
+    for (let o = 0; o < t.length; o++) {
+        let c = t[o];
+        typeof e[c] == "function" && (n[c] = e[c])
+    }
+    let i = Object.keys(n);
+    return function(c, d) {
+        c = c === void 0 ? r : c;
+        let l = !1,
+            p = {};
+        for (let u = 0; u < i.length; u++) {
+            let y = i[u],
+                Ve = n[y],
+                Z = c[y],
+                H = Ve(Z, d);
+            p[y] = H, l = l || H !== Z
+        }
+        return l ? p : c
+    }
+}
+
+function Le(e, r) {
+    return Object.keys(e).filter(t => t !== r).reduce((t, n) => Object.assign(t, {
+        [n]: e[n]
+    }), {})
+}
+
+function Ce(...e) {
+    return function(r) {
+        if (e.length === 0) return r;
+        let t = e[e.length - 1];
+        return e.slice(0, -1).reduceRight((i, o) => o(i), t(r))
+    }
+}
+
+function Me(e, r) {
+    return Array.isArray(r) && r.length > 0 && (e = Ce.apply(null, [...r, e])), (t, n) => {
+        let i = e(t);
+        return (o, c) => (o = o === void 0 ? n : o, i(o, c))
+    }
+}
+
+function qe(e) {
+    let r = Array.isArray(e) && e.length > 0 ? Ce(...e) : t => t;
+    return (t, n) => (t = r(t), (i, o) => (i = i === void 0 ? n : i, t(i, o)))
+}
+var g = class extends v {},
+    b = class extends m {},
+    Be = "@ngrx/store/update-reducers",
+    A = (() => {
+        class e extends F {
+            get currentReducers() {
+                return this.reducers
+            }
+            constructor(t, n, i, o) {
+                super(o(i, n)), this.dispatcher = t, this.initialState = n, this.reducers = i, this.reducerFactory = o
+            }
+            addFeature(t) {
+                this.addFeatures([t])
+            }
+            addFeatures(t) {
+                let n = t.reduce((i, {
+                    reducers: o,
+                    reducerFactory: c,
+                    metaReducers: d,
+                    initialState: l,
+                    key: p
+                }) => {
+                    let u = typeof o == "function" ? qe(d)(o, l) : Me(c, d)(o, l);
+                    return i[p] = u, i
+                }, {});
+                this.addReducers(n)
+            }
+            removeFeature(t) {
+                this.removeFeatures([t])
+            }
+            removeFeatures(t) {
+                this.removeReducers(t.map(n => n.key))
+            }
+            addReducer(t, n) {
+                this.addReducers({
+                    [t]: n
+                })
+            }
+            addReducers(t) {
+                this.reducers = h(h({}, this.reducers), t), this.updateReducers(Object.keys(t))
+            }
+            removeReducer(t) {
+                this.removeReducers([t])
+            }
+            removeReducers(t) {
+                t.forEach(n => {
+                    this.reducers = Le(this.reducers, n)
+                }), this.updateReducers(t)
+            }
+            updateReducers(t) {
+                this.next(this.reducerFactory(this.reducers, this.initialState)), this.dispatcher.next({
+                    type: Be,
+                    features: t
+                })
+            }
+            ngOnDestroy() {
+                this.complete()
+            }
+            static {
+                this.\u0275fac = function(n) {
+                    return new(n || e)(f(b), f(z), f(we), f(xe))
+                }
+            }
+            static {
+                this.\u0275prov = R({
+                    token: e,
+                    factory: e.\u0275fac
+                })
+            }
+        }
+        return e
+    })(),
+    Ge = [A, {
+        provide: g,
+        useExisting: A
+    }, {
+        provide: b,
+        useExisting: m
+    }],
+    K = (() => {
+        class e extends Y {
+            ngOnDestroy() {
+                this.complete()
+            }
+            static {
+                this.\u0275fac = (() => {
+                    let t;
+                    return function(i) {
+                        return (t || (t = re(e)))(i || e)
+                    }
+                })()
+            }
+            static {
+                this.\u0275prov = R({
+                    token: e,
+                    factory: e.\u0275fac
+                })
+            }
+        }
+        return e
+    })(),
+    Ze = [K],
+    T = class extends v {},
+    ve = (() => {
+        class e extends F {
+            static {
+                this.INIT = Ae
+            }
+            constructor(t, n, i, o) {
+                super(o);
+                let d = t.pipe(W(Q)).pipe(ne(n)),
+                    l = {
+                        state: o
+                    },
+                    p = d.pipe(ee(He, l));
+                this.stateSubscription = p.subscribe(({
+                    state: u,
+                    action: y
+                }) => {
+                    this.next(u), i.next(y)
+                }), this.state = ae(this, {
+                    manualCleanup: !0,
+                    requireSync: !0
+                })
+            }
+            ngOnDestroy() {
+                this.stateSubscription.unsubscribe(), this.complete()
+            }
+            static {
+                this.\u0275fac = function(n) {
+                    return new(n || e)(f(m), f(g), f(K), f(z))
+                }
+            }
+            static {
+                this.\u0275prov = R({
+                    token: e,
+                    factory: e.\u0275fac
+                })
+            }
+        }
+        return e
+    })();
+
+function He(e = {
+    state: void 0
+}, [r, t]) {
+    let {
+        state: n
+    } = e;
+    return {
+        state: t(n, r),
+        action: r
+    }
+}
+var Ye = [ve, {
+        provide: T,
+        useExisting: ve
+    }],
+    L = (() => {
+        class e extends v {
+            constructor(t, n, i, o) {
+                super(), this.actionsObserver = n, this.reducerManager = i, this.injector = o, this.source = t, this.state = t.state
+            }
+            select(t, ...n) {
+                return We.call(null, t, ...n)(this)
+            }
+            selectSignal(t, n) {
+                return se(() => t(this.state()), n)
+            }
+            lift(t) {
+                let n = new e(this, this.actionsObserver, this.reducerManager);
+                return n.operator = t, n
+            }
+            dispatch(t, n) {
+                if (typeof t == "function") return this.processDispatchFn(t, n);
+                this.actionsObserver.next(t)
+            }
+            next(t) {
+                this.actionsObserver.next(t)
+            }
+            error(t) {
+                this.actionsObserver.error(t)
+            }
+            complete() {
+                this.actionsObserver.complete()
+            }
+            addReducer(t, n) {
+                this.reducerManager.addReducer(t, n)
+            }
+            removeReducer(t) {
+                this.reducerManager.removeReducer(t)
+            }
+            processDispatchFn(t, n) {
+                $e(this.injector, "Store Injector");
+                let i = n?.injector ?? Je() ?? this.injector;
+                return ue(() => {
+                    let o = t();
+                    ce(() => this.dispatch(o))
+                }, {
+                    injector: i
+                })
+            }
+            static {
+                this.\u0275fac = function(n) {
+                    return new(n || e)(f(T), f(m), f(A), f(I))
+                }
+            }
+            static {
+                this.\u0275prov = R({
+                    token: e,
+                    factory: e.\u0275fac
+                })
+            }
+        }
+        return e
+    })(),
+    Qe = [L];
+
+function We(e, r, ...t) {
+    return function(i) {
+        let o;
+        if (typeof e == "string") {
+            let c = [r, ...t].filter(Boolean);
+            o = i.pipe(te(e, ...c))
+        } else if (typeof e == "function") o = i.pipe(J(c => e(c, r)));
+        else throw new TypeError(`Unexpected type '${typeof e}' in select operator, expected 'string' or 'function'`);
+        return o.pipe(X())
+    }
+}
+
+function Je() {
+    try {
+        return a(I)
+    } catch {
+        return
+    }
+}
+var q = "https://ngrx.io/guide/store/configuration/runtime-checks";
+
+function Fe(e) {
+    return e === void 0
+}
+
+function Ie(e) {
+    return e === null
+}
+
+function De(e) {
+    return Array.isArray(e)
+}
+
+function Xe(e) {
+    return typeof e == "string"
+}
+
+function et(e) {
+    return typeof e == "boolean"
+}
+
+function tt(e) {
+    return typeof e == "number"
+}
+
+function Ue(e) {
+    return typeof e == "object" && e !== null
+}
+
+function nt(e) {
+    return Ue(e) && !De(e)
+}
+
+function rt(e) {
+    if (!nt(e)) return !1;
+    let r = Object.getPrototypeOf(e);
+    return r === Object.prototype || r === null
+}
+
+function k(e) {
+    return typeof e == "function"
+}
+
+function ot(e) {
+    return k(e) && e.hasOwnProperty("\u0275cmp")
+}
+
+function it(e, r) {
+    return Object.prototype.hasOwnProperty.call(e, r)
+}
+
+function je(e, r) {
+    return e === r
+}
+
+function st(e, r, t) {
+    for (let n = 0; n < e.length; n++)
+        if (!t(e[n], r[n])) return !0;
+    return !1
+}
+
+function ke(e, r = je, t = je) {
+    let n = null,
+        i = null,
+        o;
+
+    function c() {
+        n = null, i = null
+    }
+
+    function d(u = void 0) {
+        o = {
+            result: u
+        }
+    }
+
+    function l() {
+        o = void 0
+    }
+
+    function p() {
+        if (o !== void 0) return o.result;
+        if (!n) return i = e.apply(null, arguments), n = arguments, i;
+        if (!st(arguments, n, r)) return i;
+        let u = e.apply(null, arguments);
+        return n = arguments, t(i, u) ? i : (i = u, u)
+    }
+    return {
+        memoized: p,
+        reset: c,
+        setResult: d,
+        clearResult: l
+    }
+}
+
+function B(...e) {
+    return ut(ke)(...e)
+}
+
+function ct(e, r, t, n) {
+    if (t === void 0) {
+        let o = r.map(c => c(e));
+        return n.memoized.apply(null, o)
+    }
+    let i = r.map(o => o(e, t));
+    return n.memoized.apply(null, [...i, t])
+}
+
+function ut(e, r = {
+    stateFn: ct
+}) {
+    return function(...t) {
+        let n = t;
+        if (Array.isArray(n[0])) {
+            let [u, ...y] = n;
+            n = [...u, ...y]
+        } else n.length === 1 && at(n[0]) && (n = dt(n[0]));
+        let i = n.slice(0, n.length - 1),
+            o = n[n.length - 1],
+            c = i.filter(u => u.release && typeof u.release == "function"),
+            d = e(function(...u) {
+                return o.apply(null, u)
+            }),
+            l = ke(function(u, y) {
+                return r.stateFn.apply(null, [u, i, y, d])
+            });
+
+        function p() {
+            l.reset(), d.reset(), c.forEach(u => u.release())
+        }
+        return Object.assign(l.memoized, {
+            release: p,
+            projector: d.memoized,
+            setResult: l.setResult,
+            clearResult: l.clearResult
+        })
+    }
+}
+
+function at(e) {
+    return !!e && typeof e == "object" && Object.values(e).every(r => typeof r == "function")
+}
+
+function dt(e) {
+    let r = Object.values(e),
+        t = Object.keys(e),
+        n = (...i) => t.reduce((o, c, d) => E(h({}, o), {
+            [c]: i[d]
+        }), {});
+    return [...r, n]
+}
+
+function lt(e) {
+    return e instanceof s ? a(e) : e
+}
+
+function ft(e, r) {
+    return r.map((t, n) => {
+        if (e[n] instanceof s) {
+            let i = a(e[n]);
+            return {
+                key: t.key,
+                reducerFactory: i.reducerFactory ? i.reducerFactory : $,
+                metaReducers: i.metaReducers ? i.metaReducers : [],
+                initialState: i.initialState
+            }
+        }
+        return t
+    })
+}
+
+function pt(e) {
+    return e.map(r => r instanceof s ? a(r) : r)
+}
+
+function Ne(e) {
+    return typeof e == "function" ? e() : e
+}
+
+function yt(e, r) {
+    return e.concat(r)
+}
+
+function ht() {
+    if (a(L, {
+            optional: !0,
+            skipSelf: !0
+        })) throw new TypeError("The root Store has been provided more than once. Feature modules should provide feature states instead.");
+    return "guarded"
+}
+
+function Rt(e, r) {
+    return function(t, n) {
+        let i = r.action(n) ? N(n) : n,
+            o = e(t, i);
+        return r.state() ? N(o) : o
+    }
+}
+
+function N(e) {
+    Object.freeze(e);
+    let r = k(e);
+    return Object.getOwnPropertyNames(e).forEach(t => {
+        if (!t.startsWith("\u0275") && it(e, t) && (!r || t !== "caller" && t !== "callee" && t !== "arguments")) {
+            let n = e[t];
+            (Ue(n) || k(n)) && !Object.isFrozen(n) && N(n)
+        }
+    }), e
+}
+
+function mt(e, r) {
+    return function(t, n) {
+        if (r.action(n)) {
+            let o = P(n);
+            be(o, "action")
+        }
+        let i = e(t, n);
+        if (r.state()) {
+            let o = P(i);
+            be(o, "state")
+        }
+        return i
+    }
+}
+
+function P(e, r = []) {
+    return (Fe(e) || Ie(e)) && r.length === 0 ? {
+        path: ["root"],
+        value: e
+    } : Object.keys(e).reduce((n, i) => {
+        if (n) return n;
+        let o = e[i];
+        return ot(o) ? n : Fe(o) || Ie(o) || tt(o) || et(o) || Xe(o) || De(o) ? !1 : rt(o) ? P(o, [...r, i]) : {
+            path: [...r, i],
+            value: o
+        }
+    }, !1)
+}
+
+function be(e, r) {
+    if (e === !1) return;
+    let t = e.path.join("."),
+        n = new Error(`Detected unserializable ${r} at "${t}". ${q}#strict${r}serializability`);
+    throw n.value = e.value, n.unserializablePath = t, n
+}
+
+function Et(e, r) {
+    return function(t, n) {
+        if (r.action(n) && !oe.isInAngularZone()) throw new Error(`Action '${n.type}' running outside NgZone. ${q}#strictactionwithinngzone`);
+        return e(t, n)
+    }
+}
+
+function St(e) {
+    return ie() ? h({
+        strictStateSerializability: !1,
+        strictActionSerializability: !1,
+        strictStateImmutability: !0,
+        strictActionImmutability: !0,
+        strictActionWithinNgZone: !1,
+        strictActionTypeUniqueness: !1
+    }, e) : {
+        strictStateSerializability: !1,
+        strictActionSerializability: !1,
+        strictStateImmutability: !1,
+        strictActionImmutability: !1,
+        strictActionWithinNgZone: !1,
+        strictActionTypeUniqueness: !1
+    }
+}
+
+function gt({
+    strictActionSerializability: e,
+    strictStateSerializability: r
+}) {
+    return t => e || r ? mt(t, {
+        action: n => e && !G(n),
+        state: () => r
+    }) : t
+}
+
+function vt({
+    strictActionImmutability: e,
+    strictStateImmutability: r
+}) {
+    return t => e || r ? Rt(t, {
+        action: n => e && !G(n),
+        state: () => r
+    }) : t
+}
+
+function G(e) {
+    return e.type.startsWith("@ngrx")
+}
+
+function Ft({
+    strictActionWithinNgZone: e
+}) {
+    return r => e ? Et(r, {
+        action: t => e && !G(t)
+    }) : r
+}
+
+function It(e) {
+    return [{
+        provide: Se,
+        useValue: e
+    }, {
+        provide: Ee,
+        useFactory: jt,
+        deps: [Se]
+    }, {
+        provide: S,
+        deps: [Ee],
+        useFactory: St
+    }, {
+        provide: j,
+        multi: !0,
+        deps: [S],
+        useFactory: vt
+    }, {
+        provide: j,
+        multi: !0,
+        deps: [S],
+        useFactory: gt
+    }, {
+        provide: j,
+        multi: !0,
+        deps: [S],
+        useFactory: Ft
+    }]
+}
+
+function Pe() {
+    return [{
+        provide: V,
+        multi: !0,
+        deps: [S],
+        useFactory: bt
+    }]
+}
+
+function jt(e) {
+    return e
+}
+
+function bt(e) {
+    if (!e.strictActionTypeUniqueness) return;
+    let r = Object.entries(D).filter(([, t]) => t > 1).map(([t]) => t);
+    if (r.length) throw new Error(`Action types are registered more than once, ${r.map(t=>`"${t}"`).join(", ")}. ${q}#strictactiontypeuniqueness`)
+}
+
+function qt(e, r, t = {}) {
+    return O([..._t(e, r, t), Ot])
+}
+
+function At(e = {}, r = {}) {
+    return [{
+        provide: Te,
+        useFactory: ht
+    }, {
+        provide: de,
+        useValue: r.initialState
+    }, {
+        provide: z,
+        useFactory: Ne,
+        deps: [de]
+    }, {
+        provide: C,
+        useValue: e
+    }, {
+        provide: pe,
+        useExisting: e instanceof s ? e : C
+    }, {
+        provide: we,
+        deps: [C, [new x(pe)]],
+        useFactory: lt
+    }, {
+        provide: Re,
+        useValue: r.metaReducers ? r.metaReducers : []
+    }, {
+        provide: me,
+        deps: [j, Re],
+        useFactory: yt
+    }, {
+        provide: le,
+        useValue: r.reducerFactory ? r.reducerFactory : $
+    }, {
+        provide: xe,
+        deps: [le, me],
+        useFactory: Me
+    }, Ke, Ge, Ze, Ye, Qe, It(r.runtimeChecks), Pe()]
+}
+
+function Tt() {
+    a(m), a(g), a(K), a(L), a(Te, {
+        optional: !0
+    }), a(V, {
+        optional: !0
+    })
+}
+var xt = [{
+    provide: U,
+    useFactory: Tt
+}, {
+    provide: w,
+    multi: !0,
+    useFactory() {
+        return () => a(U)
+    }
+}];
+
+function Bt(e, r) {
+    return O([...At(e, r), xt])
+}
+
+function wt() {
+    a(U);
+    let e = a(Oe),
+        r = a(_e),
+        t = a(A);
+    a(V, {
+        optional: !0
+    });
+    let n = e.map((i, o) => {
+        let d = r.shift()[o];
+        return E(h({}, i), {
+            reducers: d,
+            initialState: Ne(i.initialState)
+        })
+    });
+    t.addFeatures(n)
+}
+var Ot = [{
+    provide: ge,
+    useFactory: wt
+}, {
+    provide: w,
+    multi: !0,
+    useFactory() {
+        return () => a(ge)
+    }
+}];
+
+function _t(e, r, t = {}) {
+    return [{
+        provide: ye,
+        multi: !0,
+        useValue: e instanceof Object ? {} : t
+    }, {
+        provide: fe,
+        multi: !0,
+        useValue: {
+            key: e instanceof Object ? e.name : e,
+            reducerFactory: !(t instanceof s) && t.reducerFactory ? t.reducerFactory : $,
+            metaReducers: !(t instanceof s) && t.metaReducers ? t.metaReducers : [],
+            initialState: !(t instanceof s) && t.initialState ? t.initialState : void 0
+        }
+    }, {
+        provide: Oe,
+        deps: [ye, fe],
+        useFactory: ft
+    }, {
+        provide: M,
+        multi: !0,
+        useValue: e instanceof Object ? e.reducer : r
+    }, {
+        provide: he,
+        multi: !0,
+        useExisting: r instanceof s ? r : M
+    }, {
+        provide: _e,
+        multi: !0,
+        deps: [M, [new x(he)]],
+        useFactory: pt
+    }, Pe()]
+}
+
+function Gt(...e) {
+    let r = e.pop(),
+        t = e.map(n => n.type);
+    return {
+        reducer: r,
+        types: t
+    }
+}
+
+function Zt(e, ...r) {
+    let t = new Map;
+    for (let n of r)
+        for (let i of n.types) {
+            let o = t.get(i);
+            if (o) {
+                let c = (d, l) => n.reducer(o(d, l), l);
+                t.set(i, c)
+            } else t.set(i, n.reducer)
+        }
+    return function(n = e, i) {
+        let o = t.get(i.type);
+        return o ? o(n, i) : n
+    }
+}
+var ze = e => e.auth,
+    Wt = B(ze, e => e.isSubmitting),
+    Jt = B(ze, e => e.currentUser);
+export {
+    Kt as a, Lt as b, U as c, ge as d, K as e, L as f, qt as g, Bt as h, Gt as i, Zt as j, Wt as k, Jt as l
+};

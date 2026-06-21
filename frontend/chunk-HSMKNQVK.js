@@ -1,1 +1,83 @@
-var a=[{identifierName:"Divisi Pelayanan Medik, Keperawatan, dan Penunjang",nama:"Divisi Pelayanan Medik, Keperawatan, dan Penunjang",id:"8792b0c3-f092-4685-a86e-71f78b77cc49"},{identifierName:"Pelayanan Gawat Darurat",nama:"Pelayanan Gawat Darurat, Divisi Pelayanan Medik, Keperawatan, dan Penunjang",id:"db1a36e0-b1da-4914-a4be-e9c27b3d85c2"},{identifierName:"Pelayanan Instalasi Rawat Jalan Terpadu",nama:"Pelayanan Instalasi Rawat Jalan Terpadu, Divisi Pelayanan Medik, Keperawatan, dan Penunjang",id:"5f97dcfa-78a5-42be-837e-0c38ad7fa7bf"}],n=[{identifierName:"Instalasi Gawat Darurat",nama:"Instalasi Gawat Darurat, Pelayanan Gawat Darurat",description:"Instalasi Gawat Darurat, Pelayanan Gawat Darurat, Gedung Utama, Lantai 1",code:"RT0006",codePhysical:"bu",codePhysicalDisplay:"Building",longitude:5.5295361,latitude:95.2944392,managingOrganization:"db1a36e0-b1da-4914-a4be-e9c27b3d85c2",id:"421f48dc-4b44-42b2-9e8e-0cb6656bdc71",partof:!1,info:"IGD"},{identifierName:"Ruangan Triase",nama:"Ruangan Triase, Instalasi Gawat Darurat",description:"Ruangan Triase, Instalasi Gawat Darurat, Gedung Utama, Lantai 1",code:"RT0032",codePhysical:"ro",codePhysicalDisplay:"Room",longitude:5.5295361,latitude:95.2944392,managingOrganization:"db1a36e0-b1da-4914-a4be-e9c27b3d85c2",id:"90c25b11-b33f-4991-b5c0-203171f04af4",partof:!0,info:"IGD"},{identifierName:"Ruangan Observasi",nama:"Ruangan Observasi, Instalasi Gawat Darurat",description:"Ruangan Observasi, Instalasi Gawat Darurat, Gedung Utama, Lantai 1",code:"RT0026",codePhysical:"ro",codePhysicalDisplay:"Room",longitude:5.5295361,latitude:95.2944392,managingOrganization:"db1a36e0-b1da-4914-a4be-e9c27b3d85c2",id:"9bfd2475-b25d-4a7b-ac89-b612dc6fd2eb",partof:!0,info:"IGD"},{identifierName:"Instalasi Rawat Jalan Terpadu",nama:"Instalasi Rawat Jalan Terpadu, Pelayanan Rawat Jalan Terpadu",description:"Instalasi Rawat Jalan Terpadu, Pelayanan Rawat Jalan Terpadu, Gedung Utama, Lantai 1",code:"RT0030",codePhysical:"bu",codePhysicalDisplay:"Building",longitude:5.5295361,latitude:95.2944392,managingOrganization:"5f97dcfa-78a5-42be-837e-0c38ad7fa7bf",id:"9168d93d-4eae-4b7a-b83c-fd7f035ac685",partof:!1,info:"POLI"},{identifierName:"Ruang Poliklinik Terpadu",nama:"Ruang Poliklinik Terpadu, Instalasi Rawat Jalan Terpadu",description:"Ruang Poliklinik Terpadu, Instalasi Rawat Jalan Terpadu, Gedung Utama, Lantai 1",code:"RT0031",codePhysical:"ro",codePhysicalDisplay:"Room",longitude:5.5295361,latitude:95.2944392,managingOrganization:"5f97dcfa-78a5-42be-837e-0c38ad7fa7bf",id:"44e99cdb-3ab0-4391-8203-aa6e5f7112b6",partof:!0,info:"POLI"}];export{a,n as b};
+var a = [{
+        identifierName: "Divisi Pelayanan Medik, Keperawatan, dan Penunjang",
+        nama: "Divisi Pelayanan Medik, Keperawatan, dan Penunjang",
+        id: "8792b0c3-f092-4685-a86e-71f78b77cc49"
+    }, {
+        identifierName: "Pelayanan Gawat Darurat",
+        nama: "Pelayanan Gawat Darurat, Divisi Pelayanan Medik, Keperawatan, dan Penunjang",
+        id: "db1a36e0-b1da-4914-a4be-e9c27b3d85c2"
+    }, {
+        identifierName: "Pelayanan Instalasi Rawat Jalan Terpadu",
+        nama: "Pelayanan Instalasi Rawat Jalan Terpadu, Divisi Pelayanan Medik, Keperawatan, dan Penunjang",
+        id: "5f97dcfa-78a5-42be-837e-0c38ad7fa7bf"
+    }],
+    n = [{
+        identifierName: "Instalasi Gawat Darurat",
+        nama: "Instalasi Gawat Darurat, Pelayanan Gawat Darurat",
+        description: "Instalasi Gawat Darurat, Pelayanan Gawat Darurat, Gedung Utama, Lantai 1",
+        code: "RT0006",
+        codePhysical: "bu",
+        codePhysicalDisplay: "Building",
+        longitude: 5.5295361,
+        latitude: 95.2944392,
+        managingOrganization: "db1a36e0-b1da-4914-a4be-e9c27b3d85c2",
+        id: "421f48dc-4b44-42b2-9e8e-0cb6656bdc71",
+        partof: !1,
+        info: "IGD"
+    }, {
+        identifierName: "Ruangan Triase",
+        nama: "Ruangan Triase, Instalasi Gawat Darurat",
+        description: "Ruangan Triase, Instalasi Gawat Darurat, Gedung Utama, Lantai 1",
+        code: "RT0032",
+        codePhysical: "ro",
+        codePhysicalDisplay: "Room",
+        longitude: 5.5295361,
+        latitude: 95.2944392,
+        managingOrganization: "db1a36e0-b1da-4914-a4be-e9c27b3d85c2",
+        id: "90c25b11-b33f-4991-b5c0-203171f04af4",
+        partof: !0,
+        info: "IGD"
+    }, {
+        identifierName: "Ruangan Observasi",
+        nama: "Ruangan Observasi, Instalasi Gawat Darurat",
+        description: "Ruangan Observasi, Instalasi Gawat Darurat, Gedung Utama, Lantai 1",
+        code: "RT0026",
+        codePhysical: "ro",
+        codePhysicalDisplay: "Room",
+        longitude: 5.5295361,
+        latitude: 95.2944392,
+        managingOrganization: "db1a36e0-b1da-4914-a4be-e9c27b3d85c2",
+        id: "9bfd2475-b25d-4a7b-ac89-b612dc6fd2eb",
+        partof: !0,
+        info: "IGD"
+    }, {
+        identifierName: "Instalasi Rawat Jalan Terpadu",
+        nama: "Instalasi Rawat Jalan Terpadu, Pelayanan Rawat Jalan Terpadu",
+        description: "Instalasi Rawat Jalan Terpadu, Pelayanan Rawat Jalan Terpadu, Gedung Utama, Lantai 1",
+        code: "RT0030",
+        codePhysical: "bu",
+        codePhysicalDisplay: "Building",
+        longitude: 5.5295361,
+        latitude: 95.2944392,
+        managingOrganization: "5f97dcfa-78a5-42be-837e-0c38ad7fa7bf",
+        id: "9168d93d-4eae-4b7a-b83c-fd7f035ac685",
+        partof: !1,
+        info: "POLI"
+    }, {
+        identifierName: "Ruang Poliklinik Terpadu",
+        nama: "Ruang Poliklinik Terpadu, Instalasi Rawat Jalan Terpadu",
+        description: "Ruang Poliklinik Terpadu, Instalasi Rawat Jalan Terpadu, Gedung Utama, Lantai 1",
+        code: "RT0031",
+        codePhysical: "ro",
+        codePhysicalDisplay: "Room",
+        longitude: 5.5295361,
+        latitude: 95.2944392,
+        managingOrganization: "5f97dcfa-78a5-42be-837e-0c38ad7fa7bf",
+        id: "44e99cdb-3ab0-4391-8203-aa6e5f7112b6",
+        partof: !0,
+        info: "POLI"
+    }];
+export {
+    a,
+    n as b
+};

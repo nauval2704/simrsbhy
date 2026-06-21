@@ -1,1 +1,70 @@
-import{a as s}from"./chunk-W7XVFZVJ.js";import{x as c,y as h}from"./chunk-CFNDTNZN.js";import{la as l,ra as o,yb as n}from"./chunk-UYVTZL26.js";var g=(()=>{class i{constructor(){this.http=o(h),this.titleComponent=n(""),this.listFilteredPasien=n(null),this.selectedPasien=n(null),this.listJasaDokter=n([])}getFilteredPasien(a,t){return this.http.post(s.apiUrl+"/keuangan/pasien",{start:a,end:t})}updateListFilteredPasien(a){this.listFilteredPasien.update(t=>t.filter(e=>!a.data.some(r=>e.noCheckin===r.noCheckin)))}createJasaDokter(a){return this.http.post(s.apiUrl+"/keuangan/jasa/dokter",a)}getJasaDokter(a,t){let e=new c().set("start",a).set("end",t);return this.http.get(s.apiUrl+"/keuangan/jasa/dokter",{params:e})}getFilteredRincian(a){return this.selectedPasien()?.dataRincian.filter(t=>t.tarifDetails?.pelayanan===a)}calculateGrandTotalObat(a){let t=0;return a.forEach(e=>{e.obat.forEach(r=>{r.cabar==="BPJS"?t+=r.jumlah*r.hargaJualBPJS:t+=r.jumlah*r.hargaJualYANKES})}),t}calculateGrandTotalRincian(a){let t=0;return a.forEach(e=>{t+=e.qty*e.tarifDetails?.harga}),t}static{this.\u0275fac=function(t){return new(t||i)}}static{this.\u0275prov=l({token:i,factory:i.\u0275fac,providedIn:"root"})}}return i})();export{g as a};
+import {
+    a as s
+} from "./chunk-W7XVFZVJ.js";
+import {
+    x as c,
+    y as h
+} from "./chunk-CFNDTNZN.js";
+import {
+    la as l,
+    ra as o,
+    yb as n
+} from "./chunk-UYVTZL26.js";
+var g = (() => {
+    class i {
+        constructor() {
+            this.http = o(h), this.titleComponent = n(""), this.listFilteredPasien = n(null), this.selectedPasien = n(null), this.listJasaDokter = n([])
+        }
+        getFilteredPasien(a, t) {
+            return this.http.post(s.apiUrl + "/keuangan/pasien", {
+                start: a,
+                end: t
+            })
+        }
+        updateListFilteredPasien(a) {
+            this.listFilteredPasien.update(t => t.filter(e => !a.data.some(r => e.noCheckin === r.noCheckin)))
+        }
+        createJasaDokter(a) {
+            return this.http.post(s.apiUrl + "/keuangan/jasa/dokter", a)
+        }
+        getJasaDokter(a, t) {
+            let e = new c().set("start", a).set("end", t);
+            return this.http.get(s.apiUrl + "/keuangan/jasa/dokter", {
+                params: e
+            })
+        }
+        getFilteredRincian(a) {
+            return this.selectedPasien()?.dataRincian.filter(t => t.tarifDetails?.pelayanan === a)
+        }
+        calculateGrandTotalObat(a) {
+            let t = 0;
+            return a.forEach(e => {
+                e.obat.forEach(r => {
+                    r.cabar === "BPJS" ? t += r.jumlah * r.hargaJualBPJS : t += r.jumlah * r.hargaJualYANKES
+                })
+            }), t
+        }
+        calculateGrandTotalRincian(a) {
+            let t = 0;
+            return a.forEach(e => {
+                t += e.qty * e.tarifDetails?.harga
+            }), t
+        }
+        static {
+            this.\u0275fac = function(t) {
+                return new(t || i)
+            }
+        }
+        static {
+            this.\u0275prov = l({
+                token: i,
+                factory: i.\u0275fac,
+                providedIn: "root"
+            })
+        }
+    }
+    return i
+})();
+export {
+    g as a
+};

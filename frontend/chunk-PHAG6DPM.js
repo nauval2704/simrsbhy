@@ -1,1 +1,12 @@
-import{a}from"./chunk-63L3A7ES.js";import"./chunk-UI7HE65P.js";import"./chunk-KT4J7VG7.js";import"./chunk-QJBCP6KK.js";import"./chunk-W7XVFZVJ.js";import"./chunk-CFNDTNZN.js";import"./chunk-UYVTZL26.js";export{a as DetailPatientComponent};
+import {
+    a
+} from "./chunk-63L3A7ES.js";
+import "./chunk-UI7HE65P.js";
+import "./chunk-KT4J7VG7.js";
+import "./chunk-QJBCP6KK.js";
+import "./chunk-W7XVFZVJ.js";
+import "./chunk-CFNDTNZN.js";
+import "./chunk-UYVTZL26.js";
+export {
+    a as DetailPatientComponent
+};
