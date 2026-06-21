@@ -81,7 +81,7 @@ var ze = (() => {
       if (!root) return;
       if (this.loading) {
         root.innerHTML =
-          '<div class="container-fluid mt-3"><div class="d-flex justify-content-center mt-5"><div class="spinner-border text-warning" role="status"><span class="visually-hidden">Memuat...</span></div></div></div>';
+          '<div class="container mt-5"><div class="d-flex justify-content-center align-items-center h-100"><div class="spinner-grow text-danger m-1" role="status"></div><div class="spinner-grow text-warning m-1" role="status"></div><div class="spinner-grow text-success m-1" role="status"></div><div class="spinner-grow text-primary m-1" role="status"></div></div></div>';
         return;
       }
       if (this.error) {
@@ -95,14 +95,7 @@ var ze = (() => {
           '<tr><td colspan="12" class="text-center text-muted py-3 fw-bold">Tidak ada antrean radiologi dari IGD saat ini.</td></tr>';
       } else {
         this.patients.forEach((p, idx) => {
-          let btn = `
-            <div class="dropdown" style="position: relative;">
-                <button class="btn btn-warning btn-sm dropdown-toggle w-100" onclick="this.nextElementSibling.classList.toggle('show')">Actions</button>
-                <div class="dropdown-menu shadow" style="position: absolute; z-index: 1000;">
-                    <button class="dropdown-item" onclick="alert('Route to Input Radiologi for: ${p.noCheckin}')"><i class="bi bi-chevron-right me-2"></i> Input Radiologi</button>
-                </div>
-            </div>
-          `;
+          let btn = `<div class="dropdown"><button class="btn btn-warning btn-sm dropdown-toggle w-100" onclick="var m=this.nextElementSibling,r=this.getBoundingClientRect();m.style.top=r.bottom+'px';m.style.left=r.left+'px';m.classList.toggle('show')">Actions</button><div class="dropdown-menu shadow" style="position:fixed;z-index:9999;min-width:180px;"><button class="dropdown-item" onclick="window.history.pushState(null,'','/radiologi/input/${p.noMr}/nocheckin/${p.noCheckin}');window.dispatchEvent(new Event('popstate'));"><i class="bi bi-chevron-right me-2"></i> Input Radiologi</button></div></div>`;
           let encounterBadge =
             '<span class="badge rounded-pill text-bg-danger">NO ENCOUNTER</span>';
           rows +=
@@ -149,7 +142,7 @@ var ze = (() => {
         '<div class="card mb-2">' +
         '<div class="card-header bg-warning fw-bold text-dark">RADIOLOGI</div>' +
         '<div class="card-body">' +
-        '<div class="row justify-content-center mb-2"><div class="col"><div class="input-group"><input type="text" placeholder="Search Pasien" class="form-control"></div></div></div>' +
+        '<div class="row justify-content-center mb-2"><div class="col"><div class="input-group"><input type="text" placeholder="Search Pasien" class="form-control" onkeyup="var q=this.value.toLowerCase(),rs=this.closest(\'.card-body\').querySelectorAll(\'tbody tr\');rs.forEach(r=>{r.style.display=r.innerText.toLowerCase().includes(q)?\'\':\'none\'})"></div></div></div>' +
         '<div class="table-responsive mt-2 rounded">' +
         '<table class="table table-hover table-sm text-nowrap">' +
         '<thead class="table-dark">' +
