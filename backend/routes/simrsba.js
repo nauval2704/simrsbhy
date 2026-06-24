@@ -167,4 +167,7 @@ router.get(
   "/jenis-pasien/start/:start/end/:end",
   simrsBaController.jenisPasien
 );
+router.post("/triase", simrsBaController.saveTriase);
+router.get("/triase/:noCheckin", simrsBaController.getTriase);
+router.post("/triase/sync-satusehat", simrsBaController.syncTriaseSatuSehat);
 module.exports = router;

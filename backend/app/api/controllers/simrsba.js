@@ -1,4 +1,6 @@
 const Pasien = require("../models/pasien");
+const Triase = require("../models/triase");
+const { buildTriageBundle, sendFhirBundle } = require("../utils/satusehat/fhirMapper");
 const Users = require("../models/users");
 const Checkin = require("../models/checkin");
 const Sep = require("../models/sep");
@@ -3762,6 +3764,51 @@ module.exports = {
         message: "error get faktur",
         data: null,
       });
+    }
+  },
+  saveTriase: async (req, res) => {
+    try {
+      const { noCheckin, noMr, td, suhu, hr, rr, spo2, gcsE, gcsV, gcsM, triageLevel, triageColor, symptoms } = req.body;
+      const now = require("moment")().format("YYYY-MM-DD HH:mm:ss");
+      const saved = await Triase.findOneAndUpdate(
+        { noCheckin },
+        { $set: { noMr, td, suhu, hr, rr, spo2, gcsE, gcsV, gcsM, triageLevel, triageColor, symptoms, tglInput: now } },
+        { upsert: true, new: true }
+      );
+      return res.status(200).send({ status: 200, message: "Triase berhasil disimpan", data: saved });
+    } catch (error) {
+      return res.status(400).send({ status: 400, message: "Gagal menyimpan triase", data: null });
+    }
+  },
+  getTriase: async (req, res) => {
+    try {
+      const triase = await Triase.findOne({ noCheckin: req.params.noCheckin });
+      return res.status(200).send({ status: 200, message: "Ok", data: triase });
+    } catch (error) {
+      return res.status(400).send({ status: 400, message: "Gagal mengambil data triase", data: null });
+    }
+  },
+  syncTriaseSatuSehat: async (req, res) => {
+    try {
+      const { noCheckin, patientIhsNumber } = req.body;
+      const checkinData = await Checkin.findOne({ noCheckin });
+      if (!checkinData || !checkinData.encounterId || !checkinData.encounterStatus) {
+        return res.status(400).send({ status: 400, message: "Pasien belum memiliki Encounter di SATUSEHAT", data: null });
+      }
+      const triaseData = await Triase.findOne({ noCheckin });
+      if (!triaseData) {
+        return res.status(400).send({ status: 400, message: "Data triase belum disimpan", data: null });
+      }
+      const bundle = buildTriageBundle(triaseData, patientIhsNumber, checkinData.encounterId);
+      if (bundle.entry.length === 0) {
+        return res.status(400).send({ status: 400, message: "Tidak ada data vital sign untuk dikirim", data: null });
+      }
+      const result = await sendFhirBundle(bundle);
+      const createdIds = result.entry ? result.entry.map(e => e.response?.location || '') : [];
+      await Triase.findOneAndUpdate({ noCheckin }, { $set: { satusehatSynced: true, satusehatIds: createdIds } });
+      return res.status(200).send({ status: 200, message: "Sync SATUSEHAT berhasil", data: { satusehatIds: createdIds } });
+    } catch (error) {
+      return res.status(400).send({ status: 400, message: "Gagal sync ke SATUSEHAT", data: null });
     }
   },
 };
