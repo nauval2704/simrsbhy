@@ -1709,9 +1709,7 @@ var mC = () => ["/home"],
     _C = () => ["keuangan"],
     kC = () => ["/sdm"],
     SC = () => ["/bridging"],
-    xC = () => ["/satusehat"],
-    labC = () => ["/igd-laboratorium"],
-    radC = () => ["/igd-radiologi"];
+    xC = () => ["/satusehat"];
 
 function bC(t, s) {
     if (t & 1) {
@@ -1792,30 +1790,6 @@ function PC(t, s) {
     t & 2 && (l(), m("routerLink", Me(1, vC)))
 }
 
-function LabNavLink(t, s) {
-    if (t & 1) {
-        let e = j();
-        i(0, "li", 9)(1, "a", 10), E("click", function() {
-            C(e);
-            let o = h(2);
-            return y(o.collapsed = !o.collapsed)
-        }), r(2, " Laboratorium"), n()()
-    }
-    t & 2 && (l(), m("routerLink", Me(1, labC)))
-}
-
-function RadNavLink(t, s) {
-    if (t & 1) {
-        let e = j();
-        i(0, "li", 9)(1, "a", 10), E("click", function() {
-            C(e);
-            let o = h(2);
-            return y(o.collapsed = !o.collapsed)
-        }), r(2, " Radiologi"), n()()
-    }
-    t & 2 && (l(), m("routerLink", Me(1, radC)))
-}
-
 function FC(t, s) {
     if (t & 1) {
         let e = j();
@@ -1864,6 +1838,30 @@ function RC(t, s) {
     t & 2 && m("routerLink", Me(1, xC))
 }
 
+var LabC = () => ["/lab"],
+    RadC = () => ["/radiologi"];
+function LabNavLink(t, s) {
+    if (t & 1) {
+        let e = j();
+        i(0, "li", 9)(1, "a", 10), E("click", function() {
+            C(e);
+            let o = h(2);
+            return y(o.collapsed = !o.collapsed)
+        }), r(2, " Laboratorium"), n()()
+    }
+    t & 2 && (l(), m("routerLink", Me(1, LabC)))
+}
+function RadNavLink(t, s) {
+    if (t & 1) {
+        let e = j();
+        i(0, "li", 9)(1, "a", 10), E("click", function() {
+            C(e);
+            let o = h(2);
+            return y(o.collapsed = !o.collapsed)
+        }), r(2, " Radiologi"), n()()
+    }
+    t & 2 && (l(), m("routerLink", Me(1, RadC)))
+}
 function DC(t, s) {
     if (t & 1) {
         let e = j();
@@ -1875,19 +1873,19 @@ function DC(t, s) {
             C(e);
             let o = h();
             return y(o.collapsed = !o.collapsed)
-        }), r(11, " Home "), n()(), g(12, bC, 3, 2, "li", 11)(13, wC, 10, 6, "div", 12)(14, PC, 3, 2, "li", 11)(15, FC, 3, 2, "li", 11)(38, LabNavLink, 3, 2, "li", 11)(39, RadNavLink, 3, 2, "li", 11), i(16, "div", 7)(17, "ul", 13)(18, "li", 14)(19, "a", 15), r(20, " Admin "), n(), i(21, "div", 16), g(22, jC, 3, 2, "a", 17), i(23, "a", 18), E("click", function() {
+        }), r(11, " Home "), n()(), g(12, bC, 3, 2, "li", 11)(13, wC, 10, 6, "div", 12)(14, PC, 3, 2, "li", 11)(15, FC, 3, 2, "li", 11)(16, LabNavLink, 3, 2, "li", 11)(17, RadNavLink, 3, 2, "li", 11), i(18, "div", 7)(19, "ul", 13)(20, "li", 14)(21, "a", 15), r(22, " Admin "), n(), i(23, "div", 16), g(24, jC, 3, 2, "a", 17), i(25, "a", 18), E("click", function() {
             C(e);
             let o = h();
             return y(o.collapsed = !o.collapsed)
-        }), c(24, "i", 19), r(25, " Tarif "), n(), g(26, TC, 3, 2, "a", 17)(27, RC, 3, 2, "a", 17), n()()()()()(), i(28, "div", 7)(29, "ul", 13)(30, "li", 14)(31, "a", 20), c(32, "i", 21), r(33), n(), i(34, "div", 16)(35, "a", 22), E("click", function() {
+        }), c(26, "i", 19), r(27, " Tarif "), n(), g(28, TC, 3, 2, "a", 17)(29, RC, 3, 2, "a", 17), n()()()()()(), i(30, "div", 7)(31, "ul", 13)(32, "li", 14)(33, "a", 20), c(34, "i", 21), r(35), n(), i(36, "div", 16)(37, "a", 22), E("click", function() {
             C(e);
             let o = h();
             return y(o.onLogout())
-        }), c(36, "i", 23), r(37, " Logout"), n()()()()()()()
+        }), c(38, "i", 23), r(39, " Logout"), n()()()()()()()
     }
     if (t & 2) {
         let e = h();
-        l(5), Rt("aria-expanded", !e.collapsed), l(2), Ye("collapse", e.collapsed), l(3), m("routerLink", Me(17, mC)), l(2), m("ngIf", e.isAdmin || e.isIgd || e.isPoli || e.isInap || e.isReg || e.isApotek || e.isLab || e.isRadiologi || e.isBilling || e.isDepoIgd), l(), m("ngIf", e.isAdmin || e.isIgd || e.isPoli || e.isInap || e.isReg || e.isApotek || e.isLab || e.isRadiologi || e.isBilling || e.isDepoIgd || e.isDepoInap), l(), m("ngIf", e.isAdmin || e.isApotek || e.isGudang || e.isDepoIgd || e.isDepoInap), l(), m("ngIf", e.isAdmin || e.isKeuangan), l(), Ye("collapse", e.collapsed), l(6), m("ngIf", e.isAdmin), l(), m("routerLink", Me(18, cC)), l(3), m("ngIf", e.isAdmin || e.isReg), l(), m("ngIf", e.isAdmin), l(), Ye("collapse", e.collapsed), l(5), w(" ", e.nama, " "), l(5), m("ngIf", e.isAdmin || e.isLab), l(), m("ngIf", e.isAdmin || e.isRadiologi)
+        l(5), Rt("aria-expanded", !e.collapsed), l(2), Ye("collapse", e.collapsed), l(3), m("routerLink", Me(19, mC)), l(2), m("ngIf", e.isAdmin || e.isIgd || e.isPoli || e.isInap || e.isReg || e.isApotek || e.isLab || e.isRadiologi || e.isBilling || e.isDepoIgd), l(), m("ngIf", e.isAdmin || e.isIgd || e.isPoli || e.isInap || e.isReg || e.isApotek || e.isLab || e.isRadiologi || e.isBilling || e.isDepoIgd || e.isDepoInap), l(), m("ngIf", e.isAdmin || e.isApotek || e.isGudang || e.isDepoIgd || e.isDepoInap), l(), m("ngIf", e.isAdmin || e.isKeuangan), l(), m("ngIf", e.isAdmin || e.isLab || e.isIgd), l(), m("ngIf", e.isAdmin || e.isRadiologi || e.isIgd), l(), Ye("collapse", e.collapsed), l(6), m("ngIf", e.isAdmin), l(), m("routerLink", Me(20, cC)), l(3), m("ngIf", e.isAdmin || e.isReg), l(), m("ngIf", e.isAdmin), l(), Ye("collapse", e.collapsed), l(5), w(" ", e.nama, " ")
     }
 }
 var yu = (() => {
@@ -15789,7 +15787,23 @@ var ZT = () => ["satusehat"],
     rR = t => ["rincian/", t],
     oR = t => ["checkout/", t],
     sR = t => ["transferinap/", t],
-    lR = t => ["rujuk/", t];
+    lR = t => ["rujuk/", t],
+    triaseR = t => ["triase/", t],
+    ringkasanR = t => ["ringkasan-pulang/", t];
+
+function TriaseLink(t, s) {
+    if (t & 1 && (i(0, "a", 28), c(1, "i", 21), r(2, " Triase "), n()), t & 2) {
+        let e = h().$implicit;
+        m("routerLink", tt(1, triaseR, e.noCheckin))
+    }
+}
+
+function RingkasanLink(t, s) {
+    if (t & 1 && (i(0, "a", 28), c(1, "i", 21), r(2, " Ringkasan Pulang "), n()), t & 2) {
+        let e = h().$implicit;
+        m("routerLink", tt(1, ringkasanR, e.noCheckin))
+    }
+}
 
 function dR(t, s) {
     if (t & 1 && c(0, "app-modal", 5), t & 2) {
@@ -15880,12 +15894,12 @@ function xR(t, s) {
             C(e);
             let o = h();
             return y(o.open(o.noBpjs, o.kdDokter))
-        }), c(64, "i", 21), r(65, " iCare JKN "), n(), g(66, pR, 3, 4, "a", 22)(67, uR, 3, 3, "a", 23)(68, hR, 3, 3, "a", 24)(69, gR, 3, 3, "a", 24)(70, fR, 3, 3, "a", 24), n(), g(71, SR, 7, 6, "div", 25), n()
+        }), c(64, "i", 21), r(65, " iCare JKN "), n(), g(66, pR, 3, 4, "a", 22)(67, TriaseLink, 3, 3, "a", 24)(68, uR, 3, 3, "a", 23)(69, hR, 3, 3, "a", 24)(70, gR, 3, 3, "a", 24)(71, fR, 3, 3, "a", 24)(72, RingkasanLink, 3, 3, "a", 24), n(), g(73, SR, 7, 6, "div", 25), n()
     }
     if (t & 2) {
         let e = s.$implicit,
             a = h();
-        l(5), w(" ", e.nama, " "), l(2), v(e.cabar), l(3), v(e.jnsPeserta), l(9), v(e.noCheckin), l(5), v(e.tglInput), l(5), v(e.noMr), l(5), v(e.tglLahir), l(5), v(e.kelamin), l(), m("ngIf", a.isBpjs), l(5), v(e.nik), l(5), v(e.noKartu), l(5), v(e.diagnosa), l(5), v(e.dpjp), l(), m("ngIf", a.isBpjs), l(5), m("ngIf", a.shouldDisplayLink("ROLE_ADMIN", "ROLE_IGD")), l(), m("ngIf", a.shouldDisplayLink("ROLE_ADMIN", "ROLE_IGD")), l(), m("ngIf", a.shouldDisplayLink("ROLE_ADMIN", "ROLE_APOTEK", "ROLE_DEPO_IGD")), l(), m("ngIf", a.shouldDisplayLink("ROLE_ADMIN", "ROLE_LAB")), l(), m("ngIf", a.shouldDisplayLink("ROLE_ADMIN", "ROLE_RADIOLOGI")), l(), m("ngIf", !a.sudahCheckout)
+        l(5), w(" ", e.nama, " "), l(2), v(e.cabar), l(3), v(e.jnsPeserta), l(9), v(e.noCheckin), l(5), v(e.tglInput), l(5), v(e.noMr), l(5), v(e.tglLahir), l(5), v(e.kelamin), l(), m("ngIf", a.isBpjs), l(5), v(e.nik), l(5), v(e.noKartu), l(5), v(e.diagnosa), l(5), v(e.dpjp), l(), m("ngIf", a.isBpjs), l(5), m("ngIf", a.shouldDisplayLink("ROLE_ADMIN", "ROLE_IGD")), l(), m("ngIf", a.shouldDisplayLink("ROLE_ADMIN", "ROLE_IGD")), l(), m("ngIf", a.shouldDisplayLink("ROLE_ADMIN", "ROLE_IGD")), l(), m("ngIf", a.shouldDisplayLink("ROLE_ADMIN", "ROLE_APOTEK", "ROLE_DEPO_IGD")), l(), m("ngIf", a.shouldDisplayLink("ROLE_ADMIN", "ROLE_LAB")), l(), m("ngIf", a.shouldDisplayLink("ROLE_ADMIN", "ROLE_RADIOLOGI")), l(), m("ngIf", a.shouldDisplayLink("ROLE_ADMIN", "ROLE_IGD")), l(), m("ngIf", !a.sudahCheckout)
     }
 }
 var Jv = (() => {
@@ -15968,7 +15982,7 @@ var Jv = (() => {
                     ["routerLinkActive", "active", "aria-current", "true", 1, "list-group-item", "list-group-item-action", 3, "routerLink"]
                 ],
                 template: function(a, o) {
-                    a & 1 && (g(0, dR, 1, 1, "app-modal", 0), i(1, "div", 1)(2, "div", 2), g(3, xR, 72, 20, "div", 3), i(4, "div", 4), c(5, "router-outlet"), n()()()), a & 2 && (m("ngIf", o.error), l(3), m("ngForOf", o.dataPasien))
+                    a & 1 && (g(0, dR, 1, 1, "app-modal", 0), i(1, "div", 1)(2, "div", 2), g(3, xR, 74, 22, "div", 3), i(4, "div", 4), c(5, "router-outlet"), n()()()), a & 2 && (m("ngIf", o.error), l(3), m("ngForOf", o.dataPasien))
                 },
                 dependencies: [K, le, V, xi, ni, Xt],
                 encapsulation: 2
@@ -32905,33 +32919,39 @@ function B9(t, s) {
 var bk = (() => {
     class t {
         constructor(e, a) {
-            this.router = e, this.route = a, this.store = T(ge), this.userSelector = this.store.select(Ce).pipe(pe()).subscribe(o => {
-                this.currentUser = o
-            })
+            this.router = e, this.route = a, this.store = T(ge), this.currentUser = { role: '' }, this._navigated = false
         }
         ngOnInit() {
-            switch (this.currentUser.role) {
-                case "ROLE_ADMIN":
-                case "ROLE_IGD":
-                    this.navigateTo("igd");
-                    break;
-                case "ROLE_POLI":
-                    this.navigateTo("poli");
-                    break;
-                case "ROLE_KEUANGAN":
-                case "ROLE_INAP":
-                    this.navigateTo("inap");
-                    break;
-                case "ROLE_RADIOLOGI":
-                    this.navigateTo("radiologi");
-                    break;
-                case "ROLE_LAB":
-                    this.navigateTo("lab");
-                    break;
-                default:
-                    this.navigateTo("home");
-                    break
-            }
+            this.userSelector = this.store.select(Ce).pipe(pe()).subscribe(o => {
+                this.currentUser = o;
+                if (o && o.role) {
+                    let path = window.location.pathname;
+                    if (path !== '/tarif' && path !== '/tarif/') return;
+                    
+                    switch (this.currentUser.role) {
+                        case "ROLE_ADMIN":
+                        case "ROLE_IGD":
+                            this.navigateTo("igd");
+                            break;
+                        case "ROLE_POLI":
+                            this.navigateTo("poli");
+                            break;
+                        case "ROLE_KEUANGAN":
+                        case "ROLE_INAP":
+                            this.navigateTo("inap");
+                            break;
+                        case "ROLE_RADIOLOGI":
+                            this.navigateTo("radiologi");
+                            break;
+                        case "ROLE_LAB":
+                            this.navigateTo("lab");
+                            break;
+                        default:
+                            this.navigateTo("home");
+                            break;
+                    }
+                }
+            })
         }
         navigateTo(e) {
             this.router.navigate([e], {
@@ -55725,12 +55745,6 @@ var rb = [{
         component: pS
     }]
 }, {
-    path: "igd-laboratorium",
-    loadComponent: () => import("./chunk-LAB.js").then(t => t.LaboratoriumIndexComponent)
-}, {
-    path: "igd-radiologi",
-    loadComponent: () => import("./chunk-RAD.js").then(t => t.RadiologiIndexComponent)
-}, {
     path: "pendaftaran",
     component: p1,
     canActivate: [st],
@@ -55981,11 +55995,11 @@ var rb = [{
         canActivate: [st]
     }, {
         path: "lab/:nocheckin",
-        component: xd,
+        loadComponent: () => import("./chunk-LAB-DETAIL.js").then(t => t.LabDetailComponent),
         canActivate: [st]
     }, {
         path: "radiologi/:nocheckin",
-        component: bd,
+        loadComponent: () => import("./chunk-RAD-DETAIL.js").then(t => t.RadDetailComponent),
         canActivate: [st]
     }, {
         path: "rincianpoli/:nocheckin",
@@ -56024,12 +56038,6 @@ var rb = [{
         component: tk
     }]
 }, {
-    path: "lab/input/:norm/nocheckin/:noCheckin",
-    loadComponent: () => import("./chunk-LAB-DETAIL.js").then(m => m.LabDetailComponent)
-}, {
-    path: "radiologi/input/:norm/nocheckin/:noCheckin",
-    loadComponent: () => import("./chunk-RAD-DETAIL.js").then(m => m.RadDetailComponent)
-}, {
     path: "igd",
     component: I1,
     canActivate: [st]
@@ -56040,6 +56048,14 @@ var rb = [{
     children: [{
         path: "satusehat",
         component: Td,
+        canActivate: [st]
+    }, {
+        path: "triase/:nocheckin",
+        loadComponent: () => import("./chunk-TRIASE.js").then(t => t.TriaseComponent),
+        canActivate: [st]
+    }, {
+        path: "ringkasan-pulang/:nocheckin",
+        loadComponent: () => import("./chunk-RINGKASAN-PULANG.js").then(t => t.RingkasanPulangComponent),
         canActivate: [st]
     }, {
         path: "igd/:nocheckin",
@@ -56054,11 +56070,11 @@ var rb = [{
         canActivate: [st]
     }, {
         path: "lab/:nocheckin",
-        component: xd,
+        loadComponent: () => import("./chunk-LAB-DETAIL.js").then(t => t.LabDetailComponent),
         canActivate: [st]
     }, {
         path: "radiologi/:nocheckin",
-        component: bd,
+        loadComponent: () => import("./chunk-RAD-DETAIL.js").then(t => t.RadDetailComponent),
         canActivate: [st]
     }, {
         path: "rincian/:nocheckin",
@@ -56116,10 +56132,10 @@ var rb = [{
         component: Ds
     }, {
         path: "lab/:nocheckin",
-        component: xd
+        loadComponent: () => import("./chunk-LAB-DETAIL.js").then(t => t.LabDetailComponent)
     }, {
         path: "radiologi/:nocheckin",
-        component: bd
+        loadComponent: () => import("./chunk-RAD-DETAIL.js").then(t => t.RadDetailComponent)
     }, {
         path: "rincianinap/:nocheckin",
         component: yd
@@ -56541,6 +56557,22 @@ var rb = [{
         path: "location",
         component: Gx
     }]
+}, {
+    path: "lab",
+    loadComponent: () => import("./chunk-LAB.js").then(t => t.LaboratoriumIndexComponent),
+    canActivate: [st]
+}, {
+    path: "lab/input/:norm/nocheckin/:nocheckin",
+    loadComponent: () => import("./chunk-LAB-DETAIL.js").then(t => t.LabDetailComponent),
+    canActivate: [st]
+}, {
+    path: "radiologi",
+    loadComponent: () => import("./chunk-RAD.js").then(t => t.RadiologiIndexComponent),
+    canActivate: [st]
+}, {
+    path: "radiologi/input/:norm/nocheckin/:nocheckin",
+    loadComponent: () => import("./chunk-RAD-DETAIL.js").then(t => t.RadDetailComponent),
+    canActivate: [st]
 }, {
     path: "**",
     redirectTo: "/home",
