@@ -55995,11 +55995,11 @@ var rb = [{
         canActivate: [st]
     }, {
         path: "lab/:nocheckin",
-        loadComponent: () => import("./chunk-LAB-DETAIL.js").then(t => t.LabDetailComponent),
+        component: xd,
         canActivate: [st]
     }, {
         path: "radiologi/:nocheckin",
-        loadComponent: () => import("./chunk-RAD-DETAIL.js").then(t => t.RadDetailComponent),
+        component: bd,
         canActivate: [st]
     }, {
         path: "rincianpoli/:nocheckin",
@@ -56070,11 +56070,11 @@ var rb = [{
         canActivate: [st]
     }, {
         path: "lab/:nocheckin",
-        loadComponent: () => import("./chunk-LAB-DETAIL.js").then(t => t.LabDetailComponent),
+        component: xd,
         canActivate: [st]
     }, {
         path: "radiologi/:nocheckin",
-        loadComponent: () => import("./chunk-RAD-DETAIL.js").then(t => t.RadDetailComponent),
+        component: bd,
         canActivate: [st]
     }, {
         path: "rincian/:nocheckin",
@@ -56132,10 +56132,10 @@ var rb = [{
         component: Ds
     }, {
         path: "lab/:nocheckin",
-        loadComponent: () => import("./chunk-LAB-DETAIL.js").then(t => t.LabDetailComponent)
+        component: xd
     }, {
         path: "radiologi/:nocheckin",
-        loadComponent: () => import("./chunk-RAD-DETAIL.js").then(t => t.RadDetailComponent)
+        component: bd
     }, {
         path: "rincianinap/:nocheckin",
         component: yd
