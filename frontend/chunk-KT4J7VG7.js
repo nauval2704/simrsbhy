@@ -826,7 +826,7 @@ var ua = new v,
                 }))
             }
             getDataKamar() {
-                return this.http.get(i.apiUrl + "/vclaim/api/kamar/tersedia").pipe(o(e => e.response.list))
+                return this.http.get(i.apiUrl + "/vclaim/api/kamar/tersedia").pipe(o(e => e.response?.list || []))
             }
             getDataKamarLocal() {
                 return this.http.get(i.apiUrl + "/vclaim/api/kamar/local")
