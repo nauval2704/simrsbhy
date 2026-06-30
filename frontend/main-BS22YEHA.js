@@ -32919,39 +32919,33 @@ function B9(t, s) {
 var bk = (() => {
     class t {
         constructor(e, a) {
-            this.router = e, this.route = a, this.store = T(ge), this.currentUser = { role: '' }, this._navigated = false
+            this.router = e, this.route = a, this.store = T(ge), this.userSelector = this.store.select(Ce).pipe(pe()).subscribe(o => {
+                this.currentUser = o
+            })
         }
         ngOnInit() {
-            this.userSelector = this.store.select(Ce).pipe(pe()).subscribe(o => {
-                this.currentUser = o;
-                if (o && o.role) {
-                    let path = window.location.pathname;
-                    if (path !== '/tarif' && path !== '/tarif/') return;
-                    
-                    switch (this.currentUser.role) {
-                        case "ROLE_ADMIN":
-                        case "ROLE_IGD":
-                            this.navigateTo("igd");
-                            break;
-                        case "ROLE_POLI":
-                            this.navigateTo("poli");
-                            break;
-                        case "ROLE_KEUANGAN":
-                        case "ROLE_INAP":
-                            this.navigateTo("inap");
-                            break;
-                        case "ROLE_RADIOLOGI":
-                            this.navigateTo("radiologi");
-                            break;
-                        case "ROLE_LAB":
-                            this.navigateTo("lab");
-                            break;
-                        default:
-                            this.navigateTo("home");
-                            break;
-                    }
-                }
-            })
+            switch (this.currentUser.role) {
+                case "ROLE_ADMIN":
+                case "ROLE_IGD":
+                    this.navigateTo("igd");
+                    break;
+                case "ROLE_POLI":
+                    this.navigateTo("poli");
+                    break;
+                case "ROLE_KEUANGAN":
+                case "ROLE_INAP":
+                    this.navigateTo("inap");
+                    break;
+                case "ROLE_RADIOLOGI":
+                    this.navigateTo("radiologi");
+                    break;
+                case "ROLE_LAB":
+                    this.navigateTo("lab");
+                    break;
+                default:
+                    this.navigateTo("home");
+                    break
+            }
         }
         navigateTo(e) {
             this.router.navigate([e], {
@@ -55661,6 +55655,97 @@ var ab = (() => {
     }
     return t
 })();
+var SharedPatientPageComponent = (() => {
+    class t {
+        constructor(e, a, o, d) {
+            this.route = e; this.router = a; this.dataPasienService = o; this.authService = d;
+            this.store = T(ge); this.satusehatService = T(Zi); this.modalService = T(Yt);
+            this.currentUser = null;
+            this.store.select(Ce).pipe(pe()).subscribe(p => { this.currentUser = p; });
+            this.dataPasien = null;
+            this.moduleType = a.url.includes('/igd/') ? 'IGD' : a.url.includes('/poli/') ? 'POLI' : 'INAP';
+        }
+        open(noKartu, kdDokter) {
+            let o = this.modalService.open(So, { centered: !0, scrollable: !0, size: "xl" });
+            o.componentInstance.noKartu = noKartu;
+            o.componentInstance.kodeDokter = kdDokter;
+        }
+        ngOnInit() {
+            let e = this.route.snapshot.params.noCheckin;
+            if (this.moduleType === 'IGD') this.satusehatService.noCheckin.set(e);
+            
+            let req = this.moduleType === 'IGD' ? this.dataPasienService.getPasienIgdNoCheckin(e) :
+                      this.moduleType === 'POLI' ? this.dataPasienService.getPasienPolidNoCheckin(e) :
+                      this.dataPasienService.getPasienInapNoCheckin(e);
+            
+            req.subscribe(a => {
+                this.dataPasien = a;
+                this.satusehatService.selectedPatient.set(a[0]);
+                
+                let isBpjs = a[0].cabar == "BPJS";
+                let noBpjs = a[0].noKartu;
+                let kdDokter = parseInt(this.currentUser.nama);
+                
+                if (isBpjs) {
+                    this.open(noBpjs, kdDokter);
+                }
+                
+                // Inject sidebar web component
+                const hostEl = document.querySelector('app-shared-patient-page');
+                if (hostEl) {
+                    let sidebarCol = hostEl.querySelector('.simrs-sidebar-col');
+                    if (sidebarCol) {
+                        let sidebar = sidebarCol.querySelector('simrs-patient-sidebar');
+                        if (!sidebar) {
+                            sidebar = document.createElement('simrs-patient-sidebar');
+                            sidebarCol.appendChild(sidebar);
+                        }
+                        sidebar.config = { data: a[0], moduleType: this.moduleType, router: this.router, route: this.route };
+                        sidebar.onIcareClick = () => this.open(noBpjs, kdDokter);
+                    }
+                }
+
+                if (this.route.children.length === 0) {
+                    const seg = this.moduleType === 'IGD' ? 'igd' : this.moduleType === 'POLI' ? 'poli' : 'inap';
+                    this.router.navigate([seg, e], { relativeTo: this.route });
+                }
+            });
+        }
+        static { this.ɵfac = function(a) { return new(a || t)(f(q), f(J), f(se), f(_t)) } }
+        static { this.ɵcmp = R({
+                    type: t,
+                    selectors: [["app-shared-patient-page"]],
+                    decls: 5,
+                    vars: 0,
+                    consts: [
+                        [1, "container-fluid"],
+                        [1, "row", "g-0"],
+                        [1, "col-md-4", "col-lg-3", "mb-2", "d-print-none", "simrs-sidebar-col"],
+                        [1, "col-md-8", "col-lg-9", "simrs-content-col", "ps-md-2"]
+                    ],
+                    template: function(a, o) {
+                        if (a & 1) {
+                            i(0, "div", 0);
+                            i(1, "div", 1);
+                            i(2, "div", 2);
+                            n();
+                            i(3, "div", 3);
+                            c(4, "router-outlet");
+                            n();
+                            n();
+                            n();
+                        }
+                    },
+                    dependencies: [V, K, xi, ni, Xt],
+                    standalone: !0,
+                    encapsulation: 2
+                })
+        }
+    }
+    return t;
+})();
+
+
 var rb = [{
     path: "",
     redirectTo: "/auth",
@@ -55976,7 +56061,7 @@ var rb = [{
     canActivate: [st]
 }, {
     path: "poli/input/:norm/nocheckin/:noCheckin",
-    component: K_,
+    component: SharedPatientPageComponent,
     canActivate: [st],
     children: [{
         path: "satusehat",
@@ -56043,7 +56128,7 @@ var rb = [{
     canActivate: [st]
 }, {
     path: "igd/input/:norm/nocheckin/:noCheckin",
-    component: Jv,
+    component: SharedPatientPageComponent,
     canActivate: [st],
     children: [{
         path: "satusehat",
@@ -56052,6 +56137,10 @@ var rb = [{
     }, {
         path: "triase/:nocheckin",
         loadComponent: () => import("./chunk-TRIASE.js").then(t => t.TriaseComponent),
+        canActivate: [st]
+    }, {
+        path: "cppt-igd/:nocheckin",
+        loadComponent: () => import("./chunk-CPPT-IGD.js").then(t => t.CpptIgdComponent),
         canActivate: [st]
     }, {
         path: "ringkasan-pulang/:nocheckin",
@@ -56111,7 +56200,7 @@ var rb = [{
     canActivate: [st]
 }, {
     path: "inap/input/:norm/nocheckin/:noCheckin",
-    component: sk,
+    component: SharedPatientPageComponent,
     canActivate: [st],
     children: [{
         path: "satusehat",
