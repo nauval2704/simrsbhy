@@ -5,7 +5,18 @@ class SuratCanvas extends HTMLElement {
     this._color = '#000000';
     this._width = 2;
     this.isDrawing = false;
-    this.canvasDataUrl = null;
+    this._canvasDataUrl = null;
+  }
+
+  get canvasDataUrl() {
+    return this._canvasDataUrl;
+  }
+
+  set canvasDataUrl(url) {
+    this._canvasDataUrl = url;
+    if (url) {
+      this.loadDataUrl(url);
+    }
   }
 
   connectedCallback() {
@@ -170,7 +181,7 @@ class SuratCanvas extends HTMLElement {
 
   loadDataUrl(url) {
     if (!url) return;
-    this.canvasDataUrl = url;
+    this._canvasDataUrl = url;
     const canvas = this.querySelector('#rp-canvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');

@@ -81,6 +81,10 @@ const TriaseSchema = new Schema({
     trim: true,
     default: null,
   },
+  canvasImage: {
+    type: String,
+    default: null,
+  },
 });
 
 module.exports = mongoose.model("Triase", TriaseSchema);

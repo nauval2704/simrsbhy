@@ -83,7 +83,7 @@ var RingkasanPulangComponent = (() => {
       const surat = document.querySelector("surat-canvas");
 
       this.http
-        .post(i.apiUrl + "/simrsba/ringkasan-pulang/save", payload)
+        .post(i.apiUrl + "/simrsba/ringkasan-pulang", payload)
         .subscribe({
           next: () => {
             if (surat) surat.setSubmitSuccess();

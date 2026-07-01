@@ -3773,11 +3773,11 @@ module.exports = {
   },
   saveTriase: async (req, res) => {
     try {
-      const { noCheckin, noMr, td, suhu, hr, rr, spo2, gcsE, gcsV, gcsM, triageLevel, triageColor, symptoms } = req.body;
-      const now = require("moment")().format("YYYY-MM-DD HH:mm:ss");
+      const payload = req.body;
+      payload.tglInput = require("moment")().format("YYYY-MM-DD HH:mm:ss");
       const saved = await Triase.findOneAndUpdate(
-        { noCheckin },
-        { $set: { noMr, td, suhu, hr, rr, spo2, gcsE, gcsV, gcsM, triageLevel, triageColor, symptoms, tglInput: now } },
+        { noCheckin: payload.noCheckin },
+        { $set: payload },
         { upsert: true, new: true }
       );
       return res.status(200).send({ status: 200, message: "Triase berhasil disimpan", data: saved });
