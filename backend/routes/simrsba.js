@@ -170,4 +170,20 @@ router.get(
 router.post("/triase", simrsBaController.saveTriase);
 router.get("/triase/:noCheckin", simrsBaController.getTriase);
 router.post("/triase/sync-satusehat", simrsBaController.syncTriaseSatuSehat);
+
+router.post("/prmrj", simrsBaController.savePrmrj);
+router.get("/prmrj/:noCheckin", simrsBaController.getPrmrj);
+
+router.post("/edukasi-poli", simrsBaController.saveEdukasiPoli);
+router.get("/edukasi-poli/:noCheckin", simrsBaController.getEdukasiPoli);
+
+router.post("/cppt-igd", simrsBaController.saveCpptIgd);
+router.get("/cppt-igd/:noCheckin", simrsBaController.getCpptIgd);
+
+router.post("/ringkasan-pulang", simrsBaController.saveRingkasanPulang);
+router.get("/ringkasan-pulang/:noCheckin", simrsBaController.getRingkasanPulang);
+
+router.post("/poli-gigi", simrsBaController.savePoliGigi);
+router.get("/poli-gigi/:noCheckin", simrsBaController.getPoliGigi);
+
 module.exports = router;
