@@ -56075,6 +56075,18 @@ var rb = [{
             component: dp
         }]
     }, {
+        path: "prmrj/:nocheckin",
+        loadComponent: () => import("./chunk-PRMRJ.js").then(t => t.PrmrjComponent),
+        canActivate: [st]
+    }, {
+        path: "edukasi-poli/:nocheckin",
+        loadComponent: () => import("./chunk-EDUKASI-POLI.js").then(t => t.EdukasiPoliComponent),
+        canActivate: [st]
+    }, {
+        path: "poli-gigi/:nocheckin",
+        loadComponent: () => import("./chunk-POLI-GIGI.js").then(t => t.PoliGigiComponent),
+        canActivate: [st]
+    }, {
         path: "farmasi/:nocheckin",
         component: Ds,
         canActivate: [st]
