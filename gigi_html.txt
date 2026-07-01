@@ -1,0 +1,315 @@
+<USER_REQUEST>
+okay now everything thats unrelevant to poli gigi dissapeard on GIGI filter, try making this into gigi then
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil Ringkas Rawat Jalan (PRMRJ) Poli Gigi</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        body {
+            background-color: #525659;
+            display: flex;
+            justify-content: center;
+            padding: 40px 0;
+        }
+
+        /* Landscape F4 / Folio: 13in width x 8.5in height (1248px x 816px at 96dpi) */
+        .page {
+            width: 1248px;
+            height: 816px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-border {
+            border: 2px solid black;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header-section {
+            display: flex;
+            border-bottom: 2px solid black;
+            height: 95px;
+        }
+
+        .logo-box {
+            width: 110px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-right: 1px solid black;
+            padding: 5px;
+        }
+
+        .logo-box img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .title-box {
+            flex: 1;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 5px;
+        }
+
+        .title-box h3 {
+            font-size: 16px;
+            margin-bottom: 3px;
+            line-height: 1.2;
+        }
+
+        .title-box p {
+            font-size: 11px;
+            line-height: 1.3;
+        }
+
+        .meta-box {
+            width: 350px;
+            padding: 5px;
+            border-left: 1px solid black;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .meta-inner {
+            border: 1px solid black;
+            border-radius: 8px;
+            padding: 6px;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        .meta-row { 
+            display: flex; 
+        }
+        
+        .meta-label { 
+            width: 90px; 
+        }
+
+        .doc-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+            padding: 8px;
+            border-bottom: 2px solid black;
+            background-color: #f5f5f5;
+            letter-spacing: 0.5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            flex: 1;
+            font-size: 12px;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 6px;
+            vertical-align: top;
+        }
+
+        th {
+            text-align: center;
+            vertical-align: middle;
+            font-size: 11px;
+            background-color: #f9f9f9;
+            font-weight: bold;
+            height: 35px;
+        }
+        
+        /* Column Width Tuning for PRMRJ Poli Gigi */
+        .col-no { width: 4%; text-align: center; }
+        .col-waktu { width: 12%; }
+        .col-gigi { width: 10%; text-align: center; }
+        .col-keluhan { width: 30%; }
+        .col-tindakan { width: 28%; }
+        .col-paraf { width: 8%; text-align: center; }
+        .col-icd { width: 8%; text-align: center; }
+
+        /* Generate empty rows that expand nicely */
+        .empty-row td {
+            height: 55px;
+        }
+
+        @media print {
+            @page {
+                size: 13in 8.5in; /* Landscape F4 */
+                margin: 0;
+            }
+            body {
+                background: white;
+                padding: 0;
+                margin: 0;
+            }
+            .page {
+                box-shadow: none;
+                width: 100%;
+                height: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page">
+        <div class="main-border">
+            <!-- Header Section -->
+            <div class="header-section">
+                <div class="logo-box">
+                    <!-- Replace src with actual image path or base64 data if needed -->
+                    <img src="logo.png" alt="Logo RS Bhayangkara">
+                </div>
+                <div class="title-box">
+                    <h3>RUMAH SAKIT BHAYANGKARA<br>BANDA ACEH</h3>
+                    <p>Jl. Cut Nyak Dhien No. 23 Lamteumen Barat,<br>Banda Aceh Telp. 0651-41355, 0651-41470</p>
+                </div>
+                <div class="meta-box">
+                    <div class="meta-inner">
+                        <div class="meta-row"><div class="meta-label">NRM</div><div>: </div></div>
+                        <div class="meta-row"><div class="meta-label">Nama</div><div>: </div></div>
+                        <div class="meta-row"><div class="meta-label">Tgl. Lahir</div><div>: </div></div>
+                        <div class="meta-row"><div class="meta-label">Jenis Kelamin</div><div>: </div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Document Title -->
+            <div class="doc-title">PANDUAN PROFIL RINGKAS RAWAT JALAN (PRMRJ) POLI GIGI</div>
+
+            <!-- PRMRJ Table Data Structure -->
+            <table>
+                <thead>
+                    <tr>
+                        <th class="col-no">NO</th>
+                        <th class="col-waktu">TGL / JAM</th>
+                        <th class="col-gigi">GIGI</th>
+                        <th class="col-keluhan">KELUHAN / DIAGNOSA</th>
+                        <th class="col-tindakan">PENGOBATAN DAN TINDAKAN</th>
+                        <th class="col-icd">KODE ICD 10</th>
+                        <th class="col-paraf">PARAF</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Row 1 -->
+                    <tr class="empty-row">
+                        <td style="text-align:center;">1</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <!-- Row 2 -->
+                    <tr class="empty-row">
+                        <td style="text-align:center;">2</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <!-- Row 3 -->
+                    <tr class="empty-row">
+                        <td style="text-align:center;">3</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <!-- Row 4 -->
+                    <tr class="empty-row">
+                        <td style="text-align:center;">4</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <!-- Row 5 -->
+                    <tr class="empty-row">
+                        <td style="text-align:center;">5</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <!-- Row 6 -->
+                    <tr class="empty-row">
+                        <td style="text-align:center;">6</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <!-- Row 7 -->
+                    <tr class="empty-row">
+                        <td style="text-align:center;">7</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <!-- Row 8 -->
+                    <tr class="empty-row">
+                        <td style="text-align:center;">8</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <!-- Row 9 -->
+                    <tr class="empty-row">
+                        <td style="text-align:center;">9</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</body>
+</html>
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-07-01T00:13:20+07:00.
+</ADDITIONAL_METADATA>

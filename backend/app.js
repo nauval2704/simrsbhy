@@ -13,56 +13,56 @@ const httpServer = createServer(app);
 
 
 // prod
-const https = require('https');//('https');
-const fs = require('fs');
-const options = {
-  key: fs.readFileSync('/etc/letsencrypt/live/rsbhyaceh.com/privkey.pem'),
-  cert: fs.readFileSync('/etc/letsencrypt/live/rsbhyaceh.com/fullchain.pem')
-};
-
-const server = https.createServer(options, app);
-
-
-const io = new Server(server, {
-  cors: {
-    origin: [
-      "http://localhost",
-      "http://localhost:182",
-//     "http://localhost:1821",
-      "http://localhost:4200",
-	"http://36.66.36.106:182",
-    "http://36.66.36.106:1821",
-    "https://rsbhyaceh.com:1821",
-    //  "http://103.76.174.236:182",
-      "https://rsbhayangkaraaceh.com:1091",
-      "https://rsbhyaceh.com:1091",
-     // "https://rsbhayangkaraaceh.com:7121",
-      "http://103.76.174.236:109",
-      "https://rsbhyaceh.com:182",
-      "https://rsbhyaceh.com:8889",
-      "https://rsbhyaceh.com:109",
-      "https://rsbhayangkaraaceh.com:109",
-      "https://rsbhayangkaraaceh.com:182",
-    ],
-    methods: ["GET", "POST"],
-  },
-});
-
-// dev
-// const io = new Server(httpServer, {
+// const https = require('https');//('https');
+// const fs = require('fs');
+// const options = {
+//   key: fs.readFileSync('/etc/letsencrypt/live/rsbhyaceh.com/privkey.pem'),
+//   cert: fs.readFileSync('/etc/letsencrypt/live/rsbhyaceh.com/fullchain.pem')
+// };
+// 
+// const server = https.createServer(options, app);
+// 
+// 
+// const io = new Server(server, {
 //   cors: {
 //     origin: [
 //       "http://localhost",
 //       "http://localhost:182",
-//       "http://localhost:1821",
-//       "http://localhost:4200", 
-//       "http://103.76.174.236:182",
-//       "https://rsbhayangkaraaceh.com:1821",
+// //     "http://localhost:1821",
+//       "http://localhost:4200",
+// 	"http://36.66.36.106:182",
+//     "http://36.66.36.106:1821",
+//     "https://rsbhyaceh.com:1821",
+//     //  "http://103.76.174.236:182",
+//       "https://rsbhayangkaraaceh.com:1091",
+//       "https://rsbhyaceh.com:1091",
+//      // "https://rsbhayangkaraaceh.com:7121",
+//       "http://103.76.174.236:109",
+//       "https://rsbhyaceh.com:182",
+//       "https://rsbhyaceh.com:8889",
+//       "https://rsbhyaceh.com:109",
+//       "https://rsbhayangkaraaceh.com:109",
 //       "https://rsbhayangkaraaceh.com:182",
 //     ],
 //     methods: ["GET", "POST"],
 //   },
 // });
+
+// dev
+const io = new Server(httpServer, {
+  cors: {
+    origin: [
+      "http://localhost",
+      "http://localhost:182",
+      "http://localhost:1821",
+      "http://localhost:4200", 
+      "http://103.76.174.236:182",
+      "https://rsbhayangkaraaceh.com:1821",
+      "https://rsbhayangkaraaceh.com:182",
+    ],
+    methods: ["GET", "POST"],
+  },
+});
 
 const movies = require("./routes/movies");
 const users = require("./routes/users");
@@ -228,12 +228,12 @@ io.on("connection", (socket) => {
 
 // prod
 
-server.listen(1821, () => {
-  console.log("simrs bhayangkara listening on *:1091");//1821");
-});
+// server.listen(1821, () => {
+//   console.log("simrs bhayangkara listening on *:1091");//1821");
+// });
 
 // dev
 
-// httpServer.listen(1821, () => {
-//   console.log("listening on *:1821");
-// });
+httpServer.listen(1821, () => {
+  console.log("listening on *:1821");
+});
