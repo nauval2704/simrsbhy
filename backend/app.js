@@ -234,6 +234,6 @@ io.on("connection", (socket) => {
 
 // dev
 
-httpServer.listen(1821, () => {
-  console.log("listening on *:1821");
+httpServer.listen(1822, () => {
+  console.log("listening on *:1822");
 });
