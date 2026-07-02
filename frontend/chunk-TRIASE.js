@@ -87,53 +87,11 @@ var TriaseComponent = (() => {
             this.triaseData = res.data;
             if (surat) surat.setSubmitSuccess();
             this.showToast("success", "Triase berhasil disimpan");
-            this.updateSyncButton();
           },
           error: () => {
             this.saving = false;
             if (surat) surat.resetSubmitButton();
             this.showToast("danger", "Gagal menyimpan triase");
-          },
-        });
-    }
-
-    handleSync() {
-      this.syncing = true;
-      const btn = document.getElementById("triase-sync-btn");
-      if (btn) {
-        btn.disabled = true;
-        btn.innerHTML =
-          '<span class="spinner-border spinner-border-sm me-1"></span> Mengirim...';
-      }
-      this.http
-        .post(i.apiUrl + "/simrsba/triase/sync-satusehat", {
-          noCheckin: this.noCheckin,
-          patientIhsNumber: "",
-        })
-        .subscribe({
-          next: () => {
-            this.syncing = false;
-            if (this.triaseData) this.triaseData.satusehatSynced = true;
-            if (btn) {
-              btn.disabled = false;
-              btn.innerHTML =
-                '<i class="bi bi-cloud-check-fill me-1"></i> Sudah Tersinkron';
-              btn.classList.remove("btn-outline-primary");
-              btn.classList.add("btn-success");
-            }
-            this.showToast("success", "Sync SATUSEHAT berhasil");
-          },
-          error: (err) => {
-            this.syncing = false;
-            if (btn) {
-              btn.disabled = false;
-              btn.innerHTML =
-                '<i class="bi bi-cloud-arrow-up me-1"></i> Sync SATUSEHAT';
-            }
-            this.showToast(
-              "warning",
-              err.error?.message || "Gagal sync ke SATUSEHAT",
-            );
           },
         });
     }
@@ -160,18 +118,6 @@ var TriaseComponent = (() => {
         "</div>";
       document.body.appendChild(toast);
       setTimeout(() => toast.remove(), 4000);
-    }
-
-    updateSyncButton() {
-      const container = document.getElementById("triase-sync-container");
-      if (!container || !this.triaseData) return;
-      if (this.triaseData.satusehatSynced) {
-        container.innerHTML =
-          '<button class="btn btn-success btn-sm" disabled><i class="bi bi-cloud-check-fill me-1"></i> Sudah Tersinkron</button>';
-      } else {
-        container.innerHTML =
-          '<button id="triase-sync-btn" class="btn btn-outline-primary btn-sm" onclick="document.querySelector(\'app-triase-placeholder\').__triase.handleSync()"><i class="bi bi-cloud-arrow-up me-1"></i> Sync SATUSEHAT</button>';
-      }
     }
 
     renderView() {
@@ -409,9 +355,6 @@ var TriaseComponent = (() => {
 
 </div>
 <div class="t-footer">RM03/RSBHY/2022</div>
-<div class="d-print-none" style="position:absolute;bottom:-40px;right:0;">
-  <div id="triase-sync-container"></div>
-</div>
 </surat-canvas>`;
 
       root.__triase = self;
@@ -423,8 +366,6 @@ var TriaseComponent = (() => {
         });
         if (self.canvasDataUrl) surat.canvasDataUrl = self.canvasDataUrl;
       }
-
-      this.updateSyncButton();
     }
 
     static {

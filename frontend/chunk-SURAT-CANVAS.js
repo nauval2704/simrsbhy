@@ -35,6 +35,9 @@ class SuratCanvas extends HTMLElement {
     <button id="rp-eraser-btn">Hapus</button>
     <button id="rp-clear-btn">Clear</button>
     <div class="toolbar-sep"></div>
+    <button id="rp-zoom-out-btn" title="Perkecil">-</button>
+    <button id="rp-zoom-in-btn" title="Perbesar">+</button>
+    <div class="toolbar-sep"></div>
     <button id="rp-fs-btn">Layar Penuh</button>
     <button id="rp-print-btn">Cetak / PDF</button>
     <button id="rp-submit-btn">Simpan Draft</button>
@@ -75,6 +78,16 @@ class SuratCanvas extends HTMLElement {
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+    });
+    this.querySelector('#rp-zoom-in-btn').addEventListener('click', () => {
+      const doc = this.querySelector('.surat-document');
+      const currentZoom = parseFloat(getComputedStyle(doc).zoom) || 1;
+      doc.style.zoom = currentZoom + 0.1;
+    });
+    this.querySelector('#rp-zoom-out-btn').addEventListener('click', () => {
+      const doc = this.querySelector('.surat-document');
+      const currentZoom = parseFloat(getComputedStyle(doc).zoom) || 1;
+      doc.style.zoom = Math.max(0.2, currentZoom - 0.1);
     });
     this.querySelector('#rp-fs-btn').addEventListener('click', () => {
       const body = this.querySelector('.surat-body');
@@ -120,12 +133,23 @@ class SuratCanvas extends HTMLElement {
     canvas.style.width = W + 'px';
     canvas.style.height = H + 'px';
 
-    const ctx = canvas.getContext('2d', { desynchronized: true });
+    const ctx = canvas.getContext('2d');
     ctx.scale(dpr, dpr);
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
+    const activePointers = new Set();
+
     canvas.addEventListener('pointerdown', (e) => {
+      activePointers.add(e.pointerId);
+      if (activePointers.size > 1) {
+        if (this.isDrawing) {
+          ctx.closePath();
+          this.isDrawing = false;
+        }
+        return; // Ignore multi-touch to allow native pan/zoom
+      }
+
       if (e.pointerType !== 'pen' && e.pointerType !== 'mouse' && e.pointerType !== 'touch') return;
       this.isDrawing = true;
       const rect = canvas.getBoundingClientRect();
@@ -143,11 +167,11 @@ class SuratCanvas extends HTMLElement {
       } else {
         ctx.globalCompositeOperation = 'source-over';
         ctx.strokeStyle = this._color;
-        let pressure = e.pressure !== undefined ? e.pressure : 0.5;
-        if (pressure === 0) pressure = 0.5;
+        let pressure = e.pressure !== undefined ? Number(e.pressure) : 0.5;
+        if (isNaN(pressure) || pressure <= 0 || pressure > 1) pressure = 0.5;
         ctx.lineWidth = this._width * (pressure * 2.5);
       }
-      e.preventDefault();
+      if (e.pointerType !== 'touch') e.preventDefault();
     });
 
     canvas.addEventListener('pointermove', (e) => {
@@ -159,24 +183,25 @@ class SuratCanvas extends HTMLElement {
       const y = (e.clientY - rect.top) * scaleY;
 
       if (this._mode === 'pen') {
-        let pressure = e.pressure !== undefined ? e.pressure : 0.5;
-        if (pressure === 0) pressure = 0.5;
+        let pressure = e.pressure !== undefined ? Number(e.pressure) : 0.5;
+        if (isNaN(pressure) || pressure <= 0 || pressure > 1) pressure = 0.5;
         ctx.lineWidth = this._width * (pressure * 2.5);
       }
       ctx.lineTo(x, y);
       ctx.stroke();
-      e.preventDefault();
+      if (e.pointerType !== 'touch') e.preventDefault();
     });
 
-    const stopDrawing = () => {
+    const removePointer = (e) => {
+      activePointers.delete(e.pointerId);
       if (this.isDrawing) {
         ctx.closePath();
         this.isDrawing = false;
       }
     };
-    canvas.addEventListener('pointerup', stopDrawing);
-    canvas.addEventListener('pointerout', stopDrawing);
-    canvas.addEventListener('pointercancel', stopDrawing);
+    canvas.addEventListener('pointerup', removePointer);
+    canvas.addEventListener('pointerout', removePointer);
+    canvas.addEventListener('pointercancel', removePointer);
   }
 
   loadDataUrl(url) {

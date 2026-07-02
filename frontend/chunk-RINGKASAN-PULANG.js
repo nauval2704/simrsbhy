@@ -87,11 +87,37 @@ var RingkasanPulangComponent = (() => {
         .subscribe({
           next: () => {
             if (surat) surat.setSubmitSuccess();
+            this.showToast("success", "Ringkasan Pulang berhasil disimpan");
           },
           error: () => {
             if (surat) surat.resetSubmitButton();
+            this.showToast("danger", "Gagal menyimpan Ringkasan Pulang");
           },
         });
+    }
+
+    showToast(type, message) {
+      const toast = document.createElement("div");
+      toast.style.cssText =
+        "position:fixed;top:20px;right:20px;z-index:99999;min-width:320px;";
+      toast.innerHTML =
+        '<div class="alert alert-' +
+        type +
+        ' shadow d-flex align-items-center gap-2 py-2">' +
+        '<i class="bi bi-' +
+        (type === "success"
+          ? "check-circle-fill"
+          : type === "warning"
+            ? "exclamation-triangle-fill"
+            : "x-circle-fill") +
+        ' fs-5"></i>' +
+        "<div>" +
+        message +
+        "</div>" +
+        '<button class="btn-close ms-auto" onclick="this.parentElement.parentElement.remove()"></button>' +
+        "</div>";
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
     }
 
 

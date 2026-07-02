@@ -33558,6 +33558,12 @@ var xd = (() => {
                                 .lab-paper { box-shadow: none !important; max-width: 100% !important; padding: 20mm 20mm 16mm 20mm !important; }
                                 table.lab-table tbody tr:nth-child(even) { background: #f7f9fc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
                             }
+                            @media screen and (max-width: 768px) {
+                                .lab-print-container { padding: 12px; }
+                                .lab-paper { padding: 24px 16px; border-radius: 4px; }
+                                .lab-paper .meta-grid { grid-template-columns: 1fr; gap: 4px; margin-bottom: 16px; }
+                                table.lab-table th, table.lab-table td { font-size: 11px; padding: 6px 4px; }
+                            }
                         </style>
                         <div id="lab-print-inner">
                           <div class="lab-paper">
@@ -34474,6 +34480,12 @@ var bd = (() => {
                                 #rad-print-container { position: absolute; left: 0; top: 0; width: 100%; background: white !important; padding: 0 !important; }
                                 .rad-paper { box-shadow: none !important; max-width: 100% !important; padding: 20mm 20mm 16mm 20mm !important; }
                                 table.rad-table tbody tr:nth-child(even) { background: #f7f9fc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                            }
+                            @media screen and (max-width: 768px) {
+                                .rad-print-container { padding: 12px; }
+                                .rad-paper { padding: 24px 16px; border-radius: 4px; }
+                                .rad-paper .meta-grid { grid-template-columns: 1fr; gap: 4px; margin-bottom: 16px; }
+                                table.rad-table th, table.rad-table td { font-size: 11px; padding: 6px 4px; }
                             }
                         </style>
                         <div class="rad-paper">
