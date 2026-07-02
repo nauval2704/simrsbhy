@@ -23,8 +23,18 @@ class SuratCanvas extends HTMLElement {
     if (this.querySelector('.surat-body')) return;
 
     const originalContent = this.innerHTML;
+    const docW = parseInt(this.getAttribute('data-width')) || 816;
+    const docH = parseInt(this.getAttribute('data-height')) || 1247;
+
+    let printStyle = '';
+    if (docW > docH) {
+      printStyle = '<style>@media print { @page { size: 330.2mm 215.9mm; } }</style>';
+    } else {
+      printStyle = '<style>@media print { @page { size: 215.9mm 330.2mm; } }</style>';
+    }
 
     this.innerHTML = `
+${printStyle}
 <div class="surat-body">
   <div class="surat-toolbar">
     <button id="rp-back-btn" style="display:none;">Kembali</button>
@@ -42,7 +52,7 @@ class SuratCanvas extends HTMLElement {
     <button id="rp-print-btn">Cetak / PDF</button>
     <button id="rp-submit-btn">Simpan Draft</button>
   </div>
-  <div class="surat-document">
+  <div class="surat-document" style="width: ${docW}px; height: ${docH}px;">
     <canvas class="surat-canvas" id="rp-canvas"></canvas>
     <div class="surat-content">
       ${originalContent}
@@ -124,8 +134,8 @@ class SuratCanvas extends HTMLElement {
     const canvas = this.querySelector('#rp-canvas');
     if (!canvas) return;
 
-    const W = 816;
-    const H = 1247;
+    const W = parseInt(this.getAttribute('data-width')) || 816;
+    const H = parseInt(this.getAttribute('data-height')) || 1247;
     const dpr = window.devicePixelRatio || 1;
 
     canvas.width = W * dpr;
@@ -211,8 +221,10 @@ class SuratCanvas extends HTMLElement {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     const img = new Image();
+    const W = parseInt(this.getAttribute('data-width')) || 816;
+    const H = parseInt(this.getAttribute('data-height')) || 1247;
     img.onload = () => {
-      ctx.drawImage(img, 0, 0, 816, 1247);
+      ctx.drawImage(img, 0, 0, W, H);
     };
     img.src = url;
   }

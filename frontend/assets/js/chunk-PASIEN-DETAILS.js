@@ -43,6 +43,7 @@ class SimrsPatientSidebar extends HTMLElement {
                 <a href="javascript:void(0)" data-path="radiologi" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Input RADIOLOGI</a>
                 <a href="javascript:void(0)" data-path="cppt-igd" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> CPPT IGD</a>
                 <a href="javascript:void(0)" data-path="ringkasan-pulang" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Ringkasan Pulang</a>
+                <a href="javascript:void(0)" data-path="pemberian-obat" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Pemberian Obat</a>
             </div>
             <div class="list-group mb-1">
                     <a href="javascript:void(0)" data-path="rincian" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Billing</a>

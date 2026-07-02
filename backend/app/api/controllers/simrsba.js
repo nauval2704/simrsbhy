@@ -17,6 +17,7 @@ const Prmrj = require("../models/prmrj");
 const EdukasiPoli = require("../models/edukasiPoli");
 const CpptIgd = require("../models/cpptIgd");
 const RingkasanPulang = require("../models/ringkasanPulang");
+const PemberianObatIgd = require("../models/pemberianObatIgd");
 const PoliGigi = require("../models/poliGigi");
 var mongoose = require("mongoose");
 const { ObjectId } = mongoose.Types.ObjectId;
@@ -3898,6 +3899,27 @@ module.exports = {
       return res.status(200).send({ status: 200, message: "Ok", data: data });
     } catch (error) {
       return res.status(400).send({ status: 400, message: "Gagal mengambil data Ringkasan Pulang", data: null });
+    }
+  },
+  savePemberianObatIgd: async (req, res) => {
+    try {
+      const payload = req.body;
+      const saved = await PemberianObatIgd.findOneAndUpdate(
+        { noCheckin: payload.noCheckin },
+        { $set: payload },
+        { upsert: true, new: true }
+      );
+      return res.status(200).send({ status: 200, message: "Formulir Pemberian Obat berhasil disimpan", data: saved });
+    } catch (error) {
+      return res.status(400).send({ status: 400, message: "Gagal menyimpan Formulir Pemberian Obat", data: null });
+    }
+  },
+  getPemberianObatIgd: async (req, res) => {
+    try {
+      const data = await PemberianObatIgd.findOne({ noCheckin: req.params.noCheckin });
+      return res.status(200).send({ status: 200, message: "Ok", data: data });
+    } catch (error) {
+      return res.status(400).send({ status: 400, message: "Gagal mengambil data Formulir Pemberian Obat", data: null });
     }
   },
   savePoliGigi: async (req, res) => {

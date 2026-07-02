@@ -183,6 +183,9 @@ router.get("/cppt-igd/:noCheckin", simrsBaController.getCpptIgd);
 router.post("/ringkasan-pulang", simrsBaController.saveRingkasanPulang);
 router.get("/ringkasan-pulang/:noCheckin", simrsBaController.getRingkasanPulang);
 
+router.post("/pemberian-obat-igd", simrsBaController.savePemberianObatIgd);
+router.get("/pemberian-obat-igd/:noCheckin", simrsBaController.getPemberianObatIgd);
+
 router.post("/poli-gigi", simrsBaController.savePoliGigi);
 router.get("/poli-gigi/:noCheckin", simrsBaController.getPoliGigi);
 

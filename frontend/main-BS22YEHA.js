@@ -136720,6 +136720,14 @@ var rb = [
         canActivate: [st],
       },
       {
+        path: "pemberian-obat/:nocheckin",
+        loadComponent: () =>
+          import("./chunk-PEMBERIAN-OBAT-IGD.js").then(
+            (t) => t.PemberianObatIgdComponent,
+          ),
+        canActivate: [st],
+      },
+      {
         path: "igd/:nocheckin",
         component: Qv,
         children: [
