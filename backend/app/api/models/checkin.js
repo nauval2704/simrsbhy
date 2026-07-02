@@ -223,5 +223,15 @@ const CheckinSchema = new Schema({
     required: false,
     default: 0,
   },
+  laboratorium: {
+    type: Array,
+    required: false,
+    default: [],
+  },
+  radiologi: {
+    type: Array,
+    required: false,
+    default: [],
+  },
 });
 module.exports = mongoose.model("Checkin", CheckinSchema);

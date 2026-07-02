@@ -257,7 +257,7 @@ var LabDetailComponent = (() => {
               </div>
               <div class="list-group list-group-sm">
                  <button class="list-group-item list-group-item-action text-primary active" aria-current="true"><i class="bi bi-droplet-fill me-2"></i> Input Pemeriksaan LAB</button>
-                 <button class="list-group-item list-group-item-action text-danger" onclick="window.history.pushState(null, '', '/laboratorium'); window.dispatchEvent(new Event('popstate'));"><i class="bi bi-arrow-left-circle me-2"></i> Kembali ke Antrean</button>
+                 <button class="list-group-item list-group-item-action text-danger" onclick="window.history.pushState(null, '', '/lab'); window.dispatchEvent(new Event('popstate'));"><i class="bi bi-arrow-left-circle me-2"></i> Kembali ke Antrean</button>
               </div>
             </div>
 
@@ -301,11 +301,8 @@ var LabDetailComponent = (() => {
                     
                     <hr>
                     <div class="d-flex justify-content-end gap-2">
-                       <button class="btn btn-outline-success px-4 fw-bold" onclick="document.querySelector('app-lab-detail-wrapper').__lab.saveLab(false)" ${this.saving ? 'disabled' : ''}>
+                       <button class="btn btn-primary px-4 fw-bold" onclick="document.querySelector('app-lab-detail-wrapper').__lab.saveLab(false)" ${this.saving ? 'disabled' : ''}>
                           ${saveBtnText}
-                       </button>
-                       <button class="btn btn-primary px-4 fw-bold" onclick="document.querySelector('app-lab-detail-wrapper').__lab.saveLab(true)" ${this.saving ? 'disabled' : ''}>
-                          ${syncBtnText}
                        </button>
                     </div>
                  </div>

@@ -186,4 +186,7 @@ router.get("/ringkasan-pulang/:noCheckin", simrsBaController.getRingkasanPulang)
 router.post("/poli-gigi", simrsBaController.savePoliGigi);
 router.get("/poli-gigi/:noCheckin", simrsBaController.getPoliGigi);
 
+router.post("/lab/save", simrsBaController.saveLab);
+router.post("/rad/save", simrsBaController.saveRad);
+
 module.exports = router;

@@ -3921,4 +3921,30 @@ module.exports = {
       return res.status(400).send({ status: 400, message: "Gagal mengambil data Poli Gigi", data: null });
     }
   },
+  saveLab: async (req, res) => {
+    try {
+      const payload = req.body;
+      const saved = await Checkin.findOneAndUpdate(
+        { noCheckin: payload.noCheckin },
+        { $set: { laboratorium: payload.laboratorium } },
+        { new: true }
+      );
+      return res.status(200).send({ status: 200, message: "Hasil LAB berhasil disimpan", data: { checkin: saved } });
+    } catch (error) {
+      return res.status(400).send({ status: 400, message: "Gagal menyimpan hasil LAB", data: null });
+    }
+  },
+  saveRad: async (req, res) => {
+    try {
+      const payload = req.body;
+      const saved = await Checkin.findOneAndUpdate(
+        { noCheckin: payload.noCheckin },
+        { $set: { radiologi: payload.radiologi } },
+        { new: true }
+      );
+      return res.status(200).send({ status: 200, message: "Hasil Radiologi berhasil disimpan", data: { checkin: saved } });
+    } catch (error) {
+      return res.status(400).send({ status: 400, message: "Gagal menyimpan hasil Radiologi", data: null });
+    }
+  },
 };

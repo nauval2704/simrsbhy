@@ -284,11 +284,8 @@ var RadDetailComponent = (() => {
                     
                     <hr>
                     <div class="d-flex justify-content-end gap-2">
-                       <button class="btn btn-outline-success px-4 fw-bold" onclick="document.querySelector('app-rad-detail-wrapper').__rad.saveRad(false)" ${this.saving ? 'disabled' : ''}>
+                       <button class="btn btn-primary px-4 fw-bold" onclick="document.querySelector('app-rad-detail-wrapper').__rad.saveRad(false)" ${this.saving ? 'disabled' : ''}>
                           ${saveBtnText}
-                       </button>
-                       <button class="btn btn-primary px-4 fw-bold" onclick="document.querySelector('app-rad-detail-wrapper').__rad.saveRad(true)" ${this.saving ? 'disabled' : ''}>
-                          ${syncBtnText}
                        </button>
                     </div>
                  </div>
