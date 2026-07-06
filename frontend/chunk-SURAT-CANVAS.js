@@ -22,7 +22,16 @@ class SuratCanvas extends HTMLElement {
   connectedCallback() {
     if (this.querySelector('.surat-body')) return;
 
-    const originalContent = this.innerHTML;
+    window.scrollTo(0, 0);
+    if (document.documentElement) document.documentElement.scrollTop = 0;
+    if (document.body) {
+      document.body.scrollTop = 0;
+    }
+
+    const temp = document.createElement('div');
+    temp.innerHTML = this.innerHTML;
+    const pages = Array.from(temp.querySelectorAll('.pap-page, .page'));
+
     const docW = parseInt(this.getAttribute('data-width')) || 816;
     const docH = parseInt(this.getAttribute('data-height')) || 1247;
 
@@ -31,6 +40,29 @@ class SuratCanvas extends HTMLElement {
       printStyle = '<style>@media print { @page { size: 330.2mm 215.9mm; } }</style>';
     } else {
       printStyle = '<style>@media print { @page { size: 215.9mm 330.2mm; } }</style>';
+    }
+
+    let documentsHtml = '';
+    if (pages.length > 0) {
+      pages.forEach((pageEl, idx) => {
+        const pageH = 1248;
+        const gapStyle = idx > 0 ? 'margin-top: 20px;' : '';
+        documentsHtml += `
+        <div class="surat-document multi-page-doc" style="width: ${docW}px; height: ${pageH}px; ${gapStyle}">
+          <canvas class="surat-canvas" data-page="${idx}"></canvas>
+          <div class="surat-content">
+            ${pageEl.outerHTML}
+          </div>
+        </div>`;
+      });
+    } else {
+      documentsHtml = `
+      <div class="surat-document" style="width: ${docW}px; height: ${docH}px;">
+        <canvas class="surat-canvas" id="rp-canvas"></canvas>
+        <div class="surat-content">
+          ${temp.innerHTML}
+        </div>
+      </div>`;
     }
 
     this.innerHTML = `
@@ -52,12 +84,7 @@ ${printStyle}
     <button id="rp-print-btn">Cetak / PDF</button>
     <button id="rp-submit-btn">Simpan Draft</button>
   </div>
-  <div class="surat-document" style="width: ${docW}px; height: ${docH}px;">
-    <canvas class="surat-canvas" id="rp-canvas"></canvas>
-    <div class="surat-content">
-      ${originalContent}
-    </div>
-  </div>
+  ${documentsHtml}
 </div>`;
 
     this.attachEvents();
@@ -84,20 +111,25 @@ ${printStyle}
     });
     this.querySelector('#rp-clear-btn').addEventListener('click', () => {
       if (!confirm('Bersihkan seluruh coretan?')) return;
-      const canvas = this.querySelector('#rp-canvas');
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const canvases = Array.from(this.querySelectorAll('.surat-canvas'));
+      canvases.forEach((canvas) => {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      });
     });
     this.querySelector('#rp-zoom-in-btn').addEventListener('click', () => {
-      const doc = this.querySelector('.surat-document');
-      const currentZoom = parseFloat(getComputedStyle(doc).zoom) || 1;
-      doc.style.zoom = currentZoom + 0.1;
+      const docs = Array.from(this.querySelectorAll('.surat-document'));
+      docs.forEach((doc) => {
+        const currentZoom = parseFloat(getComputedStyle(doc).zoom) || 1;
+        doc.style.zoom = currentZoom + 0.1;
+      });
     });
     this.querySelector('#rp-zoom-out-btn').addEventListener('click', () => {
-      const doc = this.querySelector('.surat-document');
-      const currentZoom = parseFloat(getComputedStyle(doc).zoom) || 1;
-      doc.style.zoom = Math.max(0.2, currentZoom - 0.1);
+      const docs = Array.from(this.querySelectorAll('.surat-document'));
+      docs.forEach((doc) => {
+        const currentZoom = parseFloat(getComputedStyle(doc).zoom) || 1;
+        doc.style.zoom = Math.max(0.2, currentZoom - 0.1);
+      });
     });
     this.querySelector('#rp-fs-btn').addEventListener('click', () => {
       const body = this.querySelector('.surat-body');
@@ -131,107 +163,134 @@ ${printStyle}
   }
 
   initCanvas() {
-    const canvas = this.querySelector('#rp-canvas');
-    if (!canvas) return;
+    const canvases = Array.from(this.querySelectorAll('.surat-canvas'));
+    canvases.forEach((canvas) => {
+      const W = parseInt(this.getAttribute('data-width')) || 816;
+      const isMulti = canvases.length > 1;
+      const H = isMulti ? 1248 : (parseInt(this.getAttribute('data-height')) || 1247);
+      const dpr = window.devicePixelRatio || 1;
 
-    const W = parseInt(this.getAttribute('data-width')) || 816;
-    const H = parseInt(this.getAttribute('data-height')) || 1247;
-    const dpr = window.devicePixelRatio || 1;
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+      canvas.style.width = W + 'px';
+      canvas.style.height = H + 'px';
 
-    canvas.width = W * dpr;
-    canvas.height = H * dpr;
-    canvas.style.width = W + 'px';
-    canvas.style.height = H + 'px';
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
 
-    const ctx = canvas.getContext('2d');
-    ctx.scale(dpr, dpr);
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
+      const activePointers = new Set();
 
-    const activePointers = new Set();
+      canvas.addEventListener('pointerdown', (e) => {
+        activePointers.add(e.pointerId);
+        if (activePointers.size > 1) {
+          if (this.isDrawing) {
+            ctx.closePath();
+            this.isDrawing = false;
+          }
+          return;
+        }
 
-    canvas.addEventListener('pointerdown', (e) => {
-      activePointers.add(e.pointerId);
-      if (activePointers.size > 1) {
+        if (e.pointerType !== 'pen' && e.pointerType !== 'mouse' && e.pointerType !== 'touch') return;
+        this.isDrawing = true;
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = W / rect.width;
+        const scaleY = H / rect.height;
+        const x = (e.clientX - rect.left) * scaleX;
+        const y = (e.clientY - rect.top) * scaleY;
+
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+
+        if (this._mode === 'eraser') {
+          ctx.globalCompositeOperation = 'destination-out';
+          ctx.lineWidth = 20;
+        } else {
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.strokeStyle = this._color;
+          let pressure = e.pressure !== undefined ? Number(e.pressure) : 0.5;
+          if (isNaN(pressure) || pressure <= 0 || pressure > 1) pressure = 0.5;
+          ctx.lineWidth = this._width * (pressure * 2.5);
+        }
+        if (e.pointerType !== 'touch') e.preventDefault();
+      });
+
+      canvas.addEventListener('pointermove', (e) => {
+        if (!this.isDrawing) return;
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = W / rect.width;
+        const scaleY = H / rect.height;
+        const x = (e.clientX - rect.left) * scaleX;
+        const y = (e.clientY - rect.top) * scaleY;
+
+        if (this._mode === 'pen') {
+          let pressure = e.pressure !== undefined ? Number(e.pressure) : 0.5;
+          if (isNaN(pressure) || pressure <= 0 || pressure > 1) pressure = 0.5;
+          ctx.lineWidth = this._width * (pressure * 2.5);
+        }
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        if (e.pointerType !== 'touch') e.preventDefault();
+      });
+
+      const removePointer = (e) => {
+        activePointers.delete(e.pointerId);
         if (this.isDrawing) {
           ctx.closePath();
           this.isDrawing = false;
         }
-        return; // Ignore multi-touch to allow native pan/zoom
-      }
-
-      if (e.pointerType !== 'pen' && e.pointerType !== 'mouse' && e.pointerType !== 'touch') return;
-      this.isDrawing = true;
-      const rect = canvas.getBoundingClientRect();
-      const scaleX = W / rect.width;
-      const scaleY = H / rect.height;
-      const x = (e.clientX - rect.left) * scaleX;
-      const y = (e.clientY - rect.top) * scaleY;
-
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-
-      if (this._mode === 'eraser') {
-        ctx.globalCompositeOperation = 'destination-out';
-        ctx.lineWidth = 20;
-      } else {
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.strokeStyle = this._color;
-        let pressure = e.pressure !== undefined ? Number(e.pressure) : 0.5;
-        if (isNaN(pressure) || pressure <= 0 || pressure > 1) pressure = 0.5;
-        ctx.lineWidth = this._width * (pressure * 2.5);
-      }
-      if (e.pointerType !== 'touch') e.preventDefault();
+      };
+      canvas.addEventListener('pointerup', removePointer);
+      canvas.addEventListener('pointerout', removePointer);
+      canvas.addEventListener('pointercancel', removePointer);
     });
-
-    canvas.addEventListener('pointermove', (e) => {
-      if (!this.isDrawing) return;
-      const rect = canvas.getBoundingClientRect();
-      const scaleX = W / rect.width;
-      const scaleY = H / rect.height;
-      const x = (e.clientX - rect.left) * scaleX;
-      const y = (e.clientY - rect.top) * scaleY;
-
-      if (this._mode === 'pen') {
-        let pressure = e.pressure !== undefined ? Number(e.pressure) : 0.5;
-        if (isNaN(pressure) || pressure <= 0 || pressure > 1) pressure = 0.5;
-        ctx.lineWidth = this._width * (pressure * 2.5);
-      }
-      ctx.lineTo(x, y);
-      ctx.stroke();
-      if (e.pointerType !== 'touch') e.preventDefault();
-    });
-
-    const removePointer = (e) => {
-      activePointers.delete(e.pointerId);
-      if (this.isDrawing) {
-        ctx.closePath();
-        this.isDrawing = false;
-      }
-    };
-    canvas.addEventListener('pointerup', removePointer);
-    canvas.addEventListener('pointerout', removePointer);
-    canvas.addEventListener('pointercancel', removePointer);
   }
 
   loadDataUrl(url) {
     if (!url) return;
     this._canvasDataUrl = url;
-    const canvas = this.querySelector('#rp-canvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const img = new Image();
-    const W = parseInt(this.getAttribute('data-width')) || 816;
-    const H = parseInt(this.getAttribute('data-height')) || 1247;
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0, W, H);
-    };
-    img.src = url;
+    const canvases = Array.from(this.querySelectorAll('.surat-canvas'));
+    if (canvases.length === 0) return;
+
+    if (url.startsWith('[')) {
+      try {
+        const urls = JSON.parse(url);
+        canvases.forEach((canvas, idx) => {
+          if (urls[idx]) {
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            const W = parseInt(this.getAttribute('data-width')) || 816;
+            const H = canvases.length > 1 ? 1248 : (parseInt(this.getAttribute('data-height')) || 1247);
+            img.onload = () => {
+              ctx.drawImage(img, 0, 0, W, H);
+            };
+            img.src = urls[idx];
+          }
+        });
+      } catch (e) {
+      }
+    } else {
+      const canvas = canvases[0];
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      const W = parseInt(this.getAttribute('data-width')) || 816;
+      const H = parseInt(this.getAttribute('data-height')) || 1247;
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, W, H);
+      };
+      img.src = url;
+    }
   }
 
   toDataURL() {
-    const canvas = this.querySelector('#rp-canvas');
-    return canvas ? canvas.toDataURL('image/png') : null;
+    const canvases = Array.from(this.querySelectorAll('.surat-canvas'));
+    if (canvases.length <= 1) {
+      return canvases[0] ? canvases[0].toDataURL('image/png') : null;
+    }
+    const urls = canvases.map(c => c.toDataURL('image/png'));
+    return JSON.stringify(urls);
   }
 
   resetSubmitButton() {
@@ -252,5 +311,6 @@ ${printStyle}
       }, 3000);
     }
   }
+
 }
 customElements.define('surat-canvas', SuratCanvas);

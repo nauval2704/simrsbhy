@@ -189,6 +189,12 @@ router.get("/pemberian-obat-igd/:noCheckin", simrsBaController.getPemberianObatI
 router.post("/poli-gigi", simrsBaController.savePoliGigi);
 router.get("/poli-gigi/:noCheckin", simrsBaController.getPoliGigi);
 
+router.post("/pengkajian-awal-poli", simrsBaController.savePengkajianAwalPoli);
+router.get("/pengkajian-awal-poli/:noCheckin", simrsBaController.getPengkajianAwalPoli);
+
+router.post("/pengkajian-awal-igd", simrsBaController.savePengkajianAwalIgd);
+router.get("/pengkajian-awal-igd/:noCheckin", simrsBaController.getPengkajianAwalIgd);
+
 router.post("/lab/save", simrsBaController.saveLab);
 router.post("/rad/save", simrsBaController.saveRad);
 

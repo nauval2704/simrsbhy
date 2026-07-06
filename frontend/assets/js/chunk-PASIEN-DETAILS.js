@@ -37,6 +37,7 @@ class SimrsPatientSidebar extends HTMLElement {
       return `
                 <a href="javascript:void(0)" data-path="satusehat" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> SATUSEHAT</a>
                 <a href="javascript:void(0)" data-path="triase" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Triase</a>
+                <a href="javascript:void(0)" data-path="pengkajian-awal-igd" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Pengkajian Awal IGD</a>
                 <a href="javascript:void(0)" data-path="igd" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Input Pelayanan IGD</a>
                 <a href="javascript:void(0)" data-path="farmasi" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Input Obat / BHP</a>
                 <a href="javascript:void(0)" data-path="lab" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Input LAB</a>
@@ -60,7 +61,8 @@ class SimrsPatientSidebar extends HTMLElement {
       const specificLinks = isPoliGigi 
         ? `<a href="javascript:void(0)" data-path="poli-gigi" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> PRMRJ Poli Gigi</a>`
         : `<a href="javascript:void(0)" data-path="edukasi-poli" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Edukasi Pasien</a>
-           <a href="javascript:void(0)" data-path="prmrj" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> PRMRJ</a>`;
+           <a href="javascript:void(0)" data-path="prmrj" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> PRMRJ</a>
+           <a href="javascript:void(0)" data-path="pengkajian-awal-poli" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Pengkajian Awal</a>`;
 
       return `
                 <a href="javascript:void(0)" data-path="satusehat" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> SATUSEHAT</a>

@@ -10,8 +10,8 @@
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
-  font-family: 'Times New Roman', Times, serif;
   overflow-y: auto;
+  font-family: 'Times New Roman', Times, serif;
 }
 
 .surat-toolbar {
@@ -350,13 +350,15 @@
   }
 
   .surat-document {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
+    position: relative !important;
     box-shadow: none !important;
     margin: 0 !important;
     overflow: hidden !important;
     page-break-inside: avoid !important;
+  }
+  .surat-document:not(:last-child) {
+    page-break-after: always !important;
+    break-after: page !important;
   }
 
   .surat-canvas, .surat-content {
@@ -448,4 +450,14 @@
     min-height: 48px;
     padding: 8px 10px;
   }
+}
+
+.simrs-sidebar-col {
+  position: sticky !important;
+  top: 15px !important;
+}
+
+surat-canvas[data-width] .surat-content,
+.surat-document.multi-page-doc .surat-content {
+  padding: 0 !important;
 }

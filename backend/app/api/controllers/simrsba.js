@@ -18,6 +18,8 @@ const EdukasiPoli = require("../models/edukasiPoli");
 const CpptIgd = require("../models/cpptIgd");
 const RingkasanPulang = require("../models/ringkasanPulang");
 const PemberianObatIgd = require("../models/pemberianObatIgd");
+const PengkajianAwalPoli = require("../models/pengkajianAwalPoli");
+const PengkajianAwalIgd = require("../models/pengkajianAwalIgd");
 const PoliGigi = require("../models/poliGigi");
 var mongoose = require("mongoose");
 const { ObjectId } = mongoose.Types.ObjectId;
@@ -3920,6 +3922,48 @@ module.exports = {
       return res.status(200).send({ status: 200, message: "Ok", data: data });
     } catch (error) {
       return res.status(400).send({ status: 400, message: "Gagal mengambil data Formulir Pemberian Obat", data: null });
+    }
+  },
+  savePengkajianAwalPoli: async (req, res) => {
+    try {
+      const payload = req.body;
+      const saved = await PengkajianAwalPoli.findOneAndUpdate(
+        { noCheckin: payload.noCheckin },
+        { $set: payload },
+        { upsert: true, new: true }
+      );
+      return res.status(200).send({ status: 200, message: "Pengkajian Awal Poliklinik berhasil disimpan", data: saved });
+    } catch (error) {
+      return res.status(400).send({ status: 400, message: "Gagal menyimpan Pengkajian Awal Poliklinik", data: null });
+    }
+  },
+  getPengkajianAwalPoli: async (req, res) => {
+    try {
+      const data = await PengkajianAwalPoli.findOne({ noCheckin: req.params.noCheckin });
+      return res.status(200).send({ status: 200, message: "Ok", data: data });
+    } catch (error) {
+      return res.status(400).send({ status: 400, message: "Gagal mengambil data Pengkajian Awal Poliklinik", data: null });
+    }
+  },
+  savePengkajianAwalIgd: async (req, res) => {
+    try {
+      const payload = req.body;
+      const saved = await PengkajianAwalIgd.findOneAndUpdate(
+        { noCheckin: payload.noCheckin },
+        { $set: payload },
+        { upsert: true, new: true }
+      );
+      return res.status(200).send({ status: 200, message: "Pengkajian Awal IGD berhasil disimpan", data: saved });
+    } catch (error) {
+      return res.status(400).send({ status: 400, message: "Gagal menyimpan Pengkajian Awal IGD", data: null });
+    }
+  },
+  getPengkajianAwalIgd: async (req, res) => {
+    try {
+      const data = await PengkajianAwalIgd.findOne({ noCheckin: req.params.noCheckin });
+      return res.status(200).send({ status: 200, message: "Ok", data: data });
+    } catch (error) {
+      return res.status(400).send({ status: 400, message: "Gagal mengambil data Pengkajian Awal IGD", data: null });
     }
   },
   savePoliGigi: async (req, res) => {

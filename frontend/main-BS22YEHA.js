@@ -136624,6 +136624,12 @@ var rb = [
         canActivate: [st],
       },
       {
+        path: "pengkajian-awal-poli/:nocheckin",
+        loadComponent: () =>
+          import("./chunk-PENGKAJIAN-AWAL-POLI.js").then((t) => t.PengkajianAwalPoliComponent),
+        canActivate: [st],
+      },
+      {
         path: "farmasi/:nocheckin",
         component: Ds,
         canActivate: [st],
@@ -136703,6 +136709,12 @@ var rb = [
         path: "triase/:nocheckin",
         loadComponent: () =>
           import("./chunk-TRIASE.js").then((t) => t.TriaseComponent),
+        canActivate: [st],
+      },
+      {
+        path: "pengkajian-awal-igd/:nocheckin",
+        loadComponent: () =>
+          import("./chunk-PENGKAJIAN-AWAL-IGD.js").then((t) => t.PengkajianAwalIgdComponent),
         canActivate: [st],
       },
       {

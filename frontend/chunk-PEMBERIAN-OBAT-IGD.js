@@ -284,6 +284,7 @@ var PemberianObatIgdComponent = (() => {
     }
 </style>
 <surat-canvas id="rp-surat" data-width="1248" data-height="816">
+    <div class="fpo-page-wrapper" style="padding: 20px 30px; width: 100%; height: 100%; background-color: white;">
     <div class="fpo-main-border">
         <!-- Header Module -->
         <div class="fpo-header-section">
@@ -367,6 +368,7 @@ var PemberianObatIgdComponent = (() => {
     <div class="fpo-form-identifier">
         <div>RM014/ReV01/RSBHY/2022</div>
         <div>(1)</div>
+    </div>
     </div>
 </surat-canvas>`;
 
