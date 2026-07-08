@@ -16,6 +16,7 @@ const checkin = require("../models/checkin");
 const Prmrj = require("../models/prmrj");
 const EdukasiPoli = require("../models/edukasiPoli");
 const CpptIgd = require("../models/cpptIgd");
+const CpptPoli = require("../models/cpptPoli");
 const RingkasanPulang = require("../models/ringkasanPulang");
 const PemberianObatIgd = require("../models/pemberianObatIgd");
 const PengkajianAwalPoli = require("../models/pengkajianAwalPoli");
@@ -3880,6 +3881,37 @@ module.exports = {
       return res.status(200).send({ status: 200, message: "Ok", data: data });
     } catch (error) {
       return res.status(400).send({ status: 400, message: "Gagal mengambil data CPPT IGD", data: null });
+    }
+  },
+  saveCpptPoli: async (req, res) => {
+    try {
+      const payload = req.body;
+      const saved = await CpptPoli.findOneAndUpdate(
+        { noCheckin: payload.noCheckin },
+        { $set: payload },
+        { upsert: true, new: true }
+      );
+      return res.status(200).send({ status: 200, message: "CPPT Poliklinik berhasil disimpan", data: saved });
+    } catch (error) {
+      return res.status(400).send({ status: 400, message: "Gagal menyimpan CPPT Poliklinik", data: null });
+    }
+  },
+  getCpptPoli: async (req, res) => {
+    try {
+      const data = await CpptPoli.findOne({ noCheckin: req.params.noCheckin });
+      return res.status(200).send({ status: 200, message: "Ok", data: data });
+    } catch (error) {
+      return res.status(400).send({ status: 400, message: "Gagal mengambil data CPPT Poliklinik", data: null });
+    }
+  },
+  listCpptPoli: async (req, res) => {
+    try {
+      const data = await CpptPoli.find({ noMr: req.params.noMr })
+        .select("-canvasImage") // Exclude heavy canvas string from list view
+        .sort({ tglInput: -1 }); // Sort descending (newest first)
+      return res.status(200).send({ status: 200, message: "Ok", data: data });
+    } catch (error) {
+      return res.status(400).send({ status: 400, message: "Gagal mengambil daftar CPPT Poliklinik", data: null });
     }
   },
   saveRingkasanPulang: async (req, res) => {

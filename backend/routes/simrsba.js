@@ -180,6 +180,10 @@ router.get("/edukasi-poli/:noCheckin", simrsBaController.getEdukasiPoli);
 router.post("/cppt-igd", simrsBaController.saveCpptIgd);
 router.get("/cppt-igd/:noCheckin", simrsBaController.getCpptIgd);
 
+router.post("/cppt-poli", simrsBaController.saveCpptPoli);
+router.get("/cppt-poli/list/:noMr", simrsBaController.listCpptPoli);
+router.get("/cppt-poli/:noCheckin", simrsBaController.getCpptPoli);
+
 router.post("/ringkasan-pulang", simrsBaController.saveRingkasanPulang);
 router.get("/ringkasan-pulang/:noCheckin", simrsBaController.getRingkasanPulang);
 

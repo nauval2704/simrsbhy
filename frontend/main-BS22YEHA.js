@@ -136630,6 +136630,12 @@ var rb = [
         canActivate: [st],
       },
       {
+        path: "cppt-poli/:nocheckin",
+        loadComponent: () =>
+          import("./chunk-CPPT-POLI.js").then((t) => t.CpptPoliComponent),
+        canActivate: [st],
+      },
+      {
         path: "farmasi/:nocheckin",
         component: Ds,
         canActivate: [st],

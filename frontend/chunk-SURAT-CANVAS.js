@@ -3,7 +3,7 @@ class SuratCanvas extends HTMLElement {
     super();
     this._mode = 'pen';
     this._color = '#000000';
-    this._width = 2;
+    this._width = 1.5;
     this.isDrawing = false;
     this._canvasDataUrl = null;
   }
@@ -72,7 +72,7 @@ ${printStyle}
     <button id="rp-back-btn" style="display:none;">Kembali</button>
     <div class="toolbar-sep"></div>
     <label>Tebal:</label>
-    <input type="range" id="rp-width" min="1" max="10" value="2" title="Ketebalan">
+    <input type="range" id="rp-width" min="0.5" max="10" step="0.5" value="1.5" title="Ketebalan">
     <div class="toolbar-sep"></div>
     <button id="rp-eraser-btn">Hapus</button>
     <button id="rp-clear-btn">Clear</button>
@@ -211,7 +211,7 @@ ${printStyle}
           ctx.strokeStyle = this._color;
           let pressure = e.pressure !== undefined ? Number(e.pressure) : 0.5;
           if (isNaN(pressure) || pressure <= 0 || pressure > 1) pressure = 0.5;
-          ctx.lineWidth = this._width * (pressure * 2.5);
+          ctx.lineWidth = this._width * (0.8 + (pressure * 0.4));
         }
         if (e.pointerType !== 'touch') e.preventDefault();
       });
@@ -227,7 +227,7 @@ ${printStyle}
         if (this._mode === 'pen') {
           let pressure = e.pressure !== undefined ? Number(e.pressure) : 0.5;
           if (isNaN(pressure) || pressure <= 0 || pressure > 1) pressure = 0.5;
-          ctx.lineWidth = this._width * (pressure * 2.5);
+          ctx.lineWidth = this._width * (0.8 + (pressure * 0.4));
         }
         ctx.lineTo(x, y);
         ctx.stroke();

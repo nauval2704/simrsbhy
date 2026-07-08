@@ -67,6 +67,7 @@ class SimrsPatientSidebar extends HTMLElement {
       return `
                 <a href="javascript:void(0)" data-path="satusehat" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> SATUSEHAT</a>
                 ${specificLinks}
+                <a href="javascript:void(0)" data-path="cppt-poli" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> CPPT Poliklinik</a>
                 <a href="javascript:void(0)" data-path="poli" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Input Pelayanan POLI</a>
                 <a href="javascript:void(0)" data-path="farmasi" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Input Obat / BMHP</a>
                 <a href="javascript:void(0)" data-path="lab" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Input LAB</a>
