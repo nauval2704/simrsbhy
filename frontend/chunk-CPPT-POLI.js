@@ -224,18 +224,17 @@ var CpptPoliComponent = (() => {
       const hasCurrent = !!this.currentVisitCanvasDataUrl;
       const topAction = hasCurrent
         ? '<button class="btn btn-warning btn-sm btn-tambah-cppt text-nowrap"><i class="bi bi-pencil"></i> Edit CPPT Saat Ini</button>'
-        : '<button class="btn btn-outline-secondary btn-sm btn-tambah-cppt"><i class="bi bi-plus-circle"></i></button>';
+        : '<button class="btn btn-outline-secondary btn-sm btn-tambah-cppt text-nowrap"><i class="bi bi-plus-circle"></i> Tambah</button>';
 
       root.innerHTML = `
-        <div class="card mt-3 mx-3 shadow-sm rounded" style="border-radius: 6px; overflow: hidden;">
-            <div class="card-header bg-white p-2 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
-                <input type="text" class="form-control form-control-sm w-100" placeholder="Search" style="max-width: 300px;">
-                <div class="text-end">${topAction}</div>
+        <div class="card shadow-none border rounded" style="border-radius: 6px; overflow: hidden;">
+            <div class="card-header bg-white p-3 d-flex justify-content-end" style="border-bottom: 1px solid #dee2e6;">
+                <div>${topAction}</div>
             </div>
-            <div class="card-body p-0 pb-2">
+            <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover table-sm align-middle mb-0" style="font-size: 13px;">
-                        <thead style="border-bottom: 1px solid #dee2e6;">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead style="border-bottom: 1px solid #dee2e6; font-weight: bold; text-transform: uppercase;">
                             <tr>
                                 <th class="text-center" style="width: 50px;">#</th>
                                 <th>TGL</th>

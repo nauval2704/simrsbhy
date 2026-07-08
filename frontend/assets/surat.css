@@ -452,9 +452,12 @@
   }
 }
 
-.simrs-sidebar-col {
-  position: sticky !important;
-  top: 15px !important;
+@media screen and (min-width: 992px) {
+  .simrs-sidebar-col {
+    position: sticky !important;
+    top: 15px !important;
+    z-index: 10;
+  }
 }
 
 surat-canvas[data-width] .surat-content,
