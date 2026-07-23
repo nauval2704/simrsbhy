@@ -1,0 +1,12 @@
+const express = require("express");
+const router = express.Router();
+const antreanrsController = require("../app/api/controllers/antreanrs");
+router.post("/createantrean", antreanrsController.createAntrean);
+router.post("/getantrean", antreanrsController.getAntrean);
+router.post("/sisaantrean", antreanrsController.sisaAntrean);
+router.post("/pantrean", antreanrsController.pAntrean);
+router.post("/uantrean", antreanrsController.uAntrean);
+router.post("/iantrean", antreanrsController.iAntrean);
+router.post("/santrean", antreanrsController.sAntrean);
+router.post("/rantrean", antreanrsController.rAntrean);
+module.exports = router;

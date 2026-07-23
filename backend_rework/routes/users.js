@@ -1,0 +1,15 @@
+const express = require("express");
+const router = express.Router();
+const userController = require("../app/api/controllers/users");
+router.post("/register", userController.create);
+router.get("/current", userController.current);
+router.get("/lastnorm", userController.lastnorm);
+router.get("/getnorm/:norm", userController.getnorm);
+router.post("/authenticate", userController.authenticate);
+router.post("/absen", userController.absen);
+router.get("/currentDate", userController.currentDate);
+router.get("/api/currentDate/:email", userController.currentDateKaryawan);
+router.get("/:email/start/:start/end/:end", userController.rekapAbsen);
+router.get("/api/absen/start/:start/end/:end", userController.rekapAbsenAll);
+router.post("/resetPass", userController.resetPass);
+module.exports = router;

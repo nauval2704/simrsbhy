@@ -1,0 +1,237 @@
+const mongoose = require("mongoose");
+
+//Define a schema
+const Schema = mongoose.Schema;
+const CheckinSchema = new Schema({
+  noCheckin: {
+    type: String,
+    required: true,
+  },
+  catatan: {
+    type: String,
+    trim: true,
+    required: false,
+    default: null,
+  },
+  diagnosa: {
+    type: String,
+    trim: true,
+    required: false,
+    default: null,
+  },
+  dinsos: {
+    type: String,
+    trim: true,
+    required: false,
+    default: null,
+  },
+  noSKTM: {
+    type: String,
+    trim: true,
+    required: false,
+    default: null,
+  },
+  prolanisPRB: {
+    type: String,
+    trim: true,
+    required: false,
+    default: null,
+  },
+  jnsPelayanan: {
+    type: String,
+    trim: true,
+    required: false,
+    default: null,
+  },
+  kelasRawat: {
+    type: String,
+    trim: true,
+    required: false,
+    default: null,
+  },
+  noRujukan: {
+    type: String,
+    trim: true,
+    required: false,
+    default: null,
+  },
+  noSep: {
+    type: String,
+    trim: true,
+    required: false,
+    default: null,
+  },
+  penjamin: {
+    type: String,
+    trim: true,
+    required: false,
+    default: null,
+  },
+  asuransi: {
+    type: String,
+    trim: true,
+    required: false,
+    default: null,
+  },
+  hakKelas: {
+    type: String,
+    trim: true,
+    required: false,
+    default: null,
+  },
+  jnsPeserta: {
+    type: String,
+    trim: true,
+    required: false,
+    default: null,
+  },
+  kelamin: {
+    type: String,
+    trim: true,
+    required: false,
+    default: null,
+  },
+  nama: {
+    type: String,
+    trim: true,
+    required: false,
+    default: null,
+  },
+  noKartu: {
+    type: String,
+    trim: true,
+    required: false,
+    default: null,
+  },
+  noMr: {
+    type: String,
+    trim: true,
+    required: false,
+    default: null,
+  },
+  tglLahir: {
+    type: String,
+    trim: true,
+    required: false,
+    default: null,
+  },
+  poli: {
+    type: String,
+    trim: true,
+    required: false,
+    default: null,
+  },
+  poliEksekutif: {
+    type: String,
+    trim: true,
+    required: false,
+    default: null,
+  },
+  tglSep: {
+    type: String,
+    trim: true,
+    required: false,
+    default: null,
+  },
+  dpjp: {
+    type: String,
+    trim: true,
+    required: false,
+    default: null,
+  },
+  kodedpjp: {
+    type: String,
+    trim: true,
+    required: false,
+    default: null,
+  },
+  cabar: {
+    type: String,
+    trim: true,
+    required: false,
+    default: null,
+  },
+  caraPulang: {
+    type: String,
+    trim: true,
+    required: false,
+    default: null,
+  },
+  status: {
+    type: String,
+    trim: true,
+    required: false,
+    default: 0,
+  },
+  ruangan: {
+    type: String,
+    trim: true,
+    required: false,
+    default: "",
+  },
+  jenisPasien: {
+    type: String,
+    trim: true,
+    required: false,
+    default: "",
+  },
+  encounterId: {
+    type: String,
+    trim: true,
+    required: false,
+    default: "",
+  },
+  encounterStatus: {
+    type: String,
+    trim: true,
+    required: false,
+    default: "",
+  },
+  conditionId: {
+    type: String,
+    trim: true,
+    required: false,
+    default: "",
+  },
+  userOut: {
+    type: String,
+    trim: true,
+    required: false,
+    default: null,
+  },
+  tglOut: {
+    type: String,
+    trim: true,
+    required: false,
+    default: null,
+  },
+  user: {
+    type: String,
+    trim: true,
+    required: false,
+    default: null,
+  },
+  tglInput: {
+    type: String,
+    trim: true,
+    required: false,
+    default: null,
+  },
+  counter: {
+    type: Number,
+    trim: true,
+    required: false,
+    default: 0,
+  },
+  laboratorium: {
+    type: Array,
+    required: false,
+    default: [],
+  },
+  radiologi: {
+    type: Array,
+    required: false,
+    default: [],
+  },
+});
+module.exports = mongoose.model("Checkin", CheckinSchema);

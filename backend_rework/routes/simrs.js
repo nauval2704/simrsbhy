@@ -1,0 +1,16 @@
+const express = require("express");
+const router = express.Router();
+const simrsController = require("../app/api/controllers/simrs");
+router.get("/laporan/start/:start/end/:end", simrsController.laporan);
+router.get("/pasien/all", simrsController.pasien);
+router.get("/poli", simrsController.poli);
+router.post("/operasi/create", simrsController.createOperasi);
+router.get("/operasi/jadwal", simrsController.jadwalOperasi);
+router.get("/wilayah/provinsi/:nama", simrsController.dataProvinsi);
+router.get("/wilayah/kabupaten/:nama", simrsController.dataKabupaten);
+router.get("/wilayah/kecamatan/:nama", simrsController.dataKecamatan);
+router.get("/wilayah/desa/:nama", simrsController.dataDesa);
+router.get("/wilayah/create", simrsController.createProvinsi);
+router.get("/vclaim/api/propinsi", simrsController.vclaimApiPropinsi);
+router.get("/norm/latest", simrsController.normLatest);
+module.exports = router;
