@@ -136608,31 +136608,31 @@ var rb = [
       {
         path: "prmrj/:nocheckin",
         loadComponent: () =>
-          import("./chunk-PRMRJ.js").then((t) => t.PrmrjComponent),
+          import("./surat/chunk-PRMRJ.js").then((t) => t.PrmrjComponent),
         canActivate: [st],
       },
       {
         path: "edukasi-poli/:nocheckin",
         loadComponent: () =>
-          import("./chunk-EDUKASI-POLI.js").then((t) => t.EdukasiPoliComponent),
+          import("./surat/chunk-EDUKASI-POLI.js").then((t) => t.EdukasiPoliComponent),
         canActivate: [st],
       },
       {
         path: "poli-gigi/:nocheckin",
         loadComponent: () =>
-          import("./chunk-POLI-GIGI.js").then((t) => t.PoliGigiComponent),
+          import("./surat/chunk-POLI-GIGI.js").then((t) => t.PoliGigiComponent),
         canActivate: [st],
       },
       {
         path: "pengkajian-awal-poli/:nocheckin",
         loadComponent: () =>
-          import("./chunk-PENGKAJIAN-AWAL-POLI.js").then((t) => t.PengkajianAwalPoliComponent),
+          import("./surat/chunk-PENGKAJIAN-AWAL-POLI.js").then((t) => t.PengkajianAwalPoliComponent),
         canActivate: [st],
       },
       {
         path: "cppt-poli/:nocheckin",
         loadComponent: () =>
-          import("./chunk-CPPT-POLI.js").then((t) => t.CpptPoliComponent),
+          import("./surat/chunk-CPPT-POLI.js").then((t) => t.CpptPoliComponent),
         canActivate: [st],
       },
       {
@@ -136714,25 +136714,25 @@ var rb = [
       {
         path: "triase/:nocheckin",
         loadComponent: () =>
-          import("./chunk-TRIASE.js").then((t) => t.TriaseComponent),
+          import("./surat/chunk-TRIASE.js").then((t) => t.TriaseComponent),
         canActivate: [st],
       },
       {
         path: "pengkajian-awal-igd/:nocheckin",
         loadComponent: () =>
-          import("./chunk-PENGKAJIAN-AWAL-IGD.js").then((t) => t.PengkajianAwalIgdComponent),
+          import("./surat/chunk-PENGKAJIAN-AWAL-IGD.js").then((t) => t.PengkajianAwalIgdComponent),
         canActivate: [st],
       },
       {
         path: "cppt-igd/:nocheckin",
         loadComponent: () =>
-          import("./chunk-CPPT-IGD.js").then((t) => t.CpptIgdComponent),
+          import("./surat/chunk-CPPT-IGD.js").then((t) => t.CpptIgdComponent),
         canActivate: [st],
       },
       {
         path: "ringkasan-pulang/:nocheckin",
         loadComponent: () =>
-          import("./chunk-RINGKASAN-PULANG.js").then(
+          import("./surat/chunk-RINGKASAN-PULANG.js").then(
             (t) => t.RingkasanPulangComponent,
           ),
         canActivate: [st],
@@ -136740,7 +136740,7 @@ var rb = [
       {
         path: "pemberian-obat/:nocheckin",
         loadComponent: () =>
-          import("./chunk-PEMBERIAN-OBAT-IGD.js").then(
+          import("./surat/chunk-PEMBERIAN-OBAT-IGD.js").then(
             (t) => t.PemberianObatIgdComponent,
           ),
         canActivate: [st],

@@ -1,11 +1,11 @@
-import { a as i } from "./chunk-W7XVFZVJ.js";
-import { y as HttpClient } from "./chunk-CFNDTNZN.js";
+import { a as i } from "../chunk-W7XVFZVJ.js";
+import { y as HttpClient } from "../chunk-CFNDTNZN.js";
 import {
   Db as ɵcmp,
   gc as ɵelementStart,
   hc as ɵelementEnd,
   ra as inject,
-} from "./chunk-UYVTZL26.js";
+} from "../chunk-UYVTZL26.js";
 import "./chunk-SURAT-CANVAS.js";
 
 function renderTemplate(t, s) {
@@ -148,7 +148,7 @@ var PrmrjComponent = (() => {
         const link = document.createElement("link");
         link.id = "surat-css-link";
         link.rel = "stylesheet";
-        link.href = "assets/surat.css";
+        link.href = "surat/surat.css";
         document.head.appendChild(link);
       }
 

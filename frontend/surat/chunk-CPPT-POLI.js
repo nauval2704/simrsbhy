@@ -1,32 +1,40 @@
-import { a as i } from "./chunk-W7XVFZVJ.js";
-import { y as HttpClient } from "./chunk-CFNDTNZN.js";
+import { a as i } from "../chunk-W7XVFZVJ.js";
+import { y as HttpClient } from "../chunk-CFNDTNZN.js";
 import {
   Db as ɵcmp,
   gc as ɵelementStart,
   hc as ɵelementEnd,
   ra as inject,
-} from "./chunk-UYVTZL26.js";
+} from "../chunk-UYVTZL26.js";
 import "./chunk-SURAT-CANVAS.js";
 
 function renderTemplate(t, s) {
   if (t & 1) {
-    ɵelementStart(0, "app-cppt-igd-placeholder");
+    ɵelementStart(0, "app-cppt-poli-placeholder");
     ɵelementEnd();
   }
 }
 
-var CpptIgdComponent = (() => {
+var CpptPoliComponent = (() => {
   class t {
     constructor() {
       this.http = inject(HttpClient);
       this.loading = true;
       this.saving = false;
-      this.cpptData = null;
       this.patient = null;
-      this.canvasDataUrl = null;
+
+      this.viewMode = "list"; // 'list' | 'canvas'
+      this.cpptList = [];
+
+      this.currentVisitCanvasDataUrl = null;
+      this.historyCanvasDataUrl = null;
+      this.isReadOnly = false;
 
       const pathParts = window.location.pathname.split("/");
-      this.noCheckin = pathParts[5];
+      this.noCheckin = pathParts[5] || pathParts[2];
+      if (!this.noCheckin && pathParts[pathParts.length - 1]) {
+        this.noCheckin = pathParts[pathParts.length - 1];
+      }
     }
 
     ngOnInit() {
@@ -34,6 +42,25 @@ var CpptIgdComponent = (() => {
     }
 
     ngAfterViewInit() {
+      const root = document.querySelector("app-cppt-poli-placeholder");
+      if (root) {
+        root.addEventListener("click", (e) => {
+          const btnView = e.target.closest(".btn-view-cppt");
+          if (btnView) {
+            const checkin = btnView.getAttribute("data-nocheckin");
+            this.viewHistoricalCppt(checkin);
+          }
+          const btnTambah = e.target.closest(".btn-tambah-cppt");
+          if (btnTambah) {
+            this.tambahCppt();
+          }
+          const btnBack = e.target.closest(".btn-back-cppt");
+          if (btnBack) {
+            this.viewMode = "list";
+            this.renderView();
+          }
+        });
+      }
       this.renderView();
     }
 
@@ -41,26 +68,33 @@ var CpptIgdComponent = (() => {
       this.http
         .get(
           i.apiUrl +
-            "/simrsba/caripasien/pelayanan/IGD/nocheckin/" +
+            "/simrsba/caripasien/pelayanan/POLI/nocheckin/" +
             this.noCheckin,
         )
         .subscribe({
           next: (res) => {
             if (res && res.length > 0) this.patient = res[0];
-            this.fetchCppt();
+            if (this.patient && (this.patient.noMr || this.patient.norm)) {
+              this.fetchCpptList();
+              this.fetchCurrentVisitCppt();
+            } else {
+              this.loading = false;
+              this.renderView();
+            }
           },
           error: () => {
-            this.fetchCppt();
+            this.loading = false;
+            this.renderView();
           },
         });
     }
 
-    fetchCppt() {
-      this.http.get(i.apiUrl + "/simrsba/cppt-igd/" + this.noCheckin).subscribe({
+    fetchCpptList() {
+      const noMr = this.patient.noMr || this.patient.norm;
+      this.http.get(i.apiUrl + "/simrsba/cppt-poli/list/" + noMr).subscribe({
         next: (res) => {
           if (res && res.data) {
-            this.cpptData = res.data;
-            if (res.data.canvasImage) this.canvasDataUrl = res.data.canvasImage;
+            this.cpptList = res.data;
           }
           this.loading = false;
           this.renderView();
@@ -72,25 +106,75 @@ var CpptIgdComponent = (() => {
       });
     }
 
+    fetchCurrentVisitCppt() {
+      this.http
+        .get(i.apiUrl + "/simrsba/cppt-poli/" + this.noCheckin)
+        .subscribe({
+          next: (res) => {
+            if (res && res.data && res.data.canvasImage) {
+              this.currentVisitCanvasDataUrl = res.data.canvasImage;
+            }
+          },
+          error: () => {},
+        });
+    }
+
+    viewHistoricalCppt(checkinId) {
+      if (checkinId === this.noCheckin) {
+        this.tambahCppt();
+        return;
+      }
+      this.loading = true;
+      this.renderView();
+      this.http.get(i.apiUrl + "/simrsba/cppt-poli/" + checkinId).subscribe({
+        next: (res) => {
+          this.loading = false;
+          if (res && res.data) {
+            this.historyCanvasDataUrl = res.data.canvasImage;
+            this.isReadOnly = true;
+            this.viewMode = "canvas";
+            this.renderView();
+          }
+        },
+        error: () => {
+          this.loading = false;
+          this.showToast("danger", "Gagal memuat CPPT");
+          this.renderView();
+        },
+      });
+    }
+
+    tambahCppt() {
+      this.isReadOnly = false;
+      this.viewMode = "canvas";
+      this.renderView();
+    }
+
     handleSave(dataUrl) {
+      if (this.isReadOnly) return;
       this.saving = true;
       const surat = document.querySelector("surat-canvas");
       this.http
-        .post(i.apiUrl + "/simrsba/cppt-igd", {
+        .post(i.apiUrl + "/simrsba/cppt-poli", {
           noCheckin: this.noCheckin,
           canvasImage: dataUrl,
+          user: "Dokter", // Ideally from auth context
+          tglInput: new Date().toLocaleString(),
+          noMr: this.patient?.noMr || this.patient?.norm,
+          poliNama: this.patient?.poliNama || "Poliklinik",
         })
         .subscribe({
           next: (res) => {
             this.saving = false;
-            this.cpptData = res.data;
+            this.currentVisitCanvasDataUrl = dataUrl;
             if (surat) surat.setSubmitSuccess();
-            this.showToast("success", "CPPT IGD berhasil disimpan");
+            this.showToast("success", "CPPT Poliklinik berhasil disimpan");
+            this.fetchCpptList();
           },
           error: () => {
             this.saving = false;
             if (surat) surat.resetSubmitButton();
-            this.showToast("danger", "Gagal menyimpan CPPT IGD");
+            this.showToast("danger", "Gagal menyimpan CPPT Poliklinik");
           },
         });
     }
@@ -120,15 +204,66 @@ var CpptIgdComponent = (() => {
     }
 
     renderView() {
-      const root = document.querySelector("app-cppt-igd-placeholder");
+      const root = document.querySelector("app-cppt-poli-placeholder");
       if (!root) return;
 
       if (this.loading) {
         root.innerHTML =
-          '<div class="d-flex justify-content-center align-items-center" style="min-height:200px"><div class="text-center"><div class="spinner-border text-danger mb-3" style="width:3rem;height:3rem;" role="status"></div><div class="text-muted fw-bold">Memuat data CPPT IGD...</div></div></div>';
+          '<div class="d-flex justify-content-center align-items-center" style="min-height:200px"><div class="text-center"><div class="spinner-border text-primary mb-3" style="width:3rem;height:3rem;" role="status"></div><div class="text-muted fw-bold">Memuat data CPPT...</div></div></div>';
         return;
       }
 
+      if (this.viewMode === "list") {
+        this.renderList(root);
+      } else {
+        this.renderCanvas(root);
+      }
+    }
+
+    renderList(root) {
+      const hasCurrent = !!this.currentVisitCanvasDataUrl;
+      const topAction = hasCurrent
+        ? '<button class="btn btn-warning btn-sm btn-tambah-cppt text-nowrap"><i class="bi bi-pencil"></i> Edit CPPT Saat Ini</button>'
+        : '<button class="btn btn-outline-secondary btn-sm btn-tambah-cppt text-nowrap"><i class="bi bi-plus-circle"></i> Tambah</button>';
+
+      root.innerHTML = `
+        <div class="card shadow-none border rounded" style="border-radius: 6px; overflow: hidden;">
+            <div class="card-header bg-white p-3 d-flex justify-content-end" style="border-bottom: 1px solid #dee2e6;">
+                <div>${topAction}</div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead style="border-bottom: 1px solid #dee2e6; font-weight: bold; text-transform: uppercase;">
+                            <tr>
+                                <th class="text-center" style="width: 50px;">#</th>
+                                <th>TGL</th>
+                                <th>KETERANGAN (POLI / CHECKIN)</th>
+                                <th class="text-center" style="width: 120px;">AKSI</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${this.cpptList.length === 0 ? '<tr><td colspan="4" class="text-center text-muted py-3">Belum ada riwayat CPPT</td></tr>' : this.cpptList.map((c, idx) => `
+                                <tr>
+                                    <td class="text-center">${idx + 1}</td>
+                                    <td>${c.tglInput || "-"}</td>
+                                    <td>${c.poliNama || "-"} / ${c.noCheckin || "-"}</td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm ${c.noCheckin === this.noCheckin ? 'btn-warning' : 'btn-primary'} btn-view-cppt" data-nocheckin="${c.noCheckin}">
+                                            <i class="bi bi-${c.noCheckin === this.noCheckin ? 'pencil' : 'eye'}"></i> ${c.noCheckin === this.noCheckin ? 'Edit' : 'Lihat'}
+                                        </button>
+                                    </td>
+                                </tr>
+                            `).join("")}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        `;
+    }
+
+    renderCanvas(root) {
       const p = this.patient || {};
       const noMr = p.noMr || p.norm || "-";
       const nama = p.nama || "-";
@@ -146,14 +281,15 @@ var CpptIgdComponent = (() => {
         const link = document.createElement("link");
         link.id = "surat-css-link";
         link.rel = "stylesheet";
-        link.href = "assets/surat.css";
+        link.href = "surat/surat.css";
         document.head.appendChild(link);
       }
 
-      const self = this;
+      const activeDataUrl = this.isReadOnly
+        ? this.historyCanvasDataUrl
+        : this.currentVisitCanvasDataUrl;
 
-      root.innerHTML = `
-<surat-canvas id="rp-surat">
+      const htmlContent = `
 <style>
 .main-border {
     border: 2px solid black;
@@ -257,8 +393,21 @@ var CpptIgdComponent = (() => {
     margin-top: 3px;
     text-align: center;
 }
+.cppt-header-bar {
+    background-color: #333;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: flex-start;
+}
+${this.isReadOnly ? "#rp-submit-btn, #rp-eraser-btn, #rp-clear-btn { display: none !important; } .surat-canvas { pointer-events: none; }" : ""}
 </style>
 
+<div class="cppt-header-bar">
+    <button class="btn btn-sm btn-light btn-back-cppt"><i class="bi bi-arrow-left"></i> Kembali ke Daftar History</button>
+</div>
+
+<surat-canvas id="rp-surat" data-width="816" data-height="1248" ${activeDataUrl ? `initial-data="${activeDataUrl.replace(/"/g, "&quot;")}"` : ""}>
+<div style="padding: 20px 30px; width: 100%; height: 100%; background-color: white; box-sizing: border-box;">
 <div class="main-border">
     <div class="header-section">
         <div class="logo-box">
@@ -317,16 +466,19 @@ var CpptIgdComponent = (() => {
         </tbody>
     </table>
 </div>
+</div>
 </surat-canvas>`;
 
-      root.__cpptIgd = self;
+      root.__cpptPoli = this;
+
+      root.innerHTML = htmlContent;
 
       const surat = root.querySelector("surat-canvas");
       if (surat) {
         surat.addEventListener("save", (e) => {
-          self.handleSave(e.detail.canvasData);
+          this.handleSave(e.detail.canvasData);
         });
-        if (self.canvasDataUrl) surat.canvasDataUrl = self.canvasDataUrl;
+        if (activeDataUrl) surat.canvasDataUrl = activeDataUrl;
       }
     }
 
@@ -338,7 +490,7 @@ var CpptIgdComponent = (() => {
     static {
       this.ɵcmp = ɵcmp({
         type: t,
-        selectors: [["app-cppt-igd-placeholder"]],
+        selectors: [["app-cppt-poli-placeholder"]],
         decls: 1,
         vars: 0,
         template: renderTemplate,
@@ -350,4 +502,4 @@ var CpptIgdComponent = (() => {
   return t;
 })();
 
-export { CpptIgdComponent };
+export { CpptPoliComponent };

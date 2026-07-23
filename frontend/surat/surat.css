@@ -318,37 +318,19 @@
 }
 
 @media print {
-  @page {
-    margin: 0;
-  }
-
-  .surat-toolbar {
-    display: none !important;
-  }
-
-  body * {
-    visibility: hidden !important;
-  }
-
-  .surat-body, .surat-body * {
-    visibility: visible !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  .surat-body {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
-    width: 100% !important;
-    background: white !important;
-    padding: 0 !important;
+  @page { margin: 0; }
+  .surat-toolbar { display: none !important; }
+  app-header, .pap-tabs, .cppt-tabs, .tr-tabs, .rp-tabs, .fpo-tabs, .nav-tabs, .no-print, .d-print-none, .modal, .simrs-sidebar-col { display: none !important; }
+  body, html, app-root, .tab-content, .tab-pane, .surat-body {
+    height: auto !important; 
+    min-height: 0 !important; 
+    max-height: none !important; 
+    overflow: visible !important; 
+    position: static !important; 
+    padding: 0 !important; 
     margin: 0 !important;
-    min-height: 0 !important;
-    display: block !important;
-    overflow: visible !important;
   }
-
+  .surat-body { background: transparent !important; }
   .surat-document {
     position: relative !important;
     box-shadow: none !important;
@@ -360,7 +342,6 @@
     page-break-after: always !important;
     break-after: page !important;
   }
-
   .surat-canvas, .surat-content {
     width: 100% !important;
     height: 100% !important;

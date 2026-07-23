@@ -9,6 +9,6 @@ const PengkajianAwalIgdSchema = new Schema({
   canvasImage: { type: String, default: null },
   tglInput: { type: String, default: null },
   user: { type: String, default: null },
-});
+}, { strict: false });
 
 module.exports = mongoose.model("PengkajianAwalIgd", PengkajianAwalIgdSchema);

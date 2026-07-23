@@ -12,6 +12,18 @@ const EdukasiPoliSchema = new Schema({
     trim: true,
     default: null,
   },
+  namaPasien: {
+    type: String,
+    default: null,
+  },
+  dpjp: {
+    type: String,
+    default: null,
+  },
+  entries: {
+    type: Array,
+    default: [],
+  },
   canvasImage: {
     type: String,
     default: null,
@@ -21,6 +33,6 @@ const EdukasiPoliSchema = new Schema({
     trim: true,
     default: null,
   },
-});
+}, { strict: false });
 
 module.exports = mongoose.model("EdukasiPoli", EdukasiPoliSchema);

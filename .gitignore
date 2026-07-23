@@ -1,2 +1,6 @@
 frontend_backup
 frontend_backup2
+rsbav2
+backend_rework/,git
+backend_rework/.gitignore
+backend_rework/.env
