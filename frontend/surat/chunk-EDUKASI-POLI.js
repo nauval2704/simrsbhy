@@ -220,11 +220,11 @@ var EdukasiPoliComponent = (() => {
         const isFirst = idx === 0;
 
         rowsFormHtml += `
-        <div class="accordion-item mb-2 border rounded shadow-sm">
+        <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_edu_${idx}">
             <button class="accordion-button ${isFirst ? '' : 'collapsed'} py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_edu_${idx}" aria-expanded="${isFirst ? 'true' : 'false'}" aria-controls="collapse_edu_${idx}">
               <div class="d-flex justify-content-between align-items-center w-100 me-3">
-                <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-journal-check me-2 text-primary"></i> Topik #${topic.id}: ${topic.title}</span>
+                <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-journal-check me-2 text-secondary"></i> Topik #${topic.id}: ${topic.title}</span>
                 ${statusBadge}
               </div>
             </button>
@@ -344,18 +344,11 @@ var EdukasiPoliComponent = (() => {
         </div>
       </div>
 
-      <div class="card border mb-3">
-        <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
-          <span class="fw-bold text-dark"><i class="bi bi-file-earmark-text me-1"></i> Edukasi Pasien dan Keluarga Terintegrasi Rawat Jalan</span>
-        </div>
-        <div class="card-body p-3">
-          <div id="edukasi-container">
-            ${rowsFormHtml}
-          </div>
-          <div class="d-flex justify-content-end mt-3 border-top pt-3">
-            <button type="button" id="btn-save-edukasi" class="btn btn-primary px-4"><i class="bi bi-save me-1"></i>Simpan Data</button>
-          </div>
-        </div>
+      <div id="edukasi-container" class="mb-3">
+        ${rowsFormHtml}
+      </div>
+      <div class="d-flex justify-content-end mt-3 border-top pt-3">
+        <button type="button" id="btn-save-edukasi" class="btn btn-primary px-4"><i class="bi bi-save me-1"></i>Simpan Data</button>
       </div>`;
 
       root.innerHTML = createSuratShell({
@@ -383,7 +376,13 @@ var EdukasiPoliComponent = (() => {
 ul.cb-list { list-style: none; padding-left: 0; margin: 0; }
 ul.cb-list li { margin-bottom: 2px; display: flex; align-items: flex-start; font-size: 9px; }
 .cb { display: inline-block; width: 10px; height: 10px; border: 1px solid black; margin-right: 4px; margin-top: 1px; flex-shrink: 0; text-align: center; line-height: 9px; font-size: 9px; font-weight: bold; }
-.cb.checked::after { content: "✓"; }`,
+.cb.checked::after { content: "✓"; }
+#accordionEdukasi .accordion-item { box-shadow: none !important; border-color: #dee2e6 !important; }
+#accordionEdukasi .accordion-button { box-shadow: none !important; }
+#accordionEdukasi .accordion-button:not(.collapsed) { background-color: #f8f9fa !important; color: #212529 !important; box-shadow: none !important; }
+#accordionEdukasi .accordion-button:focus { border-color: #ced4da !important; box-shadow: none !important; }
+#accordionEdukasi .form-check-input:checked { background-color: #495057 !important; border-color: #495057 !important; }
+#accordionEdukasi .form-check-input:focus { border-color: #6c757d !important; box-shadow: none !important; }`,
         inputContent,
       });
       bindSuratPrintButton(root);

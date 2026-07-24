@@ -279,33 +279,55 @@ var PemberianObatIgdComponent = (() => {
         </div>
       </div>
 
-      <div class="card border mb-3">
-        <div class="card-header bg-light py-2 fw-bold text-dark"><i class="bi bi-calendar-week me-1"></i> Tanggal Eksekusi Pemberian (6 Tanggal Kolom Cetak)</div>
-        <div class="card-body pt-2 pb-2">
-          <div class="row g-2">
-            <div class="col-md-2"><div class="f-group"><label class="f-label">Tanggal 1</label><input type="date" class="f-input input-tgl" data-tgl="1" value="${fd.tgl1 || ''}"></div></div>
-            <div class="col-md-2"><div class="f-group"><label class="f-label">Tanggal 2</label><input type="date" class="f-input input-tgl" data-tgl="2" value="${fd.tgl2 || ''}"></div></div>
-            <div class="col-md-2"><div class="f-group"><label class="f-label">Tanggal 3</label><input type="date" class="f-input input-tgl" data-tgl="3" value="${fd.tgl3 || ''}"></div></div>
-            <div class="col-md-2"><div class="f-group"><label class="f-label">Tanggal 4</label><input type="date" class="f-input input-tgl" data-tgl="4" value="${fd.tgl4 || ''}"></div></div>
-            <div class="col-md-2"><div class="f-group"><label class="f-label">Tanggal 5</label><input type="date" class="f-input input-tgl" data-tgl="5" value="${fd.tgl5 || ''}"></div></div>
-            <div class="col-md-2"><div class="f-group"><label class="f-label">Tanggal 6</label><input type="date" class="f-input input-tgl" data-tgl="6" value="${fd.tgl6 || ''}"></div></div>
+      <div class="accordion mb-3" id="accordionPemberianObat">
+
+        <!-- Section 1 -->
+        <div class="accordion-item mb-2 border rounded">
+          <h2 class="accordion-header" id="heading_po_1">
+            <button class="accordion-button py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_po_1" aria-expanded="true" aria-controls="collapse_po_1">
+              <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-calendar-week me-2 text-secondary"></i> 1. Tanggal Eksekusi Pemberian (6 Tanggal Kolom Cetak)</span>
+            </button>
+          </h2>
+          <div id="collapse_po_1" class="accordion-collapse collapse show" aria-labelledby="heading_po_1" data-bs-parent="#accordionPemberianObat">
+            <div class="accordion-body bg-white p-3">
+              <div class="row g-2">
+                <div class="col-md-2"><div class="f-group"><label class="f-label">Tanggal 1</label><input type="date" class="f-input input-tgl" data-tgl="1" value="${fd.tgl1 || ''}"></div></div>
+                <div class="col-md-2"><div class="f-group"><label class="f-label">Tanggal 2</label><input type="date" class="f-input input-tgl" data-tgl="2" value="${fd.tgl2 || ''}"></div></div>
+                <div class="col-md-2"><div class="f-group"><label class="f-label">Tanggal 3</label><input type="date" class="f-input input-tgl" data-tgl="3" value="${fd.tgl3 || ''}"></div></div>
+                <div class="col-md-2"><div class="f-group"><label class="f-label">Tanggal 4</label><input type="date" class="f-input input-tgl" data-tgl="4" value="${fd.tgl4 || ''}"></div></div>
+                <div class="col-md-2"><div class="f-group"><label class="f-label">Tanggal 5</label><input type="date" class="f-input input-tgl" data-tgl="5" value="${fd.tgl5 || ''}"></div></div>
+                <div class="col-md-2"><div class="f-group"><label class="f-label">Tanggal 6</label><input type="date" class="f-input input-tgl" data-tgl="6" value="${fd.tgl6 || ''}"></div></div>
+              </div>
+            </div>
           </div>
         </div>
+
+        <!-- Section 2 -->
+        <div class="accordion-item mb-2 border rounded">
+          <h2 class="accordion-header" id="heading_po_2">
+            <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_po_2" aria-expanded="false" aria-controls="collapse_po_2">
+              <span class="fw-bold text-dark d-flex align-items-center justify-content-between w-100 me-3" style="font-size:13px;">
+                <span><i class="bi bi-capsule me-2 text-secondary"></i> 2. Daftar Pemberian Obat (Oral &amp; Topikal)</span>
+              </span>
+            </button>
+          </h2>
+          <div id="collapse_po_2" class="accordion-collapse collapse" aria-labelledby="heading_po_2" data-bs-parent="#accordionPemberianObat">
+            <div class="accordion-body bg-white p-3">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="small text-muted">Daftar entri obat yang diberikan kepada pasien</span>
+                <button type="button" id="btn-add-obat" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i>Tambah Obat</button>
+              </div>
+              <div id="fpo-entries-container">
+                ${entriesHtml}
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
-      <div class="card border mb-3">
-        <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
-          <span class="fw-bold text-dark"><i class="bi bi-capsule me-1"></i> Daftar Pemberian Obat (Oral &amp; Topikal)</span>
-          <button type="button" id="btn-add-obat" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Tambah Obat</button>
-        </div>
-        <div class="card-body p-3">
-          <div id="fpo-entries-container">
-            ${entriesHtml}
-          </div>
-          <div class="d-flex justify-content-end mt-3 border-top pt-3">
-            <button type="button" id="btn-save-obat" class="btn btn-primary px-4"><i class="bi bi-save me-1"></i>Simpan Data</button>
-          </div>
-        </div>
+      <div class="d-flex justify-content-end mt-3 border-top pt-3">
+        <button type="button" id="btn-save-obat" class="btn btn-primary px-4"><i class="bi bi-save me-1"></i>Simpan Data</button>
       </div>`;
 
       root.innerHTML = createSuratShell({
@@ -315,7 +337,11 @@ var PemberianObatIgdComponent = (() => {
         printPaneId: 'fpo-print',
         printTabId: 'fpo-print-tab',
         tabsClass: 'fpo-tabs',
-        extraCss: `@page { size: 330.2mm 215.9mm landscape; margin: 0; }
+        extraCss: `#accordionPemberianObat .accordion-item { box-shadow: none !important; border-color: #dee2e6 !important; }
+#accordionPemberianObat .accordion-button { box-shadow: none !important; }
+#accordionPemberianObat .accordion-button:not(.collapsed) { background-color: #f8f9fa !important; color: #212529 !important; box-shadow: none !important; }
+#accordionPemberianObat .accordion-button:focus { border-color: #ced4da !important; box-shadow: none !important; }
+@page { size: 330.2mm 215.9mm landscape; margin: 0; }
 @media print {
   @page { size: 330.2mm 215.9mm landscape; margin: 0; }
   .surat-document-landscape { width: 330.2mm !important; max-width: 330.2mm !important; height: 215.9mm !important; padding: 5mm !important; margin: 0 auto !important; box-shadow: none !important; }

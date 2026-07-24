@@ -99,6 +99,11 @@ const TriaseSchema = new Schema({
     trim: true,
     default: null,
   },
-}, { strict: false });
+  situasiBerbahaya: {
+    type: String,
+    trim: true,
+    default: null,
+  },
+}, { timestamps: true });
 
 module.exports = mongoose.model("Triase", TriaseSchema);

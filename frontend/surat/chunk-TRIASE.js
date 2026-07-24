@@ -104,6 +104,7 @@ var TriaseComponent = (() => {
         symptoms: Array.from(
           document.querySelectorAll(".f-symptom:checked"),
         ).map((cb) => cb.value),
+        situasiBerbahaya: document.getElementById("f-situasiBerbahaya")?.value || "",
       };
 
       this.http.post(i.apiUrl + "/simrsba/triase", payload).subscribe({
@@ -217,7 +218,12 @@ var TriaseComponent = (() => {
         printPaneId: 'triase-print',
         printTabId: 'triase-print-tab',
         tabsClass: 'triase-tabs',
-        extraCss: '',
+        extraCss: `
+#accordionTriase .accordion-item { box-shadow: none !important; border-color: #dee2e6 !important; }
+#accordionTriase .accordion-button { box-shadow: none !important; }
+#accordionTriase .accordion-button:not(.collapsed) { background-color: #f8f9fa !important; color: #212529 !important; box-shadow: none !important; }
+#accordionTriase .accordion-button:focus { border-color: #ced4da !important; box-shadow: none !important; }
+`,
         inputContent: `
 <style>
 .sig-wrap{border:1px solid #dee2e6;border-radius:6px;background:#fafafa;position:relative;overflow:hidden;}
@@ -243,269 +249,288 @@ var TriaseComponent = (() => {
 .t-footer{text-align:right;padding:3px 0 0 0;font-weight:bold;}
 .p-val{font-weight:bold;min-width:12px;display:inline-block;border-bottom:1px dotted #999;padding:0 2px;}
 </style>
-      <div class="row g-3 mb-3">
-        <div class="card border mb-3">
-          <div class="card-header bg-light border-0 py-2">
-            <span class="fw-bold text-dark small"><i class="bi bi-heart-pulse me-1"></i>Tanda-Tanda Vital &amp; GCS</span>
-          </div>
-          <div class="card-body pt-2 pb-2">
-            <div class="row g-3">
-              <div class="col-md-3">
-                <label class="form-label small fw-semibold mb-1">Tekanan Darah (TD)</label>
-                <div class="input-group input-group-sm mb-2"><span class="input-group-text">TD</span><input type="text" id="f-td" class="form-control" placeholder="120/80"></div>
-                <label class="form-label small fw-semibold mb-1">Label Triase</label>
-                <select id="f-triageColor" class="form-select form-select-sm">
-                  <option value="">-- Pilih Level --</option>
-                  <option value="red" data-label="Level 1">Level 1 - Resusitasi (Merah)</option>
-                  <option value="red" data-label="Level 2">Level 2 - Emergensi (Merah)</option>
-                  <option value="yellow" data-label="Level 3">Level 3 - Urgent (Kuning)</option>
-                  <option value="green" data-label="Level 4">Level 4 - Non Urgent (Hijau)</option>
-                  <option value="black" data-label="Level 5">Level 5 - False Emergency / DOA (Hitam)</option>
-                </select>
-              </div>
-              <div class="col-md-5">
-                <div class="row g-2 mb-2">
-                  <div class="col-3"><label class="form-label small fw-semibold mb-1">Suhu (°C)</label><input type="text" id="f-suhu" class="form-control form-control-sm" placeholder="36.5"></div>
-                  <div class="col-3"><label class="form-label small fw-semibold mb-1">SPO2 (%)</label><input type="text" id="f-spo2" class="form-control form-control-sm" placeholder="98"></div>
-                  <div class="col-3"><label class="form-label small fw-semibold mb-1">HR (bpm)</label><input type="text" id="f-hr" class="form-control form-control-sm" placeholder="80"></div>
-                  <div class="col-3"><label class="form-label small fw-semibold mb-1">RR (x/m)</label><input type="text" id="f-rr" class="form-control form-control-sm" placeholder="20"></div>
-                </div>
-              </div>
-              <div class="col-md-4">
-                <p class="small fw-bold mb-1 text-secondary">GCS</p>
-                <div class="row g-2">
-                  <div class="col-4"><label class="form-label small fw-semibold mb-1 text-center d-block">Eye (E)</label><input type="number" id="f-gcsE" class="form-control form-control-sm text-center" min="1" max="4" placeholder="1-4"></div>
-                  <div class="col-4"><label class="form-label small fw-semibold mb-1 text-center d-block">Verbal (V)</label><input type="number" id="f-gcsV" class="form-control form-control-sm text-center" min="1" max="5" placeholder="1-5"></div>
-                  <div class="col-4"><label class="form-label small fw-semibold mb-1 text-center d-block">Motor (M)</label><input type="number" id="f-gcsM" class="form-control form-control-sm text-center" min="1" max="6" placeholder="1-6"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card border mb-3">
-          <div class="card-header bg-danger border-0 py-2">
-            <span class="fw-bold text-white small">LEVEL 1 : RESUSITASI (RED ZONE)</span>
-          </div>
-          <div class="card-body pt-2 pb-2">
-            <div class="row g-2">
-              <div class="col">
-                <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">AIRWAY</p>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Terintubasi" id="l1_s1"><label class="form-check-label small" for="l1_s1">Terintubasi</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Sumbatan" id="l1_s2"><label class="form-check-label small" for="l1_s2">Sumbatan</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Ancaman" id="l1_s3"><label class="form-check-label small" for="l1_s3">Ancaman</label></div>
-              </div>
-              <div class="col">
-                <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">BREATHING</p>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Apnoe" id="l1_s4"><label class="form-check-label small" for="l1_s4">Apnoe</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Ventilator" id="l1_s5"><label class="form-check-label small" for="l1_s5">Ventilator</label></div>
-              </div>
-              <div class="col">
-                <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">CIRCULATION</p>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Henti Jantung" id="l1_s6"><label class="form-check-label small" for="l1_s6">Henti Jantung</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Nadi Tak Teraba" id="l1_s7"><label class="form-check-label small" for="l1_s7">Nadi Tak Teraba</label></div>
-              </div>
-              <div class="col">
-                <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">DISABILITY</p>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Tidak Respon" id="l1_s8"><label class="form-check-label small" for="l1_s8">Tidak Respon</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Kejang" id="l1_s9"><label class="form-check-label small" for="l1_s9">Kejang</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="GCS <8" id="l1_s10"><label class="form-check-label small" for="l1_s10">GCS &lt;8</label></div>
-              </div>
-              <div class="col">
-                <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">PREDIKSI PENUNJANG</p>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Kompleks" id="l1_s11"><label class="form-check-label small" for="l1_s11">Kompleks</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="≥ 2" id="l1_s12"><label class="form-check-label small" for="l1_s12">≥ 2</label></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card border mb-3">
-          <div class="card-header bg-danger border-0 py-2">
-            <span class="fw-bold text-white small">LEVEL 2 : EMERGENSI (RED ZONE)</span>
-          </div>
-          <div class="card-body pt-2 pb-2">
-            <div class="alert alert-danger py-1 px-2 mb-2 small fw-bold">Keterangan: Termasuk level 2 apabila peringatan yang ada menimbulkan / berkaitan dengan kondisi yang berisiko tinggi memburuk pada pasien</div>
-            <div class="row g-2">
-              <div class="col">
-                <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">AIRWAY</p>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Ancaman" id="l2_s1"><label class="form-check-label small" for="l2_s1">Ancaman</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Bebas" id="l2_s2"><label class="form-check-label small" for="l2_s2">Bebas</label></div>
-              </div>
-              <div class="col">
-                <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">BREATHING</p>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Takipnue" id="l2_s3"><label class="form-check-label small" for="l2_s3">Takipnue</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Bradipnue" id="l2_s4"><label class="form-check-label small" for="l2_s4">Bradipnue</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="SPO2 <92" id="l2_s5"><label class="form-check-label small" for="l2_s5">SPO2 &lt;92</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Dangkal" id="l2_s6"><label class="form-check-label small" for="l2_s6">Dangkal</label></div>
-              </div>
-              <div class="col">
-                <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">CIRCULATION</p>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Nadi Terasa Lemah" id="l2_s7"><label class="form-check-label small" for="l2_s7">Nadi Terasa Lemah</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Akral Dingin" id="l2_s8"><label class="form-check-label small" for="l2_s8">Akral Dingin</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Bradikardi" id="l2_s9"><label class="form-check-label small" for="l2_s9">Bradikardi</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Takikardi" id="l2_s10"><label class="form-check-label small" for="l2_s10">Takikardi</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="CRT >2 detik" id="l2_s11"><label class="form-check-label small" for="l2_s11">CRT &gt;2 detik</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Turgor Kulit Jelek" id="l2_s12"><label class="form-check-label small" for="l2_s12">Turgor Kulit Jelek</label></div>
-              </div>
-              <div class="col">
-                <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">DISABILITY</p>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Respon Dengan Rangsangan Nyeri" id="l2_s13"><label class="form-check-label small" for="l2_s13">Respon Nyeri</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Gelisah" id="l2_s14"><label class="form-check-label small" for="l2_s14">Gelisah</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="GCS : > 8 > 15" id="l2_s15"><label class="form-check-label small" for="l2_s15">GCS : &gt; 8 &gt; 15</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="GCS : 15" id="l2_s16"><label class="form-check-label small" for="l2_s16">GCS : 15</label></div>
-              </div>
-              <div class="col">
-                <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">PREDIKSI PENUNJANG</p>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Kompleks" id="l2_s17"><label class="form-check-label small" for="l2_s17">Kompleks</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="≥ 2" id="l2_s18"><label class="form-check-label small" for="l2_s18">≥ 2</label></div>
-                <p class="small fw-bold mt-2 mb-1 text-secondary">Catatan Khusus</p>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Nyeri Berat" id="l2_s19"><label class="form-check-label small" for="l2_s19">Nyeri Berat</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Situasi Berbahaya :" id="l2_s20"><label class="form-check-label small" for="l2_s20">Situasi Berbahaya :</label></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card border mb-3">
-          <div class="card-header bg-warning border-0 py-2">
-            <span class="fw-bold text-dark small">LEVEL 3 : URGENT (YELLOW ZONE)</span>
-          </div>
-          <div class="card-body pt-2 pb-2">
-            <div class="row g-2">
-              <div class="col">
-                <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">AIRWAY</p>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Bebas" id="l3_s1"><label class="form-check-label small" for="l3_s1">Bebas</label></div>
-              </div>
-              <div class="col">
-                <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">BREATHING</p>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Spontan" id="l3_s2"><label class="form-check-label small" for="l3_s2">Spontan</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Normal" id="l3_s3"><label class="form-check-label small" for="l3_s3">Normal</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Takipnue" id="l3_s4"><label class="form-check-label small" for="l3_s4">Takipnue</label></div>
-              </div>
-              <div class="col">
-                <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">CIRCULATION</p>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Nadi Teraba Berat" id="l3_s5"><label class="form-check-label small" for="l3_s5">Nadi Teraba Berat</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Nadi Teraba Lemah" id="l3_s6"><label class="form-check-label small" for="l3_s6">Nadi Teraba Lemah</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Akral Hangat" id="l3_s7"><label class="form-check-label small" for="l3_s7">Akral Hangat</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Turgor Sedang" id="l3_s8"><label class="form-check-label small" for="l3_s8">Turgor Sedang</label></div>
-              </div>
-              <div class="col">
-                <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">DISABILITY</p>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="GCS 15" id="l3_s9"><label class="form-check-label small" for="l3_s9">GCS 15</label></div>
-              </div>
-              <div class="col">
-                <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">PREDIKSI PENUNJANG</p>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="≥ 2" id="l3_s10"><label class="form-check-label small" for="l3_s10">≥ 2</label></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card border mb-3">
-          <div class="card-header bg-success border-0 py-2">
-            <span class="fw-bold text-white small">LEVEL 4 : NON URGENT (GREEN ZONE)</span>
-          </div>
-          <div class="card-body pt-2 pb-2">
-            <div class="row g-2">
-              <div class="col">
-                <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">AIRWAY</p>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Bebas" id="l4_s1"><label class="form-check-label small" for="l4_s1">Bebas</label></div>
-              </div>
-              <div class="col">
-                <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">BREATHING</p>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Spontan" id="l4_s2"><label class="form-check-label small" for="l4_s2">Spontan</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Normal" id="l4_s3"><label class="form-check-label small" for="l4_s3">Normal</label></div>
-              </div>
-              <div class="col">
-                <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">CIRCULATION</p>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Nadi Teraba Berat" id="l4_s4"><label class="form-check-label small" for="l4_s4">Nadi Teraba Berat</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Akral Hangat" id="l4_s5"><label class="form-check-label small" for="l4_s5">Akral Hangat</label></div>
-              </div>
-              <div class="col">
-                <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">DISABILITY</p>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Sadar" id="l4_s6"><label class="form-check-label small" for="l4_s6">Sadar</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="GCS 15" id="l4_s7"><label class="form-check-label small" for="l4_s7">GCS 15</label></div>
-              </div>
-              <div class="col">
-                <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">PREDIKSI</p>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Tidak Ada" id="l4_s8"><label class="form-check-label small" for="l4_s8">Penunjang: Tidak Ada</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Spesialis / dr. Umum" id="l4_s9"><label class="form-check-label small" for="l4_s9">SDM: Spesialis / dr. Umum</label></div>
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="dr. Umum" id="l4_s10"><label class="form-check-label small" for="l4_s10">SDM: dr. Umum</label></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="row g-3 mb-3">
-          <div class="col-md-6">
-            <div class="card h-100 border">
-              <div class="card-header bg-dark border-0 py-2">
-                <span class="fw-bold text-white small">LEVEL 5 : FALSE EMERGENCY</span>
-              </div>
-              <div class="card-body pt-2 pb-2">
-                <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="DOA" id="l5_s1"><label class="form-check-label small" for="l5_s1">DOA</label></div>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="card h-100 border">
-              <div class="card-header bg-light border-0 py-2">
-                <span class="fw-bold text-dark small"><i class="bi bi-door-open me-1"></i>Ruang Tujuan</span>
-              </div>
-              <div class="card-body pt-2 pb-2">
-                <div class="d-flex gap-3">
-                  <div class="form-check"><input class="form-check-input f-symptom" type="checkbox" value="Ruang Resusitasi IGD" id="r_s1"><label class="form-check-label small" for="r_s1">Ruang Resusitasi IGD</label></div>
-                  <div class="form-check"><input class="form-check-input f-symptom" type="checkbox" value="Ruang Ponek" id="r_s2"><label class="form-check-label small" for="r_s2">Ruang Ponek</label></div>
-                  <div class="form-check"><input class="form-check-input f-symptom" type="checkbox" value="Ruang Observasi" id="r_s3"><label class="form-check-label small" for="r_s3">Ruang Observasi</label></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="row g-3">
-          <div class="col-md-6">
-            <div class="card border">
-              <div class="card-header bg-light border-0 py-2">
-                <span class="fw-bold text-dark small">TTD &amp; Nama Dokter</span>
-              </div>
-              <div class="card-body p-2">
-                <div class="mb-2">
-                  <label class="form-label small fw-semibold mb-1">Nama Dokter</label>
-                  <input type="text" id="f-namaDokter" class="form-control form-control-sm" placeholder="Nama Dokter Triase">
-                </div>
-                <div class="sig-wrap">
-                  <canvas id="sig-dokter" width="600" height="200"></canvas>
-                  <button class="btn btn-sm btn-outline-secondary sig-clear-btn" data-target="sig-dokter">Hapus</button>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="card border">
-              <div class="card-header bg-light border-0 py-2">
-                <span class="fw-bold text-dark small">TTD &amp; Nama Perawat</span>
-              </div>
-              <div class="card-body p-2">
-                <div class="mb-2">
-                  <label class="form-label small fw-semibold mb-1">Nama Perawat</label>
-                  <input type="text" id="f-namaPerawat" class="form-control form-control-sm" placeholder="Nama Perawat Triase">
-                </div>
-                <div class="sig-wrap">
-                  <canvas id="sig-perawat" width="600" height="200"></canvas>
-                  <button class="btn btn-sm btn-outline-secondary sig-clear-btn" data-target="sig-perawat">Hapus</button>
-                </div>
-              </div>
-            </div>
+      <div class="card border mb-3">
+        <div class="card-header bg-light py-2 fw-bold text-dark"><i class="bi bi-person-badge me-1"></i> Data Pasien</div>
+        <div class="card-body pt-2 pb-2">
+          <div class="row g-2">
+            <div class="col-md-3"><div class="f-group"><label class="f-label">No. RM</label><input type="text" class="f-input" value="${noMr}" disabled style="background:#e9ecef;"></div></div>
+            <div class="col-md-3"><div class="f-group"><label class="f-label">Nama Pasien</label><input type="text" class="f-input" value="${nama}" disabled style="background:#e9ecef;"></div></div>
+            <div class="col-md-3"><div class="f-group"><label class="f-label">Tgl. Lahir / Gender</label><input type="text" class="f-input" value="${tglLahir} (${kelamin})" disabled style="background:#e9ecef;"></div></div>
+            <div class="col-md-3"><div class="f-group"><label class="f-label">DPJP</label><input type="text" class="f-input" value="${p.dokterDpjp || p.dpjp || '-'}" disabled style="background:#e9ecef;"></div></div>
           </div>
         </div>
       </div>
-      <div class="card-footer text-end bg-white border-top mt-3" style="border-radius:0 0 10px 10px;">
-        <button class="btn btn-danger px-4" id="btn-save-triase"><i class="bi bi-save me-1"></i>Simpan Triase</button>
+
+      <div class="accordion mb-3" id="accordionTriase">
+
+        <!-- Section 1 -->
+        <div class="accordion-item mb-2 border rounded">
+          <h2 class="accordion-header" id="heading_t_1">
+            <button class="accordion-button py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_1" aria-expanded="true" aria-controls="collapse_t_1">
+              <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-heart-pulse me-2 text-secondary"></i> 1. Tanda-Tanda Vital &amp; GCS</span>
+            </button>
+          </h2>
+          <div id="collapse_t_1" class="accordion-collapse collapse show" aria-labelledby="heading_t_1" data-bs-parent="#accordionTriase">
+            <div class="accordion-body bg-white p-3">
+              <div class="row g-3">
+                <div class="col-md-3">
+                  <label class="form-label small fw-semibold mb-1">Tekanan Darah (TD)</label>
+                  <div class="input-group input-group-sm mb-2"><span class="input-group-text">TD</span><input type="text" id="f-td" class="form-control" placeholder="120/80"></div>
+                  <label class="form-label small fw-semibold mb-1">Label Triase</label>
+                  <select id="f-triageColor" class="form-select form-select-sm">
+                    <option value="">-- Pilih Level --</option>
+                    <option value="red" data-label="Level 1">Level 1 - Resusitasi (Merah)</option>
+                    <option value="red" data-label="Level 2">Level 2 - Emergensi (Merah)</option>
+                    <option value="yellow" data-label="Level 3">Level 3 - Urgent (Kuning)</option>
+                    <option value="green" data-label="Level 4">Level 4 - Non Urgent (Hijau)</option>
+                    <option value="black" data-label="Level 5">Level 5 - False Emergency / DOA (Hitam)</option>
+                  </select>
+                </div>
+                <div class="col-md-5">
+                  <div class="row g-2 mb-2">
+                    <div class="col-3"><label class="form-label small fw-semibold mb-1">Suhu (°C)</label><input type="text" id="f-suhu" class="form-control form-control-sm" placeholder="36.5"></div>
+                    <div class="col-3"><label class="form-label small fw-semibold mb-1">SPO2 (%)</label><input type="text" id="f-spo2" class="form-control form-control-sm" placeholder="98"></div>
+                    <div class="col-3"><label class="form-label small fw-semibold mb-1">HR (bpm)</label><input type="text" id="f-hr" class="form-control form-control-sm" placeholder="80"></div>
+                    <div class="col-3"><label class="form-label small fw-semibold mb-1">RR (x/m)</label><input type="text" id="f-rr" class="form-control form-control-sm" placeholder="20"></div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <p class="small fw-bold mb-1 text-secondary">GCS</p>
+                  <div class="row g-2">
+                    <div class="col-4"><label class="form-label small fw-semibold mb-1 text-center d-block">Eye (E)</label><input type="number" id="f-gcsE" class="form-control form-control-sm text-center" min="1" max="4" placeholder="1-4"></div>
+                    <div class="col-4"><label class="form-label small fw-semibold mb-1 text-center d-block">Verbal (V)</label><input type="number" id="f-gcsV" class="form-control form-control-sm text-center" min="1" max="5" placeholder="1-5"></div>
+                    <div class="col-4"><label class="form-label small fw-semibold mb-1 text-center d-block">Motor (M)</label><input type="number" id="f-gcsM" class="form-control form-control-sm text-center" min="1" max="6" placeholder="1-6"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2 -->
+        <div class="accordion-item mb-2 border rounded">
+          <h2 class="accordion-header" id="heading_t_2">
+            <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_2" aria-expanded="false" aria-controls="collapse_t_2">
+              <span class="fw-bold text-danger" style="font-size:13px;"><i class="bi bi-exclamation-octagon me-2"></i> 2. Level 1 : Resusitasi (Red Zone)</span>
+            </button>
+          </h2>
+          <div id="collapse_t_2" class="accordion-collapse collapse" aria-labelledby="heading_t_2" data-bs-parent="#accordionTriase">
+            <div class="accordion-body bg-white p-3">
+              <div class="row g-2">
+                <div class="col">
+                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">AIRWAY</p>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Terintubasi" id="l1_s1"><label class="form-check-label small" for="l1_s1">Terintubasi</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Sumbatan" id="l1_s2"><label class="form-check-label small" for="l1_s2">Sumbatan</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Ancaman" id="l1_s3"><label class="form-check-label small" for="l1_s3">Ancaman</label></div>
+                </div>
+                <div class="col">
+                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">BREATHING</p>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Apnoe" id="l1_s4"><label class="form-check-label small" for="l1_s4">Apnoe</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Ventilator" id="l1_s5"><label class="form-check-label small" for="l1_s5">Ventilator</label></div>
+                </div>
+                <div class="col">
+                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">CIRCULATION</p>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Henti Jantung" id="l1_s6"><label class="form-check-label small" for="l1_s6">Henti Jantung</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Nadi Tak Teraba" id="l1_s7"><label class="form-check-label small" for="l1_s7">Nadi Tak Teraba</label></div>
+                </div>
+                <div class="col">
+                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">DISABILITY</p>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Tidak Respon" id="l1_s8"><label class="form-check-label small" for="l1_s8">Tidak Respon</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Kejang" id="l1_s9"><label class="form-check-label small" for="l1_s9">Kejang</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="GCS <8" id="l1_s10"><label class="form-check-label small" for="l1_s10">GCS &lt;8</label></div>
+                </div>
+                <div class="col">
+                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">PREDIKSI PENUNJANG</p>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Kompleks" id="l1_s11"><label class="form-check-label small" for="l1_s11">Kompleks</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="≥ 2" id="l1_s12"><label class="form-check-label small" for="l1_s12">≥ 2</label></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3 -->
+        <div class="accordion-item mb-2 border rounded">
+          <h2 class="accordion-header" id="heading_t_3">
+            <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_3" aria-expanded="false" aria-controls="collapse_t_3">
+              <span class="fw-bold text-danger" style="font-size:13px;"><i class="bi bi-exclamation-triangle me-2"></i> 3. Level 2 : Emergensi (Red Zone)</span>
+            </button>
+          </h2>
+          <div id="collapse_t_3" class="accordion-collapse collapse" aria-labelledby="heading_t_3" data-bs-parent="#accordionTriase">
+            <div class="accordion-body bg-white p-3">
+              <div class="alert alert-danger py-1 px-2 mb-2 small fw-bold">Keterangan: Termasuk level 2 apabila peringatan yang ada menimbulkan / berkaitan dengan kondisi yang berisiko tinggi memburuk pada pasien</div>
+              <div class="row g-2">
+                <div class="col">
+                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">AIRWAY</p>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Ancaman" id="l2_s1"><label class="form-check-label small" for="l2_s1">Ancaman</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Bebas" id="l2_s2"><label class="form-check-label small" for="l2_s2">Bebas</label></div>
+                </div>
+                <div class="col">
+                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">BREATHING</p>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Takipnue" id="l2_s3"><label class="form-check-label small" for="l2_s3">Takipnue</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Bradipnue" id="l2_s4"><label class="form-check-label small" for="l2_s4">Bradipnue</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="SPO2 <92" id="l2_s5"><label class="form-check-label small" for="l2_s5">SPO2 &lt;92</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Dangkal" id="l2_s6"><label class="form-check-label small" for="l2_s6">Dangkal</label></div>
+                </div>
+                <div class="col">
+                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">CIRCULATION</p>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Nadi Terasa Lemah" id="l2_s7"><label class="form-check-label small" for="l2_s7">Nadi Terasa Lemah</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Akral Dingin" id="l2_s8"><label class="form-check-label small" for="l2_s8">Akral Dingin</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Bradikardi" id="l2_s9"><label class="form-check-label small" for="l2_s9">Bradikardi</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Takikardi" id="l2_s10"><label class="form-check-label small" for="l2_s10">Takikardi</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="CRT >2 detik" id="l2_s11"><label class="form-check-label small" for="l2_s11">CRT &gt;2 detik</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Turgor Kulit Jelek" id="l2_s12"><label class="form-check-label small" for="l2_s12">Turgor Kulit Jelek</label></div>
+                </div>
+                <div class="col">
+                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">DISABILITY</p>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Respon Dengan Rangsangan Nyeri" id="l2_s13"><label class="form-check-label small" for="l2_s13">Respon Nyeri</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Gelisah" id="l2_s14"><label class="form-check-label small" for="l2_s14">Gelisah</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="GCS : > 8 > 15" id="l2_s15"><label class="form-check-label small" for="l2_s15">GCS : &gt; 8 &gt; 15</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="GCS : 15" id="l2_s16"><label class="form-check-label small" for="l2_s16">GCS : 15</label></div>
+                </div>
+                <div class="col">
+                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">PREDIKSI PENUNJANG</p>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Kompleks" id="l2_s17"><label class="form-check-label small" for="l2_s17">Kompleks</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="≥ 2" id="l2_s18"><label class="form-check-label small" for="l2_s18">≥ 2</label></div>
+                  <p class="small fw-bold mt-2 mb-1 text-secondary">Catatan Khusus</p>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Nyeri Berat" id="l2_s19"><label class="form-check-label small" for="l2_s19">Nyeri Berat</label></div>
+                  <div class="form-check mb-1">
+                    <input class="form-check-input f-symptom" type="checkbox" value="Situasi Berbahaya :" id="l2_s20">
+                    <label class="form-check-label small" for="l2_s20">Situasi Berbahaya :</label>
+                    <input type="text" id="f-situasiBerbahaya" class="form-control form-control-sm mt-1" style="font-size:11px;" placeholder="Tuliskan situasi berbahaya...">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 4 -->
+        <div class="accordion-item mb-2 border rounded">
+          <h2 class="accordion-header" id="heading_t_4">
+            <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_4" aria-expanded="false" aria-controls="collapse_t_4">
+              <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-clock-history me-2 text-secondary"></i> 4. Level 3 : Urgent (Yellow Zone)</span>
+            </button>
+          </h2>
+          <div id="collapse_t_4" class="accordion-collapse collapse" aria-labelledby="heading_t_4" data-bs-parent="#accordionTriase">
+            <div class="accordion-body bg-white p-3">
+              <div class="row g-2">
+                <div class="col">
+                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">AIRWAY</p>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Bebas" id="l3_s1"><label class="form-check-label small" for="l3_s1">Bebas</label></div>
+                </div>
+                <div class="col">
+                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">BREATHING</p>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Spontan" id="l3_s2"><label class="form-check-label small" for="l3_s2">Spontan</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Normal" id="l3_s3"><label class="form-check-label small" for="l3_s3">Normal</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Takipnue" id="l3_s4"><label class="form-check-label small" for="l3_s4">Takipnue</label></div>
+                </div>
+                <div class="col">
+                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">CIRCULATION</p>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Nadi Teraba Berat" id="l3_s5"><label class="form-check-label small" for="l3_s5">Nadi Teraba Berat</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Nadi Teraba Lemah" id="l3_s6"><label class="form-check-label small" for="l3_s6">Nadi Teraba Lemah</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Akral Hangat" id="l3_s7"><label class="form-check-label small" for="l3_s7">Akral Hangat</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Turgor Sedang" id="l3_s8"><label class="form-check-label small" for="l3_s8">Turgor Sedang</label></div>
+                </div>
+                <div class="col">
+                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">DISABILITY</p>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="GCS 15" id="l3_s9"><label class="form-check-label small" for="l3_s9">GCS 15</label></div>
+                </div>
+                <div class="col">
+                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">PREDIKSI PENUNJANG</p>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="≥ 2" id="l3_s10"><label class="form-check-label small" for="l3_s10">≥ 2</label></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 5 -->
+        <div class="accordion-item mb-2 border rounded">
+          <h2 class="accordion-header" id="heading_t_5">
+            <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_5" aria-expanded="false" aria-controls="collapse_t_5">
+              <span class="fw-bold text-success" style="font-size:13px;"><i class="bi bi-check-circle me-2"></i> 5. Level 4 : Non Urgent (Green Zone)</span>
+            </button>
+          </h2>
+          <div id="collapse_t_5" class="accordion-collapse collapse" aria-labelledby="heading_t_5" data-bs-parent="#accordionTriase">
+            <div class="accordion-body bg-white p-3">
+              <div class="row g-2">
+                <div class="col">
+                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">AIRWAY</p>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Bebas" id="l4_s1"><label class="form-check-label small" for="l4_s1">Bebas</label></div>
+                </div>
+                <div class="col">
+                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">BREATHING</p>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Spontan" id="l4_s2"><label class="form-check-label small" for="l4_s2">Spontan</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Normal" id="l4_s3"><label class="form-check-label small" for="l4_s3">Normal</label></div>
+                </div>
+                <div class="col">
+                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">CIRCULATION</p>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Nadi Teraba Berat" id="l4_s4"><label class="form-check-label small" for="l4_s4">Nadi Teraba Berat</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Akral Hangat" id="l4_s5"><label class="form-check-label small" for="l4_s5">Akral Hangat</label></div>
+                </div>
+                <div class="col">
+                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">DISABILITY</p>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Sadar" id="l4_s6"><label class="form-check-label small" for="l4_s6">Sadar</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="GCS 15" id="l4_s7"><label class="form-check-label small" for="l4_s7">GCS 15</label></div>
+                </div>
+                <div class="col">
+                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">PREDIKSI</p>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Tidak Ada" id="l4_s8"><label class="form-check-label small" for="l4_s8">Penunjang: Tidak Ada</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Spesialis / dr. Umum" id="l4_s9"><label class="form-check-label small" for="l4_s9">SDM: Spesialis / dr. Umum</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="dr. Umum" id="l4_s10"><label class="form-check-label small" for="l4_s10">SDM: dr. Umum</label></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 6 -->
+        <div class="accordion-item mb-2 border rounded">
+          <h2 class="accordion-header" id="heading_t_6">
+            <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_6" aria-expanded="false" aria-controls="collapse_t_6">
+              <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-pencil-square me-2 text-secondary"></i> 6. Level 5 : False Emergency &amp; Tanda Tangan</span>
+            </button>
+          </h2>
+          <div id="collapse_t_6" class="accordion-collapse collapse" aria-labelledby="heading_t_6" data-bs-parent="#accordionTriase">
+            <div class="accordion-body bg-white p-3">
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <div class="border rounded p-2 bg-light mb-2">
+                    <span class="fw-bold text-dark small d-block mb-1">LEVEL 5 : FALSE EMERGENCY</span>
+                    <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="DOA" id="l5_s1"><label class="form-check-label small" for="l5_s1">DOA (Dead on Arrival)</label></div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="border rounded p-2 bg-light">
+                    <label class="form-label small fw-semibold mb-1">TTD Dokter Triage</label>
+                    <input type="text" id="f-namaDokter" class="form-control form-control-sm mb-1" placeholder="Nama Dokter Triage...">
+                    <div class="sig-wrap mb-1">
+                      <canvas id="sig-dokter" width="500" height="150" style="height:110px;"></canvas>
+                      <button type="button" class="btn btn-sm btn-outline-secondary sig-clear-btn" data-target="sig-dokter">Hapus</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="border rounded p-2 bg-light">
+                    <label class="form-label small fw-semibold mb-1">TTD Perawat Triage</label>
+                    <input type="text" id="f-namaPerawat" class="form-control form-control-sm mb-1" placeholder="Nama Perawat Triage...">
+                    <div class="sig-wrap mb-1">
+                      <canvas id="sig-perawat" width="500" height="150" style="height:110px;"></canvas>
+                      <button type="button" class="btn btn-sm btn-outline-secondary sig-clear-btn" data-target="sig-perawat">Hapus</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
-    </div>
-`
+
+      <div class="d-flex justify-content-end mt-3 border-top pt-3">
+        <button id="btn-save-triase" class="btn btn-primary px-4"><i class="bi bi-save me-1"></i>Simpan Triase</button>
+      </div>`
       });
       bindSuratPrintButton(root);
 
@@ -666,7 +691,7 @@ const printTab = root.querySelector('#triase-print-tab');
                     <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="Takipnue"></span>Takipnue</li><li><span class="t-sq p-symptom" data-val="Bradipnue"></span>Bradipnue</li><li><span class="t-sq p-symptom" data-val="SPO2 <92"></span>SPO2 &lt;92</li><li><span class="t-sq p-symptom" data-val="Dangkal"></span>Dangkal</li></ul></div>
                     <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="Nadi Terasa Lemah"></span>Nadi Terasa Lemah</li><li><span class="t-sq p-symptom" data-val="Akral Dingin"></span>Akral Dingin</li><li><span class="t-sq p-symptom" data-val="Bradikardi"></span>Bradikardi</li><li><span class="t-sq p-symptom" data-val="Takikardi"></span>Takikardi</li><li><span class="t-sq p-symptom" data-val="CRT >2 detik"></span>CRT &gt;2 detik</li><li><span class="t-sq p-symptom" data-val="Turgor Kulit Jelek"></span>Turgor Kulit Jelek</li></ul></div>
                     <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="Respon Dengan Rangsangan Nyeri"></span>Respon Dengan Rangsangan Nyeri</li><li><span class="t-sq p-symptom" data-val="Gelisah"></span>Gelisah</li><li><span class="t-sq p-symptom" data-val="GCS : > 8 > 15"></span>GCS : &gt; 8 &gt; 15</li><li><span class="t-sq p-symptom" data-val="GCS : 15"></span>GCS : 15</li></ul></div>
-                    <div class="t-col t-f2"><ul><li><span class="t-sq p-symptom" data-val="Kompleks"></span>Kompleks</li><li><span class="t-sq p-symptom" data-val="≥ 2"></span>≥ 2</li><li style="margin-top:3px !important;">Catatan Khusus:</li><li><span class="t-sq p-symptom" data-val="Nyeri Berat"></span>Nyeri Berat</li><li><span class="t-sq p-symptom" data-val="Situasi Berbahaya :"></span>Situasi Berbahaya :</li></ul></div>
+                    <div class="t-col t-f2"><ul><li><span class="t-sq p-symptom" data-val="Kompleks"></span>Kompleks</li><li><span class="t-sq p-symptom" data-val="≥ 2"></span>≥ 2</li><li style="margin-top:3px !important;">Catatan Khusus:</li><li><span class="t-sq p-symptom" data-val="Nyeri Berat"></span>Nyeri Berat</li><li><span class="t-sq p-symptom" data-val="Situasi Berbahaya :"></span>Situasi Berbahaya : <span class="p-val" id="p-situasiBerbahaya"></span></li></ul></div>
                   </div>
 
                   <div class="t-row" style="justify-content:center;padding:3px 4px;font-weight:bold;flex-shrink:0;">
@@ -763,6 +788,7 @@ const syncToPreview = () => {
         setText("p-gcsM", getVal("f-gcsM"));
         setText("p-namaDokter", getVal("f-namaDokter") || ".....................................");
         setText("p-namaPerawat", getVal("f-namaPerawat") || ".....................................");
+        setText("p-situasiBerbahaya", getVal("f-situasiBerbahaya"));
         ["red", "yellow", "green", "black"].forEach((c) => {
           const el = document.querySelector(".p-triageColor-" + c);
           if (el) el.innerHTML = getVal("f-triageColor") === c ? "✓" : "";
@@ -829,6 +855,7 @@ const syncToPreview = () => {
         setVal("f-triageColor", d.triageColor);
         setVal("f-namaDokter", d.namaDokter);
         setVal("f-namaPerawat", d.namaPerawat);
+        setVal("f-situasiBerbahaya", d.situasiBerbahaya);
         if (d.symptoms && Array.isArray(d.symptoms)) {
           document.querySelectorAll(".f-symptom").forEach((cb) => {
             if (d.symptoms.includes(cb.value)) cb.checked = true;

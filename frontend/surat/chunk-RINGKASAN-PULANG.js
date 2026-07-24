@@ -131,6 +131,7 @@ var RingkasanPulangComponent = (() => {
       const nama = p.nama || "-";
       const tglLahir = p.tglLahir || p.tanggal_lahir || "-";
       const kelamin = p.kelamin || p.jenis_kelamin || "-";
+      const dpjp = p.dokterDpjp || p.dpjp || p.namaDokter || "-";
 
       const getFontSize = (str, maxLen = 16, defaultSize = 10, minSize = 7) => { if (!str || str.length <= maxLen) return defaultSize; return Math.max(minSize, defaultSize * (maxLen / str.length)).toFixed(1); };
       const fd = this.formData;
@@ -138,149 +139,165 @@ var RingkasanPulangComponent = (() => {
 
       const inputContent = `
       <div class="card border mb-3">
-        <div class="card-header bg-light py-2 fw-bold text-dark"><i class="bi bi-person-badge"></i> Data Pasien &amp; Tanggal Pelayanan</div>
+        <div class="card-header bg-light py-2 fw-bold text-dark"><i class="bi bi-person-badge me-1"></i> Data Pasien</div>
         <div class="card-body pt-2 pb-2">
           <div class="row g-2">
             <div class="col-md-3"><div class="f-group"><label class="f-label">No. RM</label><input type="text" class="f-input" value="${noMr}" disabled style="background:#e9ecef;"></div></div>
             <div class="col-md-3"><div class="f-group"><label class="f-label">Nama Pasien</label><input type="text" class="f-input" value="${nama}" disabled style="background:#e9ecef;"></div></div>
-            <div class="col-md-3"><div class="f-group"><label class="f-label">Tanggal &amp; Jam Masuk</label><input type="datetime-local" class="f-input input-field" data-field="tglJamMasuk" value="${fd.tglJamMasuk || ''}"></div></div>
-            <div class="col-md-3"><div class="f-group"><label class="f-label">Tanggal &amp; Jam Keluar</label><input type="datetime-local" class="f-input input-field" data-field="tglJamKeluar" value="${fd.tglJamKeluar || ''}"></div></div>
+            <div class="col-md-3"><div class="f-group"><label class="f-label">Tgl. Lahir / Gender</label><input type="text" class="f-input" value="${tglLahir} (${kelamin})" disabled style="background:#e9ecef;"></div></div>
+            <div class="col-md-3"><div class="f-group"><label class="f-label">DPJP</label><input type="text" class="f-input" value="${dpjp}" disabled style="background:#e9ecef;"></div></div>
           </div>
         </div>
       </div>
 
-      <div class="card border mb-3">
-        <div class="card-header bg-light py-2 fw-bold text-dark"><i class="bi bi-journal-medical"></i> Anamnesis &amp; Indikasi</div>
-        <div class="card-body pt-2 pb-2">
-          <div class="row g-2">
-            <div class="col-md-6"><div class="f-group"><label class="f-label">Indikasi Masuk IGD</label><textarea class="f-input input-field" data-field="indikasiMasuk" rows="2" placeholder="Indikasi masuk...">${fd.indikasiMasuk || ''}</textarea></div></div>
-            <div class="col-md-6"><div class="f-group"><label class="f-label">Keluhan Utama</label><textarea class="f-input input-field" data-field="keluhanUtama" rows="2" placeholder="Keluhan utama...">${fd.keluhanUtama || ''}</textarea></div></div>
-          </div>
-        </div>
-      </div>
+      <div class="accordion mb-3" id="accordionRingkasanPulang">
 
-      <div class="card border mb-3">
-        <div class="card-header bg-light py-2 fw-bold text-dark"><i class="bi bi-clipboard2-pulse"></i> Pemeriksaan &amp; Diagnosis</div>
-        <div class="card-body pt-2 pb-2">
-          <div class="row g-2">
-            <div class="col-md-6"><div class="f-group"><label class="f-label">Pemeriksaan Fisik</label><textarea class="f-input input-field" data-field="pemeriksaanFisik" rows="2" placeholder="Hasil pemeriksaan fisik...">${fd.pemeriksaanFisik || ''}</textarea></div></div>
-            <div class="col-md-6"><div class="f-group"><label class="f-label">Pemeriksaan Penunjang</label><textarea class="f-input input-field" data-field="pemeriksaanPenunjang" rows="2" placeholder="Lab, Radiologi, dll...">${fd.pemeriksaanPenunjang || ''}</textarea></div></div>
-            <div class="col-md-6"><div class="f-group"><label class="f-label">Diagnosis Kerja</label><textarea class="f-input input-field" data-field="diagnosisKerja" rows="2" placeholder="Diagnosis kerja...">${fd.diagnosisKerja || ''}</textarea></div></div>
-            <div class="col-md-6"><div class="f-group"><label class="f-label">Diagnosis Banding</label><textarea class="f-input input-field" data-field="diagnosisBanding" rows="2" placeholder="Diagnosis banding...">${fd.diagnosisBanding || ''}</textarea></div></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card border mb-3">
-        <div class="card-header bg-light py-2 fw-bold text-dark"><i class="bi bi-capsule"></i> Tindakan &amp; Terapi</div>
-        <div class="card-body pt-2 pb-2">
-          <div class="row g-2">
-            <div class="col-md-6"><div class="f-group"><label class="f-label">Tindakan / Terapi saat di IGD</label><textarea class="f-input input-field" data-field="tindakanTerapi" rows="2" placeholder="Tindakan dan terapi di IGD...">${fd.tindakanTerapi || ''}</textarea></div></div>
-            <div class="col-md-6"><div class="f-group"><label class="f-label">Terapi Saat Pulang</label><textarea class="f-input input-field" data-field="terapiPulang" rows="2" placeholder="Obat/terapi yang dibawakan pulang...">${fd.terapiPulang || ''}</textarea></div></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card border mb-3">
-        <div class="card-header bg-light py-2 fw-bold text-dark"><i class="bi bi-box-arrow-right"></i> Tindak Lanjut &amp; Alasan Tidak Dirawat</div>
-        <div class="card-body pt-2 pb-2">
-          <div class="f-group mb-2"><label class="f-label fw-bold">Pilihan Tindak Lanjut</label></div>
-          <div class="row g-2" style="font-size:13px;">
-            <div class="col-12 mb-2 p-2 border rounded bg-light">
-              <label class="fw-bold mb-1"><input type="radio" name="tindakLanjutTipe" class="input-nested" data-parent="tindakLanjut" data-field="tipe" value="APS" ${checkRadio(fd.tindakLanjut.tipe, 'APS')}> Pulang Atas Permintaan Sendiri / Menolak Rawat Inap</label>
-              <input type="text" class="f-input input-nested mt-1" data-parent="tindakLanjut" data-field="alasanAps" placeholder="Alasan menolak rawat inap..." value="${fd.tindakLanjut.alasanAps || ''}">
-            </div>
-            <div class="col-12 mb-2 p-2 border rounded bg-light">
-              <label class="fw-bold mb-1"><input type="radio" name="tindakLanjutTipe" class="input-nested" data-parent="tindakLanjut" data-field="tipe" value="Persetujuan" ${checkRadio(fd.tindakLanjut.tipe, 'Persetujuan')}> Pulang Atas Persetujuan</label>
-              <div class="d-flex align-items-center gap-2 mt-1"><span class="small">Pada Jam:</span><input type="time" class="f-input input-nested" data-parent="tindakLanjut" data-field="jamPersetujuan" value="${fd.tindakLanjut.jamPersetujuan || ''}" style="width:160px;"></div>
-            </div>
-            <div class="col-12 mb-2 p-2 border rounded bg-light">
-              <label class="fw-bold mb-1"><input type="radio" name="tindakLanjutTipe" class="input-nested" data-parent="tindakLanjut" data-field="tipe" value="Kontrol" ${checkRadio(fd.tindakLanjut.tipe, 'Kontrol')}> Kontrol</label>
-              <div class="row g-2 mt-1">
-                <div class="col-md-6"><input type="date" class="f-input input-nested" data-parent="tindakLanjut" data-field="kontrolTgl" value="${fd.tindakLanjut.kontrolTgl || ''}"></div>
-                <div class="col-md-6"><input type="text" class="f-input input-nested" data-parent="tindakLanjut" data-field="kontrolKe" placeholder="Ke... (Poli/RS)" value="${fd.tindakLanjut.kontrolKe || ''}"></div>
+        <!-- Section 1 -->
+        <div class="accordion-item mb-2 border rounded">
+          <h2 class="accordion-header" id="heading_rp_1">
+            <button class="accordion-button py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_rp_1" aria-expanded="true" aria-controls="collapse_rp_1">
+              <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-journal-medical me-2 text-secondary"></i> 1. Tanggal Pelayanan &amp; Anamnesis</span>
+            </button>
+          </h2>
+          <div id="collapse_rp_1" class="accordion-collapse collapse show" aria-labelledby="heading_rp_1" data-bs-parent="#accordionRingkasanPulang">
+            <div class="accordion-body bg-white p-3">
+              <div class="row g-2 mb-2">
+                <div class="col-md-6"><div class="f-group"><label class="f-label">Tanggal &amp; Jam Masuk</label><input type="datetime-local" class="f-input input-field" data-field="tglJamMasuk" value="${fd.tglJamMasuk || ''}"></div></div>
+                <div class="col-md-6"><div class="f-group"><label class="f-label">Tanggal &amp; Jam Keluar</label><input type="datetime-local" class="f-input input-field" data-field="tglJamKeluar" value="${fd.tglJamKeluar || ''}"></div></div>
+                <div class="col-md-6"><div class="f-group"><label class="f-label">Indikasi Masuk IGD</label><textarea class="f-input input-field" data-field="indikasiMasuk" rows="2" placeholder="Indikasi masuk...">${fd.indikasiMasuk || ''}</textarea></div></div>
+                <div class="col-md-6"><div class="f-group"><label class="f-label">Keluhan Utama</label><textarea class="f-input input-field" data-field="keluhanUtama" rows="2" placeholder="Keluhan utama...">${fd.keluhanUtama || ''}</textarea></div></div>
               </div>
             </div>
-            <div class="col-12 mb-2 p-2 border rounded bg-light">
-              <label class="fw-bold mb-1"><input type="radio" name="tindakLanjutTipe" class="input-nested" data-parent="tindakLanjut" data-field="tipe" value="Rujuk" ${checkRadio(fd.tindakLanjut.tipe, 'Rujuk')}> Dirujuk</label>
-              <input type="text" class="f-input input-nested mt-1" data-parent="tindakLanjut" data-field="rujukKe" placeholder="Rujuk ke RS / Faskes..." value="${fd.tindakLanjut.rujukKe || ''}">
-            </div>
-            <div class="col-12 mb-2 p-2 border rounded bg-light">
-              <label class="fw-bold mb-1"><input type="radio" name="tindakLanjutTipe" class="input-nested" data-parent="tindakLanjut" data-field="tipe" value="Meninggal" ${checkRadio(fd.tindakLanjut.tipe, 'Meninggal')}> Meninggal</label>
-              <div class="d-flex align-items-center gap-2 mt-1"><span class="small">Jam Meninggal:</span><input type="time" class="f-input input-nested" data-parent="tindakLanjut" data-field="jamMeninggal" value="${fd.tindakLanjut.jamMeninggal || ''}" style="width:160px;"></div>
+          </div>
+        </div>
+
+        <!-- Section 2 -->
+        <div class="accordion-item mb-2 border rounded">
+          <h2 class="accordion-header" id="heading_rp_2">
+            <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_rp_2" aria-expanded="false" aria-controls="collapse_rp_2">
+              <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-clipboard2-pulse me-2 text-secondary"></i> 2. Pemeriksaan &amp; Diagnosis</span>
+            </button>
+          </h2>
+          <div id="collapse_rp_2" class="accordion-collapse collapse" aria-labelledby="heading_rp_2" data-bs-parent="#accordionRingkasanPulang">
+            <div class="accordion-body bg-white p-3">
+              <div class="row g-2">
+                <div class="col-md-6"><div class="f-group"><label class="f-label">Pemeriksaan Fisik</label><textarea class="f-input input-field" data-field="pemeriksaanFisik" rows="2" placeholder="Hasil pemeriksaan fisik...">${fd.pemeriksaanFisik || ''}</textarea></div></div>
+                <div class="col-md-6"><div class="f-group"><label class="f-label">Pemeriksaan Penunjang</label><textarea class="f-input input-field" data-field="pemeriksaanPenunjang" rows="2" placeholder="Lab, Radiologi, dll...">${fd.pemeriksaanPenunjang || ''}</textarea></div></div>
+                <div class="col-md-6"><div class="f-group"><label class="f-label">Diagnosis Kerja</label><textarea class="f-input input-field" data-field="diagnosisKerja" rows="2" placeholder="Diagnosis kerja...">${fd.diagnosisKerja || ''}</textarea></div></div>
+                <div class="col-md-6"><div class="f-group"><label class="f-label">Diagnosis Banding</label><textarea class="f-input input-field" data-field="diagnosisBanding" rows="2" placeholder="Diagnosis banding...">${fd.diagnosisBanding || ''}</textarea></div></div>
+              </div>
             </div>
           </div>
+        </div>
 
-          <hr class="my-2">
-          <div class="row g-2">
-            <div class="col-md-8"><div class="f-group"><label class="f-label">Alasan Tidak Perlu Dirawat (Keadaan Umum)</label><input type="text" class="f-input input-nested" data-parent="alasanTidakDirawat" data-field="keadaanUmum" placeholder="Keadaan umum pasien..." value="${fd.alasanTidakDirawat.keadaanUmum || ''}"></div></div>
-            <div class="col-md-4">
-              <div class="f-group"><label class="f-label">Tanda Kegawatan</label>
-                <div class="pt-1">
-                  <label class="me-3"><input type="radio" name="tandaKegawatan" class="input-nested" data-parent="alasanTidakDirawat" data-field="tandaKegawatan" value="Ada" ${checkRadio(fd.alasanTidakDirawat.tandaKegawatan, 'Ada')}> Ada</label>
-                  <label><input type="radio" name="tandaKegawatan" class="input-nested" data-parent="alasanTidakDirawat" data-field="tandaKegawatan" value="Tidak ada" ${checkRadio(fd.alasanTidakDirawat.tandaKegawatan, 'Tidak ada')}> Tidak ada</label>
+        <!-- Section 3 -->
+        <div class="accordion-item mb-2 border rounded">
+          <h2 class="accordion-header" id="heading_rp_3">
+            <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_rp_3" aria-expanded="false" aria-controls="collapse_rp_3">
+              <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-capsule me-2 text-secondary"></i> 3. Tindakan, Terapi &amp; Tindak Lanjut</span>
+            </button>
+          </h2>
+          <div id="collapse_rp_3" class="accordion-collapse collapse" aria-labelledby="heading_rp_3" data-bs-parent="#accordionRingkasanPulang">
+            <div class="accordion-body bg-white p-3">
+              <div class="row g-2 mb-3">
+                <div class="col-md-6"><div class="f-group"><label class="f-label">Tindakan / Terapi saat di IGD</label><textarea class="f-input input-field" data-field="tindakanTerapi" rows="2" placeholder="Tindakan dan terapi di IGD...">${fd.tindakanTerapi || ''}</textarea></div></div>
+                <div class="col-md-6"><div class="f-group"><label class="f-label">Terapi Saat Pulang</label><textarea class="f-input input-field" data-field="terapiPulang" rows="2" placeholder="Obat/terapi yang dibawakan pulang...">${fd.terapiPulang || ''}</textarea></div></div>
+              </div>
+
+              <div class="f-group mb-2"><label class="f-label fw-bold">Pilihan Tindak Lanjut</label></div>
+              <div class="row g-2 mb-3" style="font-size:13px;">
+                <div class="col-12 p-2 border rounded bg-light">
+                  <label class="fw-bold mb-1"><input type="radio" name="tindakLanjutTipe" class="input-nested" data-parent="tindakLanjut" data-field="tipe" value="APS" ${checkRadio(fd.tindakLanjut.tipe, 'APS')}> Pulang Atas Permintaan Sendiri / Menolak Rawat Inap</label>
+                  <input type="text" class="f-input input-nested mt-1" data-parent="tindakLanjut" data-field="alasanAps" placeholder="Alasan menolak rawat inap..." value="${fd.tindakLanjut.alasanAps || ''}">
+                </div>
+                <div class="col-12 p-2 border rounded bg-light">
+                  <label class="fw-bold mb-1"><input type="radio" name="tindakLanjutTipe" class="input-nested" data-parent="tindakLanjut" data-field="tipe" value="Persetujuan" ${checkRadio(fd.tindakLanjut.tipe, 'Persetujuan')}> Pulang Atas Persetujuan</label>
+                  <div class="d-flex align-items-center gap-2 mt-1"><span class="small">Pada Jam:</span><input type="time" class="f-input input-nested" data-parent="tindakLanjut" data-field="jamPersetujuan" value="${fd.tindakLanjut.jamPersetujuan || ''}" style="width:160px;"></div>
+                </div>
+                <div class="col-12 p-2 border rounded bg-light">
+                  <label class="fw-bold mb-1"><input type="radio" name="tindakLanjutTipe" class="input-nested" data-parent="tindakLanjut" data-field="tipe" value="Kontrol" ${checkRadio(fd.tindakLanjut.tipe, 'Kontrol')}> Kontrol</label>
+                  <div class="row g-2 mt-1">
+                    <div class="col-md-6"><input type="date" class="f-input input-nested" data-parent="tindakLanjut" data-field="kontrolTgl" value="${fd.tindakLanjut.kontrolTgl || ''}"></div>
+                    <div class="col-md-6"><input type="text" class="f-input input-nested" data-parent="tindakLanjut" data-field="kontrolKe" placeholder="Ke... (Poli/RS)" value="${fd.tindakLanjut.kontrolKe || ''}"></div>
+                  </div>
+                </div>
+                <div class="col-12 p-2 border rounded bg-light">
+                  <label class="fw-bold mb-1"><input type="radio" name="tindakLanjutTipe" class="input-nested" data-parent="tindakLanjut" data-field="tipe" value="Rujuk" ${checkRadio(fd.tindakLanjut.tipe, 'Rujuk')}> Dirujuk</label>
+                  <input type="text" class="f-input input-nested mt-1" data-parent="tindakLanjut" data-field="rujukKe" placeholder="Rujuk ke RS / Faskes..." value="${fd.tindakLanjut.rujukKe || ''}">
+                </div>
+                <div class="col-12 p-2 border rounded bg-light">
+                  <label class="fw-bold mb-1"><input type="radio" name="tindakLanjutTipe" class="input-nested" data-parent="tindakLanjut" data-field="tipe" value="Meninggal" ${checkRadio(fd.tindakLanjut.tipe, 'Meninggal')}> Meninggal</label>
+                  <div class="d-flex align-items-center gap-2 mt-1"><span class="small">Jam Meninggal:</span><input type="time" class="f-input input-nested" data-parent="tindakLanjut" data-field="jamMeninggal" value="${fd.tindakLanjut.jamMeninggal || ''}" style="width:160px;"></div>
                 </div>
               </div>
+
+              <div class="row g-2">
+                <div class="col-md-8"><div class="f-group"><label class="f-label">Alasan Tidak Perlu Dirawat (Keadaan Umum)</label><input type="text" class="f-input input-nested" data-parent="alasanTidakDirawat" data-field="keadaanUmum" placeholder="Keadaan umum pasien..." value="${fd.alasanTidakDirawat.keadaanUmum || ''}"></div></div>
+                <div class="col-md-4">
+                  <div class="f-group"><label class="f-label">Tanda Kegawatan</label>
+                    <div class="pt-1">
+                      <label class="me-3"><input type="radio" name="tandaKegawatan" class="input-nested" data-parent="alasanTidakDirawat" data-field="tandaKegawatan" value="Ada" ${checkRadio(fd.alasanTidakDirawat.tandaKegawatan, 'Ada')}> Ada</label>
+                      <label><input type="radio" name="tandaKegawatan" class="input-nested" data-parent="alasanTidakDirawat" data-field="tandaKegawatan" value="Tidak ada" ${checkRadio(fd.alasanTidakDirawat.tandaKegawatan, 'Tidak ada')}> Tidak ada</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
         </div>
+
+        <!-- Section 4 -->
+        <div class="accordion-item mb-2 border rounded">
+          <h2 class="accordion-header" id="heading_rp_4">
+            <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_rp_4" aria-expanded="false" aria-controls="collapse_rp_4">
+              <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-box-arrow-right me-2 text-secondary"></i> 4. Edukasi, Kondisi Keluar &amp; Tanda Tangan</span>
+            </button>
+          </h2>
+          <div id="collapse_rp_4" class="accordion-collapse collapse" aria-labelledby="heading_rp_4" data-bs-parent="#accordionRingkasanPulang">
+            <div class="accordion-body bg-white p-3">
+              <div class="f-group mb-2"><label class="f-label">Edukasi Kepada Pasien / Keluarga</label><textarea class="f-input input-field" data-field="edukasi" rows="2" placeholder="Edukasi yang disampaikan...">${fd.edukasi || ''}</textarea></div>
+              <div class="row g-2 mb-3">
+                <div class="col-md-6"><div class="f-group"><label class="f-label">Keadaan Umum Saat Keluar</label><input type="text" class="f-input input-nested" data-parent="kondisiKeluar" data-field="keadaanUmum" placeholder="Baik / Sedang / Lemah" value="${fd.kondisiKeluar.keadaanUmum || ''}"></div></div>
+                <div class="col-md-6"><div class="f-group"><label class="f-label">Kesadaran Saat Keluar</label><input type="text" class="f-input input-nested" data-parent="kondisiKeluar" data-field="kesadaran" placeholder="Compos Mentis / Samnolens / dll" value="${fd.kondisiKeluar.kesadaran || ''}"></div></div>
+                <div class="col-md-2 col-6"><div class="f-group"><label class="f-label">TD (mmHg)</label><input type="text" class="f-input input-nested" data-parent="kondisiKeluar" data-field="td" placeholder="120/80" value="${fd.kondisiKeluar.td || ''}"></div></div>
+                <div class="col-md-2 col-6"><div class="f-group"><label class="f-label">Nadi (x/mnt)</label><input type="text" class="f-input input-nested" data-parent="kondisiKeluar" data-field="nadi" placeholder="80" value="${fd.kondisiKeluar.nadi || ''}"></div></div>
+                <div class="col-md-2 col-6"><div class="f-group"><label class="f-label">RR (x/mnt)</label><input type="text" class="f-input input-nested" data-parent="kondisiKeluar" data-field="rr" placeholder="20" value="${fd.kondisiKeluar.rr || ''}"></div></div>
+                <div class="col-md-3 col-6"><div class="f-group"><label class="f-label">Suhu (&deg;C)</label><input type="text" class="f-input input-nested" data-parent="kondisiKeluar" data-field="suhu" placeholder="36.5" value="${fd.kondisiKeluar.suhu || ''}"></div></div>
+                <div class="col-md-3 col-12"><div class="f-group"><label class="f-label">Skala Nyeri</label><input type="text" class="f-input input-nested" data-parent="kondisiKeluar" data-field="nyeri" placeholder="0 / 1-10" value="${fd.kondisiKeluar.nyeri || ''}"></div></div>
+              </div>
+
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <div class="border rounded p-2 bg-light">
+                    <label class="form-label small fw-semibold mb-1">Nama Pasien / Keluarga</label>
+                    <input type="text" class="f-input input-field mb-1" data-field="namaPasienKeluarga" placeholder="Nama Pasien / Keluarga..." value="${fd.namaPasienKeluarga || ''}">
+                    <div style="border:1px solid #ccc; border-radius:4px; background:#fff; position:relative; overflow:hidden;">
+                      <canvas id="sig-keluarga-rp" width="400" height="150" style="display:block; width:100%; height:120px; cursor:crosshair; touch-action:none;"></canvas>
+                      <button type="button" class="btn btn-sm btn-outline-secondary sig-clear-btn" data-target="sig-keluarga-rp" style="position:absolute; top:4px; right:4px; font-size:10px; padding:1px 5px;">Hapus</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="border rounded p-2 bg-light">
+                    <label class="form-label small fw-semibold mb-1">Nama Dokter DPJP</label>
+                    <input type="text" class="f-input input-field mb-1" data-field="namaDokter" placeholder="Nama Dokter..." value="${fd.namaDokter || p.dokterDpjp || p.dpjp || ''}">
+                    <div style="border:1px solid #ccc; border-radius:4px; background:#fff; position:relative; overflow:hidden;">
+                      <canvas id="sig-dokter-rp" width="400" height="150" style="display:block; width:100%; height:120px; cursor:crosshair; touch-action:none;"></canvas>
+                      <button type="button" class="btn btn-sm btn-outline-secondary sig-clear-btn" data-target="sig-dokter-rp" style="position:absolute; top:4px; right:4px; font-size:10px; padding:1px 5px;">Hapus</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
       </div>
 
-      <div class="card border mb-3">
-        <div class="card-header bg-light py-2 fw-bold text-dark"><i class="bi bi-heart-pulse"></i> Edukasi &amp; Kondisi Saat Keluar</div>
-        <div class="card-body pt-2 pb-2">
-          <div class="f-group mb-2"><label class="f-label">Edukasi Kepada Pasien / Keluarga</label><textarea class="f-input input-field" data-field="edukasi" rows="2" placeholder="Edukasi yang disampaikan...">${fd.edukasi || ''}</textarea></div>
-          <div class="row g-2">
-            <div class="col-md-6"><div class="f-group"><label class="f-label">Keadaan Umum Saat Keluar</label><input type="text" class="f-input input-nested" data-parent="kondisiKeluar" data-field="keadaanUmum" placeholder="Baik / Sedang / Lemah" value="${fd.kondisiKeluar.keadaanUmum || ''}"></div></div>
-            <div class="col-md-6"><div class="f-group"><label class="f-label">Kesadaran Saat Keluar</label><input type="text" class="f-input input-nested" data-parent="kondisiKeluar" data-field="kesadaran" placeholder="Compos Mentis / Samnolens / dll" value="${fd.kondisiKeluar.kesadaran || ''}"></div></div>
-            <div class="col-md-2 col-6"><div class="f-group"><label class="f-label">TD (mmHg)</label><input type="text" class="f-input input-nested" data-parent="kondisiKeluar" data-field="td" placeholder="120/80" value="${fd.kondisiKeluar.td || ''}"></div></div>
-            <div class="col-md-2 col-6"><div class="f-group"><label class="f-label">Nadi (x/mnt)</label><input type="text" class="f-input input-nested" data-parent="kondisiKeluar" data-field="nadi" placeholder="80" value="${fd.kondisiKeluar.nadi || ''}"></div></div>
-            <div class="col-md-2 col-6"><div class="f-group"><label class="f-label">RR (x/mnt)</label><input type="text" class="f-input input-nested" data-parent="kondisiKeluar" data-field="rr" placeholder="20" value="${fd.kondisiKeluar.rr || ''}"></div></div>
-            <div class="col-md-3 col-6"><div class="f-group"><label class="f-label">Suhu (&deg;C)</label><input type="text" class="f-input input-nested" data-parent="kondisiKeluar" data-field="suhu" placeholder="36.5" value="${fd.kondisiKeluar.suhu || ''}"></div></div>
-            <div class="col-md-3 col-12"><div class="f-group"><label class="f-label">Skala Nyeri</label><input type="text" class="f-input input-nested" data-parent="kondisiKeluar" data-field="nyeri" placeholder="0 / 1-10" value="${fd.kondisiKeluar.nyeri || ''}"></div></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="row g-3 mb-3">
-        <div class="col-md-6">
-          <div class="card border">
-            <div class="card-header bg-light border-0 py-2">
-              <span class="fw-bold text-dark small">TTD &amp; Nama Pasien / Keluarga</span>
-            </div>
-            <div class="card-body p-2">
-              <div class="mb-2">
-                <label class="form-label small fw-semibold mb-1">Nama Pasien / Keluarga</label>
-                <input type="text" class="f-input input-field" data-field="namaPasienKeluarga" placeholder="Nama Pasien / Keluarga..." value="${fd.namaPasienKeluarga || ''}">
-              </div>
-              <div style="border:1px solid #dee2e6; border-radius:6px; background:#fafafa; position:relative; overflow:hidden;">
-                <canvas id="sig-keluarga-rp" width="600" height="200" style="display:block; width:100%; height:180px; cursor:crosshair; touch-action:none;"></canvas>
-                <button type="button" class="btn btn-sm btn-outline-secondary sig-clear-btn" style="position:absolute; top:5px; right:5px; padding:2px 7px; font-size:11px;">Hapus</button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="card border">
-            <div class="card-header bg-light border-0 py-2">
-              <span class="fw-bold text-dark small">TTD &amp; Nama Dokter</span>
-            </div>
-            <div class="card-body p-2">
-              <div class="mb-2">
-                <label class="form-label small fw-semibold mb-1">Nama Dokter</label>
-                <input type="text" class="f-input input-field" data-field="namaDokter" placeholder="Nama Dokter..." value="${fd.namaDokter || p.dokterDpjp || p.dpjp || ''}">
-              </div>
-              <div style="border:1px solid #dee2e6; border-radius:6px; background:#fafafa; position:relative; overflow:hidden;">
-                <canvas id="sig-dokter-rp" width="600" height="200" style="display:block; width:100%; height:180px; cursor:crosshair; touch-action:none;"></canvas>
-                <button type="button" class="btn btn-sm btn-outline-secondary sig-clear-btn" style="position:absolute; top:5px; right:5px; padding:2px 7px; font-size:11px;">Hapus</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="d-flex justify-content-end mb-3">
-        <button id="btn-save-rp" class="btn btn-primary btn-lg shadow-sm px-4">Simpan Data</button>
+      <div class="d-flex justify-content-end mt-3 border-top pt-3">
+        <button id="btn-save-rp" class="btn btn-primary px-4"><i class="bi bi-save me-1"></i>Simpan Data</button>
       </div>`;
 
       root.innerHTML = createSuratShell({

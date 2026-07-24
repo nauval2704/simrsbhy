@@ -7,7 +7,7 @@ import {
   hc as ɵelementEnd,
   ra as inject,
 } from "../chunk-UYVTZL26.js";
-import { getStandardGridCSS, hospitalHeaderTableRow, signatureFooterRows, footerLabel, createSuratShell, bindSuratPrintButton } from "./chunk-SURAT-LAYOUT.js";
+import { getStandardGridCSS, hospitalHeaderTableRow, signatureFooterRows, footerLabel, createSuratShell, bindSuratPrintButton, suratDocumentWrapper } from "./chunk-SURAT-LAYOUT.js";
 
 function renderTemplate(t, s) {
   if (t & 1) {
@@ -57,8 +57,8 @@ var PengkajianAwalPoliComponent = (() => {
         .get(i.apiUrl + "/simrsba/pengkajian-awal-poli/" + this.noCheckin)
         .subscribe({
           next: (res) => {
-            if (res && res.data && res.data.formData) {
-              this.draftData = res.data.formData;
+            if (res && res.data) {
+              this.draftData = res.data.formData || res.data;
             }
             this.renderView();
           },
@@ -520,18 +520,15 @@ var PengkajianAwalPoliComponent = (() => {
         </div>
       </div>
 
-      <div class="card border mb-3">
-        <div class="card-header bg-light py-2 fw-bold text-dark"><i class="bi bi-file-earmark-medical me-1"></i> Formulir Pengkajian Awal Poliklinik Rawat Jalan</div>
-        <div class="card-body p-3">
-          <div class="accordion" id="accordionPoli">
+      <div class="accordion mb-3" id="accordionPoli">
 
-            <!-- Section 1 -->
-            <div class="accordion-item mb-2 border rounded shadow-sm">
-              <h2 class="accordion-header" id="heading_sec_1">
-                <button class="accordion-button py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_sec_1" aria-expanded="true" aria-controls="collapse_sec_1">
-                  <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-journal-medical me-2 text-primary"></i> 1. Anamnesis, Asal Pasien &amp; Riwayat Penyakit</span>
-                </button>
-              </h2>
+        <!-- Section 1 -->
+        <div class="accordion-item mb-2 border rounded">
+          <h2 class="accordion-header" id="heading_sec_1">
+            <button class="accordion-button py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_sec_1" aria-expanded="true" aria-controls="collapse_sec_1">
+              <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-journal-medical me-2 text-secondary"></i> 1. Anamnesis, Asal Pasien &amp; Riwayat Penyakit</span>
+            </button>
+          </h2>
               <div id="collapse_sec_1" class="accordion-collapse collapse show" aria-labelledby="heading_sec_1" data-bs-parent="#accordionPoli">
                 <div class="accordion-body bg-white p-3">
                   <div class="row g-2 mb-2">
@@ -592,12 +589,12 @@ var PengkajianAwalPoliComponent = (() => {
             </div>
 
             <!-- Section 2 -->
-            <div class="accordion-item mb-2 border rounded shadow-sm">
-              <h2 class="accordion-header" id="heading_sec_2">
-                <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_sec_2" aria-expanded="false" aria-controls="collapse_sec_2">
-                  <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-heart-pulse me-2 text-primary"></i> 2. Tanda Vital, Psikososial &amp; Reproduksi</span>
-                </button>
-              </h2>
+        <div class="accordion-item mb-2 border rounded">
+          <h2 class="accordion-header" id="heading_sec_2">
+            <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_sec_2" aria-expanded="false" aria-controls="collapse_sec_2">
+              <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-heart-pulse me-2 text-secondary"></i> 2. Tanda Vital, Psikososial &amp; Reproduksi</span>
+            </button>
+          </h2>
               <div id="collapse_sec_2" class="accordion-collapse collapse" aria-labelledby="heading_sec_2" data-bs-parent="#accordionPoli">
                 <div class="accordion-body bg-white p-3">
                   <div class="row g-2 mb-2">
@@ -638,12 +635,12 @@ var PengkajianAwalPoliComponent = (() => {
             </div>
 
             <!-- Section 3 -->
-            <div class="accordion-item mb-2 border rounded shadow-sm">
-              <h2 class="accordion-header" id="heading_sec_3">
-                <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_sec_3" aria-expanded="false" aria-controls="collapse_sec_3">
-                  <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-activity me-2 text-primary"></i> 3. Status Fungsional, Skrining Nyeri &amp; Gizi</span>
-                </button>
-              </h2>
+        <div class="accordion-item mb-2 border rounded">
+          <h2 class="accordion-header" id="heading_sec_3">
+            <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_sec_3" aria-expanded="false" aria-controls="collapse_sec_3">
+              <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-activity me-2 text-secondary"></i> 3. Status Fungsional, Skrining Nyeri &amp; Gizi</span>
+            </button>
+          </h2>
               <div id="collapse_sec_3" class="accordion-collapse collapse" aria-labelledby="heading_sec_3" data-bs-parent="#accordionPoli">
                 <div class="accordion-body bg-white p-3">
                   <div class="row g-2 mb-3">
@@ -714,12 +711,12 @@ var PengkajianAwalPoliComponent = (() => {
             </div>
 
             <!-- Section 4 -->
-            <div class="accordion-item mb-2 border rounded shadow-sm">
-              <h2 class="accordion-header" id="heading_sec_4">
-                <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_sec_4" aria-expanded="false" aria-controls="collapse_sec_4">
-                  <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-file-earmark-medical me-2 text-primary"></i> 4. Pemeriksaan Penunjang &amp; Fisik</span>
-                </button>
-              </h2>
+        <div class="accordion-item mb-2 border rounded">
+          <h2 class="accordion-header" id="heading_sec_4">
+            <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_sec_4" aria-expanded="false" aria-controls="collapse_sec_4">
+              <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-file-earmark-medical me-2 text-secondary"></i> 4. Pemeriksaan Penunjang &amp; Fisik</span>
+            </button>
+          </h2>
               <div id="collapse_sec_4" class="accordion-collapse collapse" aria-labelledby="heading_sec_4" data-bs-parent="#accordionPoli">
                 <div class="accordion-body bg-white p-3">
                   <div class="row g-2 mb-2">
@@ -750,12 +747,12 @@ var PengkajianAwalPoliComponent = (() => {
             </div>
 
             <!-- Section 5 -->
-            <div class="accordion-item mb-2 border rounded shadow-sm">
-              <h2 class="accordion-header" id="heading_sec_5">
-                <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_sec_5" aria-expanded="false" aria-controls="collapse_sec_5">
-                  <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-clipboard-check me-2 text-primary"></i> 5. Diagnosis, Terapi, Tindak Lanjut &amp; Kondisi Keluar</span>
-                </button>
-              </h2>
+        <div class="accordion-item mb-2 border rounded">
+          <h2 class="accordion-header" id="heading_sec_5">
+            <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_sec_5" aria-expanded="false" aria-controls="collapse_sec_5">
+              <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-clipboard-check me-2 text-secondary"></i> 5. Diagnosis, Terapi, Tindak Lanjut &amp; Kondisi Keluar</span>
+            </button>
+          </h2>
               <div id="collapse_sec_5" class="accordion-collapse collapse" aria-labelledby="heading_sec_5" data-bs-parent="#accordionPoli">
                 <div class="accordion-body bg-white p-3">
                   <div class="row g-2 mb-2">
@@ -864,17 +861,12 @@ var PengkajianAwalPoliComponent = (() => {
                 </div>
               </div>
             </div>
-
-          </div>
-          <div class="d-flex justify-content-end mt-3 border-top pt-3">
-            <button type="button" id="btn-save-poli" class="btn btn-primary px-4"><i class="bi bi-save me-1"></i>Simpan Data</button>
-          </div>
-        </div>
+      </div>
+      <div class="d-flex justify-content-end mt-3 border-top pt-3">
+        <button type="button" id="btn-save-poli" class="btn btn-primary px-4"><i class="bi bi-save me-1"></i>Simpan Data</button>
       </div>`;
-
-            const printContent = `
-        <div class="surat-document" style="width:816px;min-height:1247px;background:#fff;margin:0 auto 20px auto;padding:0;box-shadow:0 0 10px rgba(0,0,0,0.1);text-align:left;font-size:12px;font-family:'Times New Roman',Times,serif;position:relative;">
-        <div class="pap-page">
+      const printContent =
+        suratDocumentWrapper(`
           <table class="pap-master-grid">
             <colgroup>
               <col style="width:16.66%;"><col style="width:16.66%;"><col style="width:16.66%;"><col style="width:16.66%;"><col style="width:16.66%;"><col style="width:16.66%;">
@@ -983,11 +975,8 @@ var PengkajianAwalPoliComponent = (() => {
             </tbody>
           </table>
           ${footerLabel('005/RMBHY/2026')}
-        </div>
-        </div>
-
-        <div class="surat-document" style="width:816px;min-height:1247px;background:#fff;margin:0 auto 20px auto;padding:0;box-shadow:0 0 10px rgba(0,0,0,0.1);text-align:left;font-size:12px;font-family:'Times New Roman',Times,serif;position:relative;">
-        <div class="pap-page">
+        `) +
+        suratDocumentWrapper(`
           <table class="pap-master-grid">
             <colgroup>
               <col style="width:16.66%;"><col style="width:16.66%;"><col style="width:16.66%;"><col style="width:16.66%;"><col style="width:16.66%;"><col style="width:16.66%;">
@@ -1113,11 +1102,8 @@ var PengkajianAwalPoliComponent = (() => {
             </tbody>
           </table>
           ${footerLabel('005/RMBHY/2026')}
-        </div>
-        </div>
-
-        <div class="surat-document" style="width:816px;min-height:1247px;background:#fff;margin:0 auto 20px auto;padding:0;box-shadow:0 0 10px rgba(0,0,0,0.1);text-align:left;font-size:12px;font-family:'Times New Roman',Times,serif;position:relative;">
-        <div class="pap-page">
+        `) +
+        suratDocumentWrapper(`
           <table class="pap-master-grid">
             <colgroup>
               <col style="width:16.66%;"><col style="width:16.66%;"><col style="width:16.66%;"><col style="width:16.66%;"><col style="width:16.66%;"><col style="width:16.66%;">
@@ -1149,12 +1135,12 @@ var PengkajianAwalPoliComponent = (() => {
                 </td>
               </tr>
               <tr>
-                <td colspan="6" style="border-bottom:none;padding-bottom:0;">
+                <td colspan="6" style="border-bottom:1px;padding-bottom:0;">
                   <strong>KONDISI SAAT KELUAR POLIKLINIK (perawat)</strong>
                 </td>
               </tr>
               <tr>
-                <td colspan="3" style="border-top:none;border-right:1px solid black;">
+                <td colspan="3" style="border-top:1px;border-right:1px solid black;">
                   <table class="pap-inner-align" style="line-height:1.8;">
                     <tr><td style="width:100px;">Keadaan Umum</td><td style="width:10px;">:</td><td><span id="p-kondisi-ku-keluar"></span></td><td style="width:40px;"></td></tr>
                     <tr><td>Kesadaran</td><td>:</td><td><span id="p-kondisi-kesadaran"></span></td><td></td></tr>
@@ -1209,8 +1195,7 @@ var PengkajianAwalPoliComponent = (() => {
             </tbody>
           </table>
           ${footerLabel('005/RMBHY/2026')}
-        </div>
-        </div>`;
+        `);
 
       root.innerHTML = createSuratShell({
         idPrefix: 'pengkajian-poli',
@@ -1219,6 +1204,12 @@ var PengkajianAwalPoliComponent = (() => {
         printPaneId: 'pengkajian-poli-print',
         printTabId: 'pengkajian-poli-print-tab',
         tabsClass: 'pengkajian-poli-tabs',
+        extraCss: `#accordionPoli .accordion-item { box-shadow: none !important; border-color: #dee2e6 !important; }
+#accordionPoli .accordion-button { box-shadow: none !important; }
+#accordionPoli .accordion-button:not(.collapsed) { background-color: #f8f9fa !important; color: #212529 !important; box-shadow: none !important; }
+#accordionPoli .accordion-button:focus { border-color: #ced4da !important; box-shadow: none !important; }
+#accordionPoli .form-check-input:checked { background-color: #495057 !important; border-color: #495057 !important; }
+#accordionPoli .form-check-input:focus { border-color: #6c757d !important; box-shadow: none !important; }`,
         inputContent,
         printContent,
       });
