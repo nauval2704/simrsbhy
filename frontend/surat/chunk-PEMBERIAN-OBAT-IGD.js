@@ -68,11 +68,27 @@ var PemberianObatIgdComponent = (() => {
             this.formData = { ...this.formData, ...res.data };
             if (!this.formData.entries) this.formData.entries = [];
           }
-          this.loading = false;
-          this.renderUI();
+          this.fetchPengkajianIfEmpty();
         },
         error: (err) => {
           console.error("Error fetching draft", err);
+          this.fetchPengkajianIfEmpty();
+        }
+      });
+    }
+
+    fetchPengkajianIfEmpty() {
+      this.http.get(i.apiUrl + "/simrsba/pengkajian-awal-igd/" + this.noCheckin).subscribe({
+        next: (res) => {
+          if (res && res.data && res.data.diagnosisKerja) {
+            if (!this.formData.diagnosa) {
+              this.formData.diagnosa = res.data.diagnosisKerja;
+            }
+          }
+          this.loading = false;
+          this.renderUI();
+        },
+        error: () => {
           this.loading = false;
           this.renderUI();
         }

@@ -88,6 +88,12 @@ var EdukasiPoliComponent = (() => {
               this.formData.entries = res.data.formData.entries;
             }
           }
+          const dpjp = this.patient?.dpjp || this.patient?.namaDokter || this.patient?.dokterDpjp || "";
+          if (this.formData.entries && this.formData.entries.length > 0) {
+            this.formData.entries.forEach(ent => {
+              if (!ent.edukatorNama && dpjp) ent.edukatorNama = dpjp;
+            });
+          }
           this.loading = false;
           this.renderUI();
         },

@@ -105,6 +105,8 @@ var TriaseComponent = (() => {
           document.querySelectorAll(".f-symptom:checked"),
         ).map((cb) => cb.value),
         situasiBerbahaya: document.getElementById("f-situasiBerbahaya")?.value || "",
+        doaDetail: document.getElementById("f-doaDetail")?.value || "",
+        konsul: document.getElementById("f-konsul")?.value || "",
       };
 
       this.http.post(i.apiUrl + "/simrsba/triase", payload).subscribe({
@@ -193,6 +195,7 @@ var TriaseComponent = (() => {
       const nama = p.nama || "-";
       const tglLahir = p.tglLahir || "-";
       const kelamin = p.kelamin || "-";
+      const dpjp = p.dokterDpjp || p.dpjp || p.namaDokter || p.dokter || "";
 
       const getFontSize = (str, maxLen = 16, defaultSize = 10, minSize = 7) => {
         if (!str || str.length <= maxLen) return defaultSize;
@@ -283,7 +286,7 @@ var TriaseComponent = (() => {
                     <option value="red" data-label="Level 2">Level 2 - Emergensi (Merah)</option>
                     <option value="yellow" data-label="Level 3">Level 3 - Urgent (Kuning)</option>
                     <option value="green" data-label="Level 4">Level 4 - Non Urgent (Hijau)</option>
-                    <option value="black" data-label="Level 5">Level 5 - False Emergency / DOA (Hitam)</option>
+                    <option value="green" data-label="Level 5">Level 5 - False Emergency / DOA (Hijau)</option>
                   </select>
                 </div>
                 <div class="col-md-5">
@@ -319,30 +322,30 @@ var TriaseComponent = (() => {
               <div class="row g-2">
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">AIRWAY</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Terintubasi" id="l1_s1"><label class="form-check-label small" for="l1_s1">Terintubasi</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Sumbatan" id="l1_s2"><label class="form-check-label small" for="l1_s2">Sumbatan</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Ancaman" id="l1_s3"><label class="form-check-label small" for="l1_s3">Ancaman</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_Terintubasi" id="l1_s1"><label class="form-check-label small" for="l1_s1">Terintubasi</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_Sumbatan" id="l1_s2"><label class="form-check-label small" for="l1_s2">Sumbatan</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_Ancaman" id="l1_s3"><label class="form-check-label small" for="l1_s3">Ancaman</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">BREATHING</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Apnoe" id="l1_s4"><label class="form-check-label small" for="l1_s4">Apnoe</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Ventilator" id="l1_s5"><label class="form-check-label small" for="l1_s5">Ventilator</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_Apnoe" id="l1_s4"><label class="form-check-label small" for="l1_s4">Apnoe</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_Ventilator" id="l1_s5"><label class="form-check-label small" for="l1_s5">Ventilator</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">CIRCULATION</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Henti Jantung" id="l1_s6"><label class="form-check-label small" for="l1_s6">Henti Jantung</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Nadi Tak Teraba" id="l1_s7"><label class="form-check-label small" for="l1_s7">Nadi Tak Teraba</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_Henti Jantung" id="l1_s6"><label class="form-check-label small" for="l1_s6">Henti Jantung</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_Nadi Tak Teraba" id="l1_s7"><label class="form-check-label small" for="l1_s7">Nadi Tak Teraba</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">DISABILITY</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Tidak Respon" id="l1_s8"><label class="form-check-label small" for="l1_s8">Tidak Respon</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Kejang" id="l1_s9"><label class="form-check-label small" for="l1_s9">Kejang</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="GCS <8" id="l1_s10"><label class="form-check-label small" for="l1_s10">GCS &lt;8</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_Tidak Respon" id="l1_s8"><label class="form-check-label small" for="l1_s8">Tidak Respon</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_Kejang" id="l1_s9"><label class="form-check-label small" for="l1_s9">Kejang</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_GCS <8" id="l1_s10"><label class="form-check-label small" for="l1_s10">GCS &lt;8</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">PREDIKSI PENUNJANG</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Kompleks" id="l1_s11"><label class="form-check-label small" for="l1_s11">Kompleks</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="≥ 2" id="l1_s12"><label class="form-check-label small" for="l1_s12">≥ 2</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_Kompleks" id="l1_s11"><label class="form-check-label small" for="l1_s11">Kompleks</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_≥ 2" id="l1_s12"><label class="form-check-label small" for="l1_s12">≥ 2</label></div>
                 </div>
               </div>
             </div>
@@ -362,40 +365,40 @@ var TriaseComponent = (() => {
               <div class="row g-2">
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">AIRWAY</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Ancaman" id="l2_s1"><label class="form-check-label small" for="l2_s1">Ancaman</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Bebas" id="l2_s2"><label class="form-check-label small" for="l2_s2">Bebas</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Ancaman" id="l2_s1"><label class="form-check-label small" for="l2_s1">Ancaman</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Bebas" id="l2_s2"><label class="form-check-label small" for="l2_s2">Bebas</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">BREATHING</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Takipnue" id="l2_s3"><label class="form-check-label small" for="l2_s3">Takipnue</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Bradipnue" id="l2_s4"><label class="form-check-label small" for="l2_s4">Bradipnue</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="SPO2 <92" id="l2_s5"><label class="form-check-label small" for="l2_s5">SPO2 &lt;92</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Dangkal" id="l2_s6"><label class="form-check-label small" for="l2_s6">Dangkal</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Takipnue" id="l2_s3"><label class="form-check-label small" for="l2_s3">Takipnue</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Bradipnue" id="l2_s4"><label class="form-check-label small" for="l2_s4">Bradipnue</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_SPO2 <92" id="l2_s5"><label class="form-check-label small" for="l2_s5">SPO2 &lt;92</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Dangkal" id="l2_s6"><label class="form-check-label small" for="l2_s6">Dangkal</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">CIRCULATION</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Nadi Terasa Lemah" id="l2_s7"><label class="form-check-label small" for="l2_s7">Nadi Terasa Lemah</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Akral Dingin" id="l2_s8"><label class="form-check-label small" for="l2_s8">Akral Dingin</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Bradikardi" id="l2_s9"><label class="form-check-label small" for="l2_s9">Bradikardi</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Takikardi" id="l2_s10"><label class="form-check-label small" for="l2_s10">Takikardi</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="CRT >2 detik" id="l2_s11"><label class="form-check-label small" for="l2_s11">CRT &gt;2 detik</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Turgor Kulit Jelek" id="l2_s12"><label class="form-check-label small" for="l2_s12">Turgor Kulit Jelek</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Nadi Terasa Lemah" id="l2_s7"><label class="form-check-label small" for="l2_s7">Nadi Terasa Lemah</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Akral Dingin" id="l2_s8"><label class="form-check-label small" for="l2_s8">Akral Dingin</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Bradikardi" id="l2_s9"><label class="form-check-label small" for="l2_s9">Bradikardi</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Takikardi" id="l2_s10"><label class="form-check-label small" for="l2_s10">Takikardi</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_CRT >2 detik" id="l2_s11"><label class="form-check-label small" for="l2_s11">CRT &gt;2 detik</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Turgor Kulit Jelek" id="l2_s12"><label class="form-check-label small" for="l2_s12">Turgor Kulit Jelek</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">DISABILITY</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Respon Dengan Rangsangan Nyeri" id="l2_s13"><label class="form-check-label small" for="l2_s13">Respon Nyeri</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Gelisah" id="l2_s14"><label class="form-check-label small" for="l2_s14">Gelisah</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="GCS : > 8 > 15" id="l2_s15"><label class="form-check-label small" for="l2_s15">GCS : &gt; 8 &gt; 15</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="GCS : 15" id="l2_s16"><label class="form-check-label small" for="l2_s16">GCS : 15</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Respon Dengan Rangsangan Nyeri" id="l2_s13"><label class="form-check-label small" for="l2_s13">Respon Nyeri</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Gelisah" id="l2_s14"><label class="form-check-label small" for="l2_s14">Gelisah</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_GCS : > 8 > 15" id="l2_s15"><label class="form-check-label small" for="l2_s15">GCS : &gt; 8 &gt; 15</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_GCS : 15" id="l2_s16"><label class="form-check-label small" for="l2_s16">GCS : 15</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">PREDIKSI PENUNJANG</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Kompleks" id="l2_s17"><label class="form-check-label small" for="l2_s17">Kompleks</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="≥ 2" id="l2_s18"><label class="form-check-label small" for="l2_s18">≥ 2</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Kompleks" id="l2_s17"><label class="form-check-label small" for="l2_s17">Kompleks</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_≥ 2" id="l2_s18"><label class="form-check-label small" for="l2_s18">≥ 2</label></div>
                   <p class="small fw-bold mt-2 mb-1 text-secondary">Catatan Khusus</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Nyeri Berat" id="l2_s19"><label class="form-check-label small" for="l2_s19">Nyeri Berat</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Nyeri Berat" id="l2_s19"><label class="form-check-label small" for="l2_s19">Nyeri Berat</label></div>
                   <div class="form-check mb-1">
-                    <input class="form-check-input f-symptom" type="checkbox" value="Situasi Berbahaya :" id="l2_s20">
+                    <input class="form-check-input f-symptom" type="checkbox" value="L2_Situasi Berbahaya :" id="l2_s20">
                     <label class="form-check-label small" for="l2_s20">Situasi Berbahaya :</label>
                     <input type="text" id="f-situasiBerbahaya" class="form-control form-control-sm mt-1" style="font-size:11px;" placeholder="Tuliskan situasi berbahaya...">
                   </div>
@@ -417,28 +420,32 @@ var TriaseComponent = (() => {
               <div class="row g-2">
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">AIRWAY</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Bebas" id="l3_s1"><label class="form-check-label small" for="l3_s1">Bebas</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L3_Bebas" id="l3_s1"><label class="form-check-label small" for="l3_s1">Bebas</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">BREATHING</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Spontan" id="l3_s2"><label class="form-check-label small" for="l3_s2">Spontan</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Normal" id="l3_s3"><label class="form-check-label small" for="l3_s3">Normal</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Takipnue" id="l3_s4"><label class="form-check-label small" for="l3_s4">Takipnue</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L3_Spontan" id="l3_s2"><label class="form-check-label small" for="l3_s2">Spontan</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L3_Normal" id="l3_s3"><label class="form-check-label small" for="l3_s3">Normal</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L3_Takipnue" id="l3_s4"><label class="form-check-label small" for="l3_s4">Takipnue</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">CIRCULATION</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Nadi Teraba Berat" id="l3_s5"><label class="form-check-label small" for="l3_s5">Nadi Teraba Berat</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L3_Nadi Teraba Berat" id="l3_s5"><label class="form-check-label small" for="l3_s5">Nadi Teraba Berat</label></div>
                   <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Nadi Teraba Lemah" id="l3_s6"><label class="form-check-label small" for="l3_s6">Nadi Teraba Lemah</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Akral Hangat" id="l3_s7"><label class="form-check-label small" for="l3_s7">Akral Hangat</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Turgor Sedang" id="l3_s8"><label class="form-check-label small" for="l3_s8">Turgor Sedang</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L3_Akral Hangat" id="l3_s7"><label class="form-check-label small" for="l3_s7">Akral Hangat</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L3_Turgor Sedang" id="l3_s8"><label class="form-check-label small" for="l3_s8">Turgor Sedang</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">DISABILITY</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="GCS 15" id="l3_s9"><label class="form-check-label small" for="l3_s9">GCS 15</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L3_GCS 15" id="l3_s9"><label class="form-check-label small" for="l3_s9">GCS 15</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">PREDIKSI PENUNJANG</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="≥ 2" id="l3_s10"><label class="form-check-label small" for="l3_s10">≥ 2</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L3_≥ 2" id="l3_s10"><label class="form-check-label small" for="l3_s10">≥ 2</label></div>
+                </div>
+                <div class="col">
+                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">PREDIKSI SDM</p>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L3_Spesialis / dr. Umum" id="l3_s11"><label class="form-check-label small" for="l3_s11">Spesialis / dr. Umum</label></div>
                 </div>
               </div>
             </div>
@@ -457,28 +464,28 @@ var TriaseComponent = (() => {
               <div class="row g-2">
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">AIRWAY</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Bebas" id="l4_s1"><label class="form-check-label small" for="l4_s1">Bebas</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_Bebas" id="l4_s1"><label class="form-check-label small" for="l4_s1">Bebas</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">BREATHING</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Spontan" id="l4_s2"><label class="form-check-label small" for="l4_s2">Spontan</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Normal" id="l4_s3"><label class="form-check-label small" for="l4_s3">Normal</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_Spontan" id="l4_s2"><label class="form-check-label small" for="l4_s2">Spontan</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_Normal" id="l4_s3"><label class="form-check-label small" for="l4_s3">Normal</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">CIRCULATION</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Nadi Teraba Berat" id="l4_s4"><label class="form-check-label small" for="l4_s4">Nadi Teraba Berat</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Akral Hangat" id="l4_s5"><label class="form-check-label small" for="l4_s5">Akral Hangat</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_Nadi Teraba Berat" id="l4_s4"><label class="form-check-label small" for="l4_s4">Nadi Teraba Berat</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_Akral Hangat" id="l4_s5"><label class="form-check-label small" for="l4_s5">Akral Hangat</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">DISABILITY</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Sadar" id="l4_s6"><label class="form-check-label small" for="l4_s6">Sadar</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="GCS 15" id="l4_s7"><label class="form-check-label small" for="l4_s7">GCS 15</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_Sadar" id="l4_s6"><label class="form-check-label small" for="l4_s6">Sadar</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_GCS 15" id="l4_s7"><label class="form-check-label small" for="l4_s7">GCS 15</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">PREDIKSI</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Tidak Ada" id="l4_s8"><label class="form-check-label small" for="l4_s8">Penunjang: Tidak Ada</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Spesialis / dr. Umum" id="l4_s9"><label class="form-check-label small" for="l4_s9">SDM: Spesialis / dr. Umum</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="dr. Umum" id="l4_s10"><label class="form-check-label small" for="l4_s10">SDM: dr. Umum</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_Tidak Ada" id="l4_s8"><label class="form-check-label small" for="l4_s8">Penunjang: Tidak Ada</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_Spesialis / dr. Umum" id="l4_s9"><label class="form-check-label small" for="l4_s9">SDM: Spesialis / dr. Umum</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_dr. Umum" id="l4_s10"><label class="form-check-label small" for="l4_s10">SDM: dr. Umum</label></div>
                 </div>
               </div>
             </div>
@@ -496,15 +503,41 @@ var TriaseComponent = (() => {
             <div class="accordion-body bg-white p-3">
               <div class="row g-3">
                 <div class="col-md-4">
-                  <div class="border rounded p-2 bg-light mb-2">
-                    <span class="fw-bold text-dark small d-block mb-1">LEVEL 5 : FALSE EMERGENCY</span>
-                    <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="DOA" id="l5_s1"><label class="form-check-label small" for="l5_s1">DOA (Dead on Arrival)</label></div>
+                  <div class="border rounded p-3 mb-3" style="background-color: #e8f5e9; border-color: #4caf50 !important;">
+                    <span class="fw-bold small d-block mb-2 text-success"><i class="bi bi-shield-check me-1"></i>LEVEL 5 : FALSE EMERGENCY</span>
+                    <div class="form-check mb-2">
+                      <input class="form-check-input f-symptom" type="checkbox" value="L5_DOA" id="l5_s1">
+                      <label class="form-check-label small fw-bold text-dark" for="l5_s1">DOA (Dead on Arrival)</label>
+                    </div>
+                    <div class="mt-2">
+                      <label class="form-label small text-muted mb-1 fw-semibold d-block">Catatan / Keterangan DOA:</label>
+                      <textarea id="f-doaDetail" class="form-control form-control-sm" rows="3" placeholder="Tuliskan keterangan detail DOA (misal: waktu kematian, kondisi saat tiba, dll)..." style="font-size:12px;"></textarea>
+                    </div>
+                  </div>
+                  <div class="border rounded p-3 bg-light">
+                    <span class="fw-bold small d-block mb-2 text-dark"><i class="bi bi-hospital me-1"></i>KONSUL &amp; RUANG TUJUAN</span>
+                    <div class="mb-2">
+                      <label class="form-label small fw-semibold mb-1">Konsul Dokter / Spesialis</label>
+                      <input type="text" id="f-konsul" class="form-control form-control-sm" placeholder="Tuliskan konsul (misal: dr. Sp.B)...">
+                    </div>
+                    <div class="form-check mb-1">
+                      <input class="form-check-input f-symptom" type="checkbox" value="Ruang Resusitasi IGD" id="r_resusitasi">
+                      <label class="form-check-label small" for="r_resusitasi">Ruang Resusitasi IGD</label>
+                    </div>
+                    <div class="form-check mb-1">
+                      <input class="form-check-input f-symptom" type="checkbox" value="Ruang Ponek" id="r_ponek">
+                      <label class="form-check-label small" for="r_ponek">Ruang Ponek</label>
+                    </div>
+                    <div class="form-check mb-1">
+                      <input class="form-check-input f-symptom" type="checkbox" value="Ruang Observasi" id="r_observasi">
+                      <label class="form-check-label small" for="r_observasi">Ruang Observasi</label>
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="border rounded p-2 bg-light">
-                    <label class="form-label small fw-semibold mb-1">TTD Dokter Triage</label>
-                    <input type="text" id="f-namaDokter" class="form-control form-control-sm mb-1" placeholder="Nama Dokter Triage...">
+                    <label class="form-label small fw-semibold mb-1">TTD Dokter Triage (DPJP)</label>
+                    <input type="text" id="f-namaDokter" class="form-control form-control-sm mb-1" value="${this.triaseData?.namaDokter || dpjp || ''}" placeholder="Nama Dokter Triage (DPJP)...">
                     <div class="sig-wrap mb-1">
                       <canvas id="sig-dokter" width="500" height="150" style="height:110px;"></canvas>
                       <button type="button" class="btn btn-sm btn-outline-secondary sig-clear-btn" data-target="sig-dokter">Hapus</button>
@@ -673,11 +706,11 @@ const printTab = root.querySelector('#triase-print-tab');
                     <div class="t-col t-f1">AIRWAY</div><div class="t-col t-f1">BREATHING</div><div class="t-col t-f1">CIRCULATION</div><div class="t-col t-f1">DISABILITY</div><div class="t-col t-f1">PREDIKSI PENUNJANG</div>
                   </div>
                   <div class="t-row" style="flex-shrink:0;">
-                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="Terintubasi"></span>Terintubasi</li><li><span class="t-sq p-symptom" data-val="Sumbatan"></span>Sumbatan</li><li><span class="t-sq p-symptom" data-val="Ancaman"></span>Ancaman</li></ul></div>
-                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="Apnoe"></span>Apnoe</li><li><span class="t-sq p-symptom" data-val="Ventilator"></span>Ventilator</li></ul></div>
-                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="Henti Jantung"></span>Henti Jantung</li><li><span class="t-sq p-symptom" data-val="Nadi Tak Teraba"></span>Nadi Tak Teraba</li></ul></div>
-                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="Tidak Respon"></span>Tidak Respon</li><li><span class="t-sq p-symptom" data-val="Kejang"></span>Kejang</li><li><span class="t-sq p-symptom" data-val="GCS <8"></span>GCS &lt;8</li></ul></div>
-                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="Kompleks"></span>Kompleks</li><li><span class="t-sq p-symptom" data-val="≥ 2"></span>≥ 2</li></ul></div>
+                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L1_Terintubasi"></span>Terintubasi</li><li><span class="t-sq p-symptom" data-val="L1_Sumbatan"></span>Sumbatan</li><li><span class="t-sq p-symptom" data-val="L1_Ancaman"></span>Ancaman</li></ul></div>
+                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L1_Apnoe"></span>Apnoe</li><li><span class="t-sq p-symptom" data-val="L1_Ventilator"></span>Ventilator</li></ul></div>
+                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L1_Henti Jantung"></span>Henti Jantung</li><li><span class="t-sq p-symptom" data-val="L1_Nadi Tak Teraba"></span>Nadi Tak Teraba</li></ul></div>
+                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L1_Tidak Respon"></span>Tidak Respon</li><li><span class="t-sq p-symptom" data-val="L1_Kejang"></span>Kejang</li><li><span class="t-sq p-symptom" data-val="L1_GCS <8"></span>GCS &lt;8</li></ul></div>
+                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L1_Kompleks"></span>Kompleks</li><li><span class="t-sq p-symptom" data-val="L1_≥ 2"></span>≥ 2</li></ul></div>
                   </div>
 
                   <div class="t-level t-red t-white">LEVEL 1 : RESUSITASI (RED ZONE)</div>
@@ -687,11 +720,11 @@ const printTab = root.querySelector('#triase-print-tab');
                     <div class="t-col t-f1">AIRWAY</div><div class="t-col t-f1">BREATHING</div><div class="t-col t-f1">CIRCULATION</div><div class="t-col t-f1">DISABILITY</div><div class="t-col t-f2">PREDIKSI PENUNJANG</div>
                   </div>
                   <div class="t-row" style="flex-shrink:0;">
-                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="Ancaman"></span>Ancaman</li><li><span class="t-sq p-symptom" data-val="Bebas"></span>Bebas</li></ul></div>
-                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="Takipnue"></span>Takipnue</li><li><span class="t-sq p-symptom" data-val="Bradipnue"></span>Bradipnue</li><li><span class="t-sq p-symptom" data-val="SPO2 <92"></span>SPO2 &lt;92</li><li><span class="t-sq p-symptom" data-val="Dangkal"></span>Dangkal</li></ul></div>
-                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="Nadi Terasa Lemah"></span>Nadi Terasa Lemah</li><li><span class="t-sq p-symptom" data-val="Akral Dingin"></span>Akral Dingin</li><li><span class="t-sq p-symptom" data-val="Bradikardi"></span>Bradikardi</li><li><span class="t-sq p-symptom" data-val="Takikardi"></span>Takikardi</li><li><span class="t-sq p-symptom" data-val="CRT >2 detik"></span>CRT &gt;2 detik</li><li><span class="t-sq p-symptom" data-val="Turgor Kulit Jelek"></span>Turgor Kulit Jelek</li></ul></div>
-                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="Respon Dengan Rangsangan Nyeri"></span>Respon Dengan Rangsangan Nyeri</li><li><span class="t-sq p-symptom" data-val="Gelisah"></span>Gelisah</li><li><span class="t-sq p-symptom" data-val="GCS : > 8 > 15"></span>GCS : &gt; 8 &gt; 15</li><li><span class="t-sq p-symptom" data-val="GCS : 15"></span>GCS : 15</li></ul></div>
-                    <div class="t-col t-f2"><ul><li><span class="t-sq p-symptom" data-val="Kompleks"></span>Kompleks</li><li><span class="t-sq p-symptom" data-val="≥ 2"></span>≥ 2</li><li style="margin-top:3px !important;">Catatan Khusus:</li><li><span class="t-sq p-symptom" data-val="Nyeri Berat"></span>Nyeri Berat</li><li><span class="t-sq p-symptom" data-val="Situasi Berbahaya :"></span>Situasi Berbahaya : <span class="p-val" id="p-situasiBerbahaya"></span></li></ul></div>
+                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L2_Ancaman"></span>Ancaman</li><li><span class="t-sq p-symptom" data-val="L2_Bebas"></span>Bebas</li></ul></div>
+                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L2_Takipnue"></span>Takipnue</li><li><span class="t-sq p-symptom" data-val="L2_Bradipnue"></span>Bradipnue</li><li><span class="t-sq p-symptom" data-val="L2_SPO2 <92"></span>SPO2 &lt;92</li><li><span class="t-sq p-symptom" data-val="L2_Dangkal"></span>Dangkal</li></ul></div>
+                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L2_Nadi Terasa Lemah"></span>Nadi Terasa Lemah</li><li><span class="t-sq p-symptom" data-val="L2_Akral Dingin"></span>Akral Dingin</li><li><span class="t-sq p-symptom" data-val="L2_Bradikardi"></span>Bradikardi</li><li><span class="t-sq p-symptom" data-val="L2_Takikardi"></span>Takikardi</li><li><span class="t-sq p-symptom" data-val="L2_CRT >2 detik"></span>CRT &gt;2 detik</li><li><span class="t-sq p-symptom" data-val="L2_Turgor Kulit Jelek"></span>Turgor Kulit Jelek</li></ul></div>
+                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L2_Respon Dengan Rangsangan Nyeri"></span>Respon Dengan Rangsangan Nyeri</li><li><span class="t-sq p-symptom" data-val="L2_Gelisah"></span>Gelisah</li><li><span class="t-sq p-symptom" data-val="L2_GCS : > 8 > 15"></span>GCS : &gt; 8 &gt; 15</li><li><span class="t-sq p-symptom" data-val="L2_GCS : 15"></span>GCS : 15</li></ul></div>
+                    <div class="t-col t-f2"><ul><li><span class="t-sq p-symptom" data-val="L2_Kompleks"></span>Kompleks</li><li><span class="t-sq p-symptom" data-val="L2_≥ 2"></span>≥ 2</li><li style="margin-top:3px !important;">Catatan Khusus:</li><li><span class="t-sq p-symptom" data-val="L2_Nyeri Berat"></span>Nyeri Berat</li><li><span class="t-sq p-symptom" data-val="L2_Situasi Berbahaya :"></span>Situasi Berbahaya : <span class="p-val" id="p-situasiBerbahaya"></span></li></ul></div>
                   </div>
 
                   <div class="t-row" style="justify-content:center;padding:3px 4px;font-weight:bold;flex-shrink:0;">
@@ -719,12 +752,12 @@ const printTab = root.querySelector('#triase-print-tab');
                     <div class="t-col t-f1">AIRWAY</div><div class="t-col t-f1">BREATHING</div><div class="t-col t-f1">CIRCULATION</div><div class="t-col t-f1">DISABILITY</div><div class="t-col t-f1">PREDIKSI PENUNJANG</div><div class="t-col t-f1">PREDIKSI SDM</div>
                   </div>
                   <div class="t-row" style="flex-shrink:0;">
-                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="Bebas"></span>Bebas</li></ul></div>
-                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="Spontan"></span>Spontan</li><li><span class="t-sq p-symptom" data-val="Normal"></span>Normal</li></ul></div>
-                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="Nadi Teraba Berat"></span>Nadi Teraba Berat</li><li><span class="t-sq p-symptom" data-val="Akral Hangat"></span>Akral Hangat</li></ul></div>
-                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="Sadar"></span>Sadar</li><li><span class="t-sq p-symptom" data-val="GCS 15"></span>GCS 15</li></ul></div>
-                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="≥ 2"></span>≥ 2</li></ul></div>
-                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="Spesialis / dr. Umum"></span>Spesialis / dr. Umum</li></ul></div>
+                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L3_Bebas"></span>Bebas</li></ul></div>
+                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L3_Spontan"></span>Spontan</li><li><span class="t-sq p-symptom" data-val="L3_Normal"></span>Normal</li></ul></div>
+                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L3_Nadi Teraba Berat"></span>Nadi Teraba Berat</li><li><span class="t-sq p-symptom" data-val="L3_Akral Hangat"></span>Akral Hangat</li></ul></div>
+                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L3_Sadar"></span>Sadar</li><li><span class="t-sq p-symptom" data-val="L3_GCS 15"></span>GCS 15</li></ul></div>
+                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L3_≥ 2"></span>≥ 2</li></ul></div>
+                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L3_Spesialis / dr. Umum"></span>Spesialis / dr. Umum</li></ul></div>
                   </div>
 
                   <div class="t-level t-green t-white">LEVEL 4 : NON URGENT (GREEN ZONE)</div>
@@ -734,29 +767,61 @@ const printTab = root.querySelector('#triase-print-tab');
                     <div class="t-col t-f1">AIRWAY</div><div class="t-col t-f1">BREATHING</div><div class="t-col t-f1">CIRCULATION</div><div class="t-col t-f1">DISABILITY</div><div class="t-col t-f1">PREDIKSI PENUNJANG</div><div class="t-col t-f1">PREDIKSI SDM</div>
                   </div>
                   <div class="t-row" style="flex-shrink:0;">
-                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="Bebas"></span>Bebas</li></ul></div>
-                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="Spontan"></span>Spontan</li><li><span class="t-sq p-symptom" data-val="Normal"></span>Normal</li></ul></div>
-                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="Nadi Teraba Berat"></span>Nadi Teraba Berat</li><li><span class="t-sq p-symptom" data-val="Akral Hangat"></span>Akral Hangat</li></ul></div>
-                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="Sadar"></span>Sadar</li><li><span class="t-sq p-symptom" data-val="GCS 15"></span>GCS 15</li></ul></div>
-                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="Tidak Ada"></span>Tidak Ada</li></ul></div>
-                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="dr. Umum"></span>dr. Umum</li></ul></div>
+                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L4_Bebas"></span>Bebas</li></ul></div>
+                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L4_Spontan"></span>Spontan</li><li><span class="t-sq p-symptom" data-val="L4_Normal"></span>Normal</li></ul></div>
+                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L4_Nadi Teraba Berat"></span>Nadi Teraba Berat</li><li><span class="t-sq p-symptom" data-val="L4_Akral Hangat"></span>Akral Hangat</li></ul></div>
+                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L4_Sadar"></span>Sadar</li><li><span class="t-sq p-symptom" data-val="L4_GCS 15"></span>GCS 15</li></ul></div>
+                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L4_Tidak Ada"></span>Tidak Ada</li></ul></div>
+                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L4_dr. Umum"></span>dr. Umum</li></ul></div>
                   </div>
 
-                  <div class="t-level t-blk t-white">LEVEL 5 : FALSE EMERGENCY</div>
-                  <div class="t-row" style="flex-shrink:0;">
-                    <div class="t-col" style="width:100%;"><ul><li><span class="t-sq p-symptom" data-val="DOA"></span>DOA</li></ul></div>
-                  </div>
-
-                  <div class="t-row" style="border-bottom:none; margin-top:20px; flex-shrink:0; justify-content:space-around;">
-                    <div style="text-align:center;">
-                      <div>Dokter Triase</div>
-                      <div id="p-sig-dokter" style="height:50px;display:flex;align-items:center;justify-content:center;"></div>
-                      <div>( &nbsp;<span id="p-namaDokter">.....................................</span>&nbsp; )</div>
+                  <div class="t-level t-green t-white">LEVEL 5 : FALSE EMERGENCY</div>
+                  <div class="t-row" style="flex-shrink:0; min-height:60px; padding:6px 8px;">
+                    <div class="t-col" style="width:100%; border:none;">
+                      <div style="font-weight:bold; margin-bottom:4px;">
+                        <span class="t-sq p-symptom" data-val="L5_DOA"></span> DOA (Dead on Arrival)
+                      </div>
+                      <div style="padding-left:18px; font-size:11px; white-space:pre-wrap; min-height:30px;" id="p-doaDetail"></div>
                     </div>
-                    <div style="text-align:center;">
-                      <div>Perawat Triase</div>
-                      <div id="p-sig-perawat" style="height:50px;display:flex;align-items:center;justify-content:center;"></div>
-                      <div>( &nbsp;<span id="p-namaPerawat">.....................................</span>&nbsp; )</div>
+                  </div>
+
+                  <div class="t-row" style="flex-shrink:0;">
+                    <!-- Left Column: Konsul & Ruang -->
+                    <div class="t-col" style="width:38%; padding:6px; font-size:11px;">
+                      <div style="font-weight:bold; margin-bottom:2px;">Konsul</div>
+                      <div style="margin-bottom:8px;">( <span id="p-konsul" style="display:inline-block; min-width:180px;">.............................................</span> )</div>
+                      <div style="margin-top:6px; line-height:1.6;">
+                        <div><span class="t-sq p-symptom" data-val="Ruang Resusitasi IGD"></span> Ruang Resusitasi IGD</div>
+                        <div><span class="t-sq p-symptom" data-val="Ruang Ponek"></span> Ruang Ponek</div>
+                        <div><span class="t-sq p-symptom" data-val="Ruang Observasi"></span> Ruang Observasi</div>
+                      </div>
+                    </div>
+
+                    <!-- Right Column: Petugas Triase (Dokter & Perawat) -->
+                    <div class="t-col" style="width:62%; display:flex; flex-direction:column; padding:0; border-right:none;">
+                      <div style="text-align:right; font-weight:bold; padding:4px 8px; font-size:11px; border-bottom:1px solid black;">
+                        Petugas Triase
+                      </div>
+                      <div style="display:flex; flex:1;">
+                        <!-- TTD Dokter -->
+                        <div style="width:50%; border-right:1px solid black; padding:6px; text-align:center; display:flex; flex-direction:column; justify-content:space-between;">
+                          <div style="font-weight:bold; font-size:11px;">TTD Dokter</div>
+                          <div id="p-sig-dokter" style="height:55px; display:flex; align-items:center; justify-content:center;"></div>
+                          <div>
+                            <div style="text-decoration:underline; font-weight:bold; font-size:11px;" id="p-namaDokter">.....................................</div>
+                            <div style="font-size:9px; color:#555; margin-top:2px;">Nama Jelas dan Gelar</div>
+                          </div>
+                        </div>
+                        <!-- TTD Perawat -->
+                        <div style="width:50%; padding:6px; text-align:center; display:flex; flex-direction:column; justify-content:space-between;">
+                          <div style="font-weight:bold; font-size:11px;">TTD Perawat</div>
+                          <div id="p-sig-perawat" style="height:55px; display:flex; align-items:center; justify-content:center;"></div>
+                          <div>
+                            <div style="text-decoration:underline; font-weight:bold; font-size:11px;" id="p-namaPerawat">.....................................</div>
+                            <div style="font-size:9px; color:#555; margin-top:2px;">Nama Jelas dan Gelar</div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -786,9 +851,12 @@ const syncToPreview = () => {
         setText("p-gcsE", getVal("f-gcsE"));
         setText("p-gcsV", getVal("f-gcsV"));
         setText("p-gcsM", getVal("f-gcsM"));
-        setText("p-namaDokter", getVal("f-namaDokter") || ".....................................");
+        const defaultDpjp = self.patient?.dokterDpjp || self.patient?.dpjp || self.patient?.namaDokter || self.patient?.dokter || "";
+        setText("p-namaDokter", getVal("f-namaDokter") || defaultDpjp || ".....................................");
         setText("p-namaPerawat", getVal("f-namaPerawat") || ".....................................");
         setText("p-situasiBerbahaya", getVal("f-situasiBerbahaya"));
+        setText("p-doaDetail", getVal("f-doaDetail"));
+        setText("p-konsul", getVal("f-konsul") || ".....................................");
         ["red", "yellow", "green", "black"].forEach((c) => {
           const el = document.querySelector(".p-triageColor-" + c);
           if (el) el.innerHTML = getVal("f-triageColor") === c ? "✓" : "";
@@ -797,7 +865,9 @@ const syncToPreview = () => {
           document.querySelectorAll(".f-symptom:checked"),
         ).map((cb) => cb.value);
         document.querySelectorAll(".p-symptom").forEach((el) => {
-          el.innerHTML = checked.includes(el.getAttribute("data-val"))
+          const dataVal = el.getAttribute("data-val");
+          const rawVal = dataVal ? dataVal.replace(/^L[1-5]_/, "") : "";
+          el.innerHTML = (checked.includes(dataVal) || checked.includes(rawVal))
             ? "✓"
             : "";
         });
@@ -853,9 +923,11 @@ const syncToPreview = () => {
         setVal("f-gcsV", d.gcsV);
         setVal("f-gcsM", d.gcsM);
         setVal("f-triageColor", d.triageColor);
-        setVal("f-namaDokter", d.namaDokter);
+        setVal("f-namaDokter", d.namaDokter || defaultDpjp);
         setVal("f-namaPerawat", d.namaPerawat);
         setVal("f-situasiBerbahaya", d.situasiBerbahaya);
+        setVal("f-doaDetail", d.doaDetail);
+        setVal("f-konsul", d.konsul);
         if (d.symptoms && Array.isArray(d.symptoms)) {
           document.querySelectorAll(".f-symptom").forEach((cb) => {
             if (d.symptoms.includes(cb.value)) cb.checked = true;

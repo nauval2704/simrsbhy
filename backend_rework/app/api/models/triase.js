@@ -104,6 +104,16 @@ const TriaseSchema = new Schema({
     trim: true,
     default: null,
   },
-}, { timestamps: true });
+  doaDetail: {
+    type: String,
+    trim: true,
+    default: null,
+  },
+  konsul: {
+    type: String,
+    trim: true,
+    default: null,
+  },
+}, { strict: false, timestamps: true });
 
 module.exports = mongoose.model("Triase", TriaseSchema);

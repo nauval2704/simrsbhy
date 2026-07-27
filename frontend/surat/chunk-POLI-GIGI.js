@@ -69,13 +69,42 @@ var PoliGigiComponent = (() => {
               this.formData.entries = res.data.entries;
             }
           }
+          this.fetchPengkajianIfEmpty();
+        },
+        error: () => {
+          this.fetchPengkajianIfEmpty();
+        },
+      });
+    }
+
+    fetchPengkajianIfEmpty() {
+      this.http.get(i.apiUrl + "/simrsba/pengkajian-awal-poli/" + this.noCheckin).subscribe({
+        next: (res) => {
+          const pkData = res?.data?.formData || res?.data || {};
+          const dpjp = this.patient?.dokterDpjp || this.patient?.dpjp || this.patient?.namaDokter || "";
+          const tglMasukStr = String(this.patient?.tglMasuk || "").split(" ")[0];
+
+          if (!this.formData.entries || this.formData.entries.length === 0) {
+            this.formData.entries = [{
+              tglKunjungan: tglMasukStr || new Date().toISOString().split("T")[0],
+              parafName: dpjp,
+              diagnosis: pkData.diagnosisKerja || "",
+              anamnesa: "",
+              tindakan: ""
+            }];
+          } else {
+            const first = this.formData.entries[0];
+            if (!first.parafName && dpjp) first.parafName = dpjp;
+            if (!first.diagnosis && pkData.diagnosisKerja) first.diagnosis = pkData.diagnosisKerja;
+            if (!first.tglKunjungan && tglMasukStr) first.tglKunjungan = tglMasukStr;
+          }
           this.loading = false;
           this.renderView();
         },
         error: () => {
           this.loading = false;
           this.renderView();
-        },
+        }
       });
     }
 

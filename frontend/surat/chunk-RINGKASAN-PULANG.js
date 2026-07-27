@@ -80,11 +80,73 @@ var RingkasanPulangComponent = (() => {
             if(!this.formData.alasanTidakDirawat) this.formData.alasanTidakDirawat = {};
             if(!this.formData.kondisiKeluar) this.formData.kondisiKeluar = {};
           }
-          this.loading = false;
-          this.renderUI();
+          this.fetchTriaseIfEmpty();
         },
         error: (err) => {
           console.error("Error fetching draft", err);
+          this.fetchTriaseIfEmpty();
+        }
+      });
+    }
+
+    fetchTriaseIfEmpty() {
+      this.http.get(i.apiUrl + "/simrsba/triase/" + this.noCheckin).subscribe({
+        next: (res) => {
+          if (res && res.data) {
+            const tr = res.data;
+            if (!this.formData.kondisiKeluar) this.formData.kondisiKeluar = {};
+            const kk = this.formData.kondisiKeluar;
+            if (!kk.td && tr.td) kk.td = tr.td;
+            if (!kk.suhu && tr.suhu) kk.suhu = tr.suhu;
+            if (!kk.nadi && tr.hr) kk.nadi = tr.hr;
+            if (!kk.rr && tr.rr) kk.rr = tr.rr;
+            if (!kk.kesadaran && (tr.gcsE || tr.gcsV || tr.gcsM)) {
+              kk.kesadaran = `E${tr.gcsE || ''} V${tr.gcsV || ''} M${tr.gcsM || ''}`.trim();
+            }
+
+            // Auto-inherit Dokter signature from Triase if blank:
+            if (!this.formData.sigDokter && tr.canvasImage) {
+              this.formData.sigDokter = tr.canvasImage;
+            }
+          }
+          this.fetchPengkajianIfEmpty();
+        },
+        error: () => {
+          this.fetchPengkajianIfEmpty();
+        }
+      });
+    }
+
+    fetchPengkajianIfEmpty() {
+      // Auto-fill admission date/time from patient checkin if blank:
+      if (this.patient && this.patient.tglMasuk) {
+        const tmStr = String(this.patient.tglMasuk);
+        const parts = tmStr.split(" ");
+        if (!this.formData.tglMasukDate && parts[0]) this.formData.tglMasukDate = parts[0];
+        if (!this.formData.tglMasukTime && parts[1]) this.formData.tglMasukTime = parts[1].substring(0, 5);
+      }
+
+      this.http.get(i.apiUrl + "/simrsba/pengkajian-awal-igd/" + this.noCheckin).subscribe({
+        next: (res) => {
+          if (res && res.data) {
+            const pk = res.data;
+            if (!this.formData.diagnosisUtama && pk.diagnosisKerja) {
+              this.formData.diagnosisUtama = pk.diagnosisKerja;
+            }
+            if (!this.formData.riwayatAlergi && pk.alergiObat) {
+              this.formData.riwayatAlergi = pk.alergiObat === 'Ya' ? (pk.namaObatAlergi || 'Ya') : 'Tidak Ada';
+            }
+            if (!this.formData.tglKeluarDate && pk.outTgl) {
+              this.formData.tglKeluarDate = pk.outTgl;
+            }
+            if (!this.formData.tglKeluarTime && pk.outPukul) {
+              this.formData.tglKeluarTime = pk.outPukul;
+            }
+          }
+          this.loading = false;
+          this.renderUI();
+        },
+        error: () => {
           this.loading = false;
           this.renderUI();
         }

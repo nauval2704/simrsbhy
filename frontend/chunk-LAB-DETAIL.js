@@ -27,8 +27,14 @@ var LabDetailComponent = (() => {
       this.syncSatuSehat = false;
       
       const pathParts = window.location.pathname.split('/');
-      this.noMr = pathParts[3];
-      this.noCheckin = pathParts[5];
+      const idxCheckin = pathParts.indexOf('nocheckin');
+      if (idxCheckin !== -1 && pathParts[idxCheckin + 1]) {
+        this.noCheckin = pathParts[idxCheckin + 1];
+        this.noMr = pathParts[idxCheckin - 1] || pathParts[3] || '';
+      } else {
+        this.noCheckin = pathParts[pathParts.length - 1];
+        this.noMr = pathParts[pathParts.length - 2] || pathParts[3] || '';
+      }
     }
 
     ngOnInit() {

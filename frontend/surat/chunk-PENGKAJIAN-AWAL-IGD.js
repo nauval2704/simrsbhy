@@ -62,11 +62,56 @@ var PengkajianAwalIgdComponent = (() => {
           if (res && res.data) {
             this.formData = res.data;
           }
-          this.loading = false;
-          this.renderUI();
+          this.fetchTriaseIfEmpty();
         },
         error: (err) => {
           console.error("Error fetching draft", err);
+          this.fetchTriaseIfEmpty();
+        }
+      });
+    }
+
+    fetchTriaseIfEmpty() {
+      this.http.get(i.apiUrl + "/simrsba/triase/" + this.noCheckin).subscribe({
+        next: (res) => {
+          if (res && res.data) {
+            const tr = res.data;
+            if (!this.formData.td && tr.td) this.formData.td = tr.td;
+            if (!this.formData.suhu && tr.suhu) this.formData.suhu = tr.suhu;
+            if (!this.formData.nadi && tr.hr) this.formData.nadi = tr.hr;
+            if (!this.formData.rr && tr.rr) this.formData.rr = tr.rr;
+            if (!this.formData.gcsE && tr.gcsE) this.formData.gcsE = tr.gcsE;
+            if (!this.formData.gcsV && tr.gcsV) this.formData.gcsV = tr.gcsV;
+            if (!this.formData.gcsM && tr.gcsM) this.formData.gcsM = tr.gcsM;
+
+            // Also peek into initial vitals for discharge vitals if blank:
+            if (!this.formData.outTd && tr.td) this.formData.outTd = tr.td;
+            if (!this.formData.outSuhu && tr.suhu) this.formData.outSuhu = tr.suhu;
+            if (!this.formData.outNadi && tr.hr) this.formData.outNadi = tr.hr;
+            if (!this.formData.outGcs && (tr.gcsE || tr.gcsV || tr.gcsM)) {
+              this.formData.outGcs = `E${tr.gcsE || ''} V${tr.gcsV || ''} M${tr.gcsM || ''}`.trim();
+            }
+
+            // Auto-inherit Dokter and Perawat signatures from Triase if blank:
+            if (!this.formData.sigDokter && tr.canvasImage) {
+              this.formData.sigDokter = tr.canvasImage;
+            }
+            if (!this.formData.sigPerawat && tr.canvasImagePerawat) {
+              this.formData.sigPerawat = tr.canvasImagePerawat;
+            }
+
+            // Auto-fill admission date/time from patient checkin if blank:
+            if (this.patient && this.patient.tglMasuk) {
+              const tmStr = String(this.patient.tglMasuk);
+              const parts = tmStr.split(" ");
+              if (!this.formData.tglMasukDate && parts[0]) this.formData.tglMasukDate = parts[0];
+              if (!this.formData.tglMasukTime && parts[1]) this.formData.tglMasukTime = parts[1].substring(0, 5);
+            }
+          }
+          this.loading = false;
+          this.renderUI();
+        },
+        error: () => {
           this.loading = false;
           this.renderUI();
         }
@@ -264,17 +309,20 @@ var PengkajianAwalIgdComponent = (() => {
                 <div class="col-md-3"><div class="f-group"><label class="f-label">Rencana Asuhan</label><input type="text" class="f-input form-data-input" data-field="rencanaAsuhan" value="${getVal('rencanaAsuhan')}"></div></div>
               </div>
 
-              <div class="border rounded p-2 bg-light mb-3">
-                <div class="fw-bold mb-2 small text-dark"><i class="bi bi-box-arrow-up-right me-1"></i> Kondisi Saat Keluar IGD</div>
+              <div class="border rounded p-3 bg-light mb-3">
+                <div class="fw-bold mb-2 small text-dark d-flex justify-content-between align-items-center">
+                  <span><i class="bi bi-box-arrow-up-right me-1"></i> Kondisi Saat Keluar IGD</span>
+                  <span class="text-muted fw-normal" style="font-size:11px;"><i class="bi bi-info-circle me-1"></i>Terhubung ke Tanda Vital Masuk (Awal)</span>
+                </div>
                 <div class="row g-2">
                   <div class="col-md-3"><div class="f-group"><label class="f-label">Tgl Keluar</label><input type="date" class="f-input form-data-input" data-field="outTgl" value="${getVal('outTgl')}"></div></div>
                   <div class="col-md-3"><div class="f-group"><label class="f-label">Pukul</label><input type="time" class="f-input form-data-input" data-field="outPukul" value="${getVal('outPukul')}"></div></div>
-                  <div class="col-md-3"><div class="f-group"><label class="f-label">Keadaan Umum</label><input type="text" class="f-input form-data-input" data-field="outKu" value="${getVal('outKu')}"></div></div>
-                  <div class="col-md-3"><div class="f-group"><label class="f-label">Kesadaran</label><input type="text" class="f-input form-data-input" data-field="outKesadaran" value="${getVal('outKesadaran')}"></div></div>
-                  <div class="col-md-3"><div class="f-group"><label class="f-label">GCS</label><input type="text" class="f-input form-data-input" data-field="outGcs" value="${getVal('outGcs')}"></div></div>
-                  <div class="col-md-3"><div class="f-group"><label class="f-label">Tekanan Darah</label><input type="text" class="f-input form-data-input" data-field="outTd" value="${getVal('outTd')}"></div></div>
-                  <div class="col-md-3"><div class="f-group"><label class="f-label">Frekuensi Nadi</label><input type="text" class="f-input form-data-input" data-field="outNadi" value="${getVal('outNadi')}"></div></div>
-                  <div class="col-md-3"><div class="f-group"><label class="f-label">Suhu</label><input type="text" class="f-input form-data-input" data-field="outSuhu" value="${getVal('outSuhu')}"></div></div>
+                  <div class="col-md-3"><div class="f-group"><label class="f-label">Keadaan Umum</label><input type="text" class="f-input form-data-input" data-field="outKu" value="${getVal('outKu')}" placeholder="${getVal('ku') || 'Baik'}"></div></div>
+                  <div class="col-md-3"><div class="f-group"><label class="f-label">Kesadaran</label><input type="text" class="f-input form-data-input" data-field="outKesadaran" value="${getVal('outKesadaran')}" placeholder="Compos Mentis"></div></div>
+                  <div class="col-md-3"><div class="f-group"><label class="f-label">GCS</label><input type="text" class="f-input form-data-input" data-field="outGcs" value="${getVal('outGcs')}" placeholder="${(getVal('gcsE') || getVal('gcsM') || getVal('gcsV')) ? `E${getVal('gcsE')} M${getVal('gcsM')} V${getVal('gcsV')}` : '15'}"></div></div>
+                  <div class="col-md-3"><div class="f-group"><label class="f-label">Tekanan Darah</label><input type="text" class="f-input form-data-input" data-field="outTd" value="${getVal('outTd')}" placeholder="Awal: ${getVal('td') || '120/80'}"></div></div>
+                  <div class="col-md-3"><div class="f-group"><label class="f-label">Frekuensi Nadi</label><input type="text" class="f-input form-data-input" data-field="outNadi" value="${getVal('outNadi')}" placeholder="Awal: ${getVal('nadi') || '80'}"></div></div>
+                  <div class="col-md-3"><div class="f-group"><label class="f-label">Suhu (°C)</label><input type="text" class="f-input form-data-input" data-field="outSuhu" value="${getVal('outSuhu')}" placeholder="Awal: ${getVal('suhu') || '36.5'}"></div></div>
                 </div>
               </div>
 

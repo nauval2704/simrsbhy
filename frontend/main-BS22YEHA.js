@@ -34339,14 +34339,15 @@ var bd = (() => {
 
             const radData = p.radiologi || [];
             const getExpertise = () => {
-              const res = radData.find((l) => l.expertise);
-              return res ? res.expertise : "";
+              const res = radData.find((l) => l.expertise || l.impression);
+              return res ? (res.expertise || res.impression) : "";
             };
             const expertiseText = getExpertise();
             let testsHtml = "";
             radData.forEach((r) => {
-              if (r.testName && r.testName !== "General Radiology Report") {
-                testsHtml += `<tr><td colspan="4" class="fw-bold pb-2 pt-3"><i class="bi bi-record-circle me-2"></i> ${r.testName}</td></tr>`;
+              const testName = r.testName || r.examName;
+              if (testName && testName !== "General Radiology Report") {
+                testsHtml += `<tr><td colspan="4" class="fw-bold pb-2 pt-3"><i class="bi bi-record-circle me-2"></i> ${testName}</td></tr>`;
               }
             });
 

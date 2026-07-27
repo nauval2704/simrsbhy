@@ -68,13 +68,42 @@ var PrmrjComponent = (() => {
               this.formData.entries = res.data.entries;
             }
           }
+          this.fetchPengkajianIfEmpty();
+        },
+        error: () => {
+          this.fetchPengkajianIfEmpty();
+        },
+      });
+    }
+
+    fetchPengkajianIfEmpty() {
+      this.http.get(i.apiUrl + "/simrsba/pengkajian-awal-poli/" + this.noCheckin).subscribe({
+        next: (res) => {
+          const pkData = res?.data?.formData || res?.data || {};
+          const dpjp = this.patient?.dokterDpjp || this.patient?.dpjp || this.patient?.namaDokter || "";
+          const tglMasukStr = String(this.patient?.tglMasuk || "").split(" ")[0];
+
+          if (!this.formData.entries || this.formData.entries.length === 0) {
+            this.formData.entries = [{
+              tglOrder: tglMasukStr || new Date().toISOString().split("T")[0],
+              drSp: dpjp,
+              diagnosis: pkData.diagnosisKerja || "",
+              terapi: "",
+              catatan: ""
+            }];
+          } else {
+            const first = this.formData.entries[0];
+            if (!first.drSp && dpjp) first.drSp = dpjp;
+            if (!first.diagnosis && pkData.diagnosisKerja) first.diagnosis = pkData.diagnosisKerja;
+            if (!first.tglOrder && tglMasukStr) first.tglOrder = tglMasukStr;
+          }
           this.loading = false;
           this.renderView();
         },
         error: () => {
           this.loading = false;
           this.renderView();
-        },
+        }
       });
     }
 

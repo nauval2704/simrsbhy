@@ -60,6 +60,16 @@ var PengkajianAwalPoliComponent = (() => {
             if (res && res.data) {
               this.draftData = res.data.formData || res.data;
             }
+            if (!this.draftData) this.draftData = {};
+            if (this.patient && this.patient.tglMasuk) {
+              const tmStr = String(this.patient.tglMasuk);
+              const parts = tmStr.split(" ");
+              if (!this.draftData.tglMasukDate && parts[0]) this.draftData.tglMasukDate = parts[0];
+              if (!this.draftData.tglMasukTime && parts[1]) this.draftData.tglMasukTime = parts[1].substring(0, 5);
+            }
+            if (!this.draftData.dokter && this.patient) {
+              this.draftData.dokter = this.patient.dokterDpjp || this.patient.dpjp || this.patient.namaDokter || "";
+            }
             this.renderView();
           },
           error: () => {

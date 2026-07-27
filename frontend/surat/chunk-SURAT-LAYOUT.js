@@ -158,9 +158,69 @@ ${extraCss}
 }
 
 
+export function forceChromePrintStyles(isLandscape = false) {
+  let styleEl = document.getElementById('chrome-forced-print-style');
+  if (!styleEl) {
+    styleEl = document.createElement('style');
+    styleEl.id = 'chrome-forced-print-style';
+    document.head.appendChild(styleEl);
+  }
+  const pageSize = isLandscape ? '330.2mm 215.9mm' : '215.9mm 330.2mm';
+  const docWidth = isLandscape ? '330.2mm' : '215.9mm';
+  const docHeight = isLandscape ? '215.9mm' : '330.2mm';
+
+  styleEl.innerHTML = `
+    @page {
+      size: ${pageSize} !important;
+      margin: 0mm !important;
+    }
+    @media print {
+      @page {
+        size: ${pageSize} !important;
+        margin: 0mm !important;
+      }
+      html, body {
+        width: ${docWidth} !important;
+        height: ${docHeight} !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .surat-document, .surat-page {
+        width: 215.9mm !important;
+        height: 330.2mm !important;
+        max-width: 215.9mm !important;
+        max-height: 330.2mm !important;
+        margin: 0 !important;
+        padding: 5mm !important;
+        box-shadow: none !important;
+        box-sizing: border-box !important;
+      }
+      .surat-document-landscape, .surat-page-landscape {
+        width: 330.2mm !important;
+        height: 215.9mm !important;
+        max-width: 330.2mm !important;
+        max-height: 215.9mm !important;
+        margin: 0 !important;
+        padding: 5mm !important;
+        box-shadow: none !important;
+        box-sizing: border-box !important;
+      }
+    }
+  `;
+}
+
 export function bindSuratPrintButton(root) {
   const btn = root.querySelector('.surat-print-btn');
-  if (btn) btn.addEventListener('click', () => window.print());
+  if (btn) {
+    btn.addEventListener('click', () => {
+      const isLandscape = !!root.querySelector('.surat-document-landscape, .surat-page-landscape');
+      forceChromePrintStyles(isLandscape);
+      window.print();
+    });
+  }
 }
 
 

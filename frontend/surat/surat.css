@@ -317,11 +317,20 @@
   height: 100%;
 }
 
+@page {
+  size: 215.9mm 330.2mm !important;
+  margin: 0mm !important;
+}
+
 @media print {
-  @page { margin: 0; }
+  @page {
+    size: 215.9mm 330.2mm !important;
+    margin: 0mm !important;
+  }
   .surat-toolbar { display: none !important; }
   app-header, .pap-tabs, .cppt-tabs, .tr-tabs, .rp-tabs, .fpo-tabs, .nav-tabs, .no-print, .d-print-none, .modal, .simrs-sidebar-col { display: none !important; }
   body, html, app-root, .tab-content, .tab-pane, .surat-body {
+    width: 215.9mm !important;
     height: auto !important; 
     min-height: 0 !important; 
     max-height: none !important; 
@@ -329,18 +338,46 @@
     position: static !important; 
     padding: 0 !important; 
     margin: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
   .surat-body { background: transparent !important; }
-  .surat-document {
+  .surat-document, .surat-page {
+    width: 215.9mm !important;
+    height: 330.2mm !important;
+    max-width: 215.9mm !important;
+    max-height: 330.2mm !important;
+    box-sizing: border-box !important;
+    padding: 5mm !important;
     position: relative !important;
     box-shadow: none !important;
     margin: 0 !important;
     overflow: hidden !important;
     page-break-inside: avoid !important;
-  }
-  .surat-document:not(:last-child) {
+    break-inside: avoid !important;
     page-break-after: always !important;
     break-after: page !important;
+  }
+  .surat-document-landscape, .surat-page-landscape {
+    width: 330.2mm !important;
+    height: 215.9mm !important;
+    max-width: 330.2mm !important;
+    max-height: 215.9mm !important;
+    box-sizing: border-box !important;
+    padding: 5mm !important;
+    position: relative !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+  .surat-document:last-child, .surat-page:last-child,
+  .surat-document-landscape:last-child, .surat-page-landscape:last-child {
+    page-break-after: auto !important;
+    break-after: auto !important;
   }
   .surat-canvas, .surat-content {
     width: 100% !important;

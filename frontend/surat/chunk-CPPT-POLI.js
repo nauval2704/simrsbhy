@@ -109,6 +109,15 @@ var CpptPoliComponent = (() => {
     }
 
     fetchCurrentVisitCppt() {
+      this.http.get(i.apiUrl + "/simrsba/pengkajian-awal-poli/" + this.noCheckin).subscribe({
+        next: (res) => {
+          if (res && res.data) {
+            this.pengkajianPoliData = res.data.formData || res.data;
+          }
+        },
+        error: () => {}
+      });
+
       this.http
         .get(i.apiUrl + "/simrsba/cppt-poli/" + this.noCheckin)
         .subscribe({
@@ -217,6 +226,21 @@ var CpptPoliComponent = (() => {
       const tglTime = today.toTimeString().split(" ")[0].substring(0, 5);
       const dpjp = this.patient?.dokterDpjp || this.patient?.dpjp || this.patient?.namaDokter || "Dokter";
 
+      let initialO = "";
+      let initialA = "";
+      if (this.pengkajianPoliData) {
+        const pk = this.pengkajianPoliData;
+        const parts = [];
+        if (pk.td) parts.push(`TD: ${pk.td}`);
+        if (pk.nadi) parts.push(`N: ${pk.nadi} x/m`);
+        if (pk.suhu) parts.push(`S: ${pk.suhu} °C`);
+        if (pk.rr) parts.push(`RR: ${pk.rr} x/m`);
+        if (pk.tb) parts.push(`TB: ${pk.tb} cm`);
+        if (pk.bb) parts.push(`BB: ${pk.bb} kg`);
+        initialO = parts.join(", ");
+        initialA = pk.diagnosisKerja || "";
+      }
+
       this.formData.entries.push({
         tglDate,
         tglTime,
@@ -224,8 +248,8 @@ var CpptPoliComponent = (() => {
         profesi: "Dokter",
         ppa: dpjp,
         s: "",
-        o: "",
-        a: "",
+        o: initialO,
+        a: initialA,
         p: "",
         instruksi: "",
         verifikasi: dpjp,

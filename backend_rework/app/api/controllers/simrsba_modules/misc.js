@@ -492,7 +492,7 @@ module.exports = {
     var tglInput = dateTime;
     try {
       const dataRincian = await Rincian.aggregate([
-        { $match: { noCheckin: noCheckin, pelayanan: "LAB" } },
+        { $match: { noCheckin: noCheckin, pelayanan: { $in: ["LAB", "LABORATORIUM"] } } },
         {
           $lookup: {
             from: "tarifs",
@@ -527,7 +527,7 @@ module.exports = {
     var tglInput = dateTime;
     try {
       const dataRincian = await Rincian.aggregate([
-        { $match: { noCheckin: noCheckin, pelayanan: "RADIOLOGI" } },
+        { $match: { noCheckin: noCheckin, pelayanan: { $in: ["RADIOLOGI", "RAD"] } } },
         {
           $lookup: {
             from: "tarifs",

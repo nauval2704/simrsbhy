@@ -120,9 +120,23 @@ var CpptIgdComponent = (() => {
                 this.formData.entries = res.data.entries;
               }
             }
+            this.fetchTriaseData();
           },
-          error: () => {},
+          error: () => {
+            this.fetchTriaseData();
+          },
         });
+    }
+
+    fetchTriaseData() {
+      this.http.get(i.apiUrl + "/simrsba/triase/" + this.noCheckin).subscribe({
+        next: (res) => {
+          if (res && res.data) {
+            this.triaseData = res.data;
+          }
+        },
+        error: () => {}
+      });
     }
 
     viewHistoricalCppt(checkinId) {
@@ -217,6 +231,24 @@ var CpptIgdComponent = (() => {
       const tglTime = today.toTimeString().split(" ")[0].substring(0, 5);
       const dpjp = this.patient?.dokterDpjp || this.patient?.dpjp || this.patient?.namaDokter || "Dokter";
 
+      let initialObjective = "";
+      if (this.triaseData) {
+        const tr = this.triaseData;
+        const parts = [];
+        if (tr.td) parts.push(`TD: ${tr.td}`);
+        if (tr.hr) parts.push(`N: ${tr.hr} x/m`);
+        if (tr.suhu) parts.push(`S: ${tr.suhu} °C`);
+        if (tr.rr) parts.push(`RR: ${tr.rr} x/m`);
+        if (tr.spo2) parts.push(`SpO2: ${tr.spo2} %`);
+        if (tr.gcsE || tr.gcsV || tr.gcsM) parts.push(`GCS: E${tr.gcsE || ''} V${tr.gcsV || ''} M${tr.gcsM || ''}`);
+        initialObjective = parts.join(", ");
+      }
+
+      let initialTtd = null;
+      if (this.triaseData && this.triaseData.canvasImage) {
+        initialTtd = this.triaseData.canvasImage;
+      }
+
       this.formData.entries.push({
         tglDate,
         tglTime,
@@ -224,12 +256,12 @@ var CpptIgdComponent = (() => {
         profesi: "Dokter",
         ppa: dpjp,
         s: "",
-        o: "",
+        o: initialObjective,
         a: "",
         p: "",
         instruksi: "",
         verifikasi: dpjp,
-        ttd: null
+        ttd: initialTtd
       });
       this.renderView();
     }
