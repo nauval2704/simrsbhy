@@ -2317,9 +2317,15 @@ module.exports = {
   saveLab: async (req, res) => {
     try {
       const payload = req.body;
+      const updateData = { laboratorium: payload.laboratorium };
+      if (payload.labSigDokter !== undefined) updateData.labSigDokter = payload.labSigDokter;
+      if (payload.labSigPetugas !== undefined) updateData.labSigPetugas = payload.labSigPetugas;
+      if (payload.labNamaDokter !== undefined) updateData.labNamaDokter = payload.labNamaDokter;
+      if (payload.labNamaPetugas !== undefined) updateData.labNamaPetugas = payload.labNamaPetugas;
+
       const saved = await Checkin.findOneAndUpdate(
         { noCheckin: payload.noCheckin },
-        { $set: { laboratorium: payload.laboratorium } },
+        { $set: updateData },
         { new: true }
       );
       return res.status(200).send({ status: 200, message: "Hasil LAB berhasil disimpan", data: { checkin: saved } });
@@ -2330,9 +2336,15 @@ module.exports = {
   saveRad: async (req, res) => {
     try {
       const payload = req.body;
+      const updateData = { radiologi: payload.radiologi };
+      if (payload.radSigDokter !== undefined) updateData.radSigDokter = payload.radSigDokter;
+      if (payload.radSigPetugas !== undefined) updateData.radSigPetugas = payload.radSigPetugas;
+      if (payload.radNamaDokter !== undefined) updateData.radNamaDokter = payload.radNamaDokter;
+      if (payload.radNamaPetugas !== undefined) updateData.radNamaPetugas = payload.radNamaPetugas;
+
       const saved = await Checkin.findOneAndUpdate(
         { noCheckin: payload.noCheckin },
-        { $set: { radiologi: payload.radiologi } },
+        { $set: updateData },
         { new: true }
       );
       return res.status(200).send({ status: 200, message: "Hasil Radiologi berhasil disimpan", data: { checkin: saved } });

@@ -84,6 +84,25 @@ var RadDetailComponent = (() => {
       const root = document.querySelector("app-rad-detail-wrapper");
       if (!root) return null;
 
+      const userSig = localStorage.getItem('signatureImage') || localStorage.getItem('userSignature') || '';
+      const userStaffName = localStorage.getItem('namaUser') || localStorage.getItem('userName') || '';
+      const dpjpName = this.patient?.dokterDpjp || this.patient?.dpjp || '';
+
+      const radNamaDokter = root.querySelector('#rad-nama-dokter')?.value || dpjpName;
+      const radNamaPetugas = root.querySelector('#rad-nama-petugas')?.value || userStaffName;
+
+      let radSigDokter = userSig;
+      if (this.sigDokterCanvasHelper) {
+        const url = this.sigDokterCanvasHelper.toDataURL();
+        if (url) radSigDokter = url;
+      }
+
+      let radSigPetugas = userSig;
+      if (this.sigPetugasCanvasHelper) {
+        const url = this.sigPetugasCanvasHelper.toDataURL();
+        if (url) radSigPetugas = url;
+      }
+
       const expertise = root.querySelector('#rad-expertise')?.value || '';
       const radiologi = [];
 
@@ -94,18 +113,25 @@ var RadDetailComponent = (() => {
             examCode: o.noTarif || "24648-8",
             examName: o.nama || o.namaKategori || "Radiology Report",
             impression: expertise || val || "Tidak ada kesimpulan",
-            doctorInCharge: ""
+            doctorInCharge: radNamaDokter,
+            namaPetugas: radNamaPetugas,
+            sigPetugas: radSigPetugas,
+            namaDokter: radNamaDokter,
+            sigDokter: radSigDokter
           });
         }
       });
 
-      // Add a single entry just for expertise if no values were provided
       if (radiologi.length === 0 && expertise) {
         radiologi.push({
           examCode: "24648-8",
           examName: "General Radiology Report",
           impression: expertise,
-          doctorInCharge: ""
+          doctorInCharge: radNamaDokter,
+          namaPetugas: radNamaPetugas,
+          sigPetugas: radSigPetugas,
+          namaDokter: radNamaDokter,
+          sigDokter: radSigDokter
         });
       }
 
@@ -113,6 +139,10 @@ var RadDetailComponent = (() => {
         noCheckin: this.noCheckin,
         patientIhsNumber: this.patient?.userData?.[0]?.ihsNumber || '',
         radiologi: radiologi,
+        radSigDokter: radSigDokter,
+        radSigPetugas: radSigPetugas,
+        radNamaDokter: radNamaDokter,
+        radNamaPetugas: radNamaPetugas,
         syncSatuSehat: this.syncSatuSehat
       };
     }
@@ -156,6 +186,69 @@ var RadDetailComponent = (() => {
       setTimeout(() => toast.remove(), 4000);
     }
 
+    initCanvasHelper(canvasId, clearBtnId, initialDataUrl) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return null;
+      const ctx = canvas.getContext('2d');
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 2;
+      let isDrawing = false;
+
+      if (initialDataUrl) {
+        const img = new Image();
+        img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        img.src = initialDataUrl;
+      }
+
+      const getPos = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: clientX - rect.left, y: clientY - rect.top };
+      };
+
+      const startDraw = (e) => {
+        isDrawing = true;
+        const pos = getPos(e);
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+      };
+      const draw = (e) => {
+        if (!isDrawing) return;
+        e.preventDefault();
+        const pos = getPos(e);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+      };
+      const stopDraw = () => { isDrawing = false; };
+
+      canvas.addEventListener('mousedown', startDraw);
+      canvas.addEventListener('mousemove', draw);
+      canvas.addEventListener('mouseup', stopDraw);
+      canvas.addEventListener('mouseleave', stopDraw);
+
+      canvas.addEventListener('touchstart', startDraw);
+      canvas.addEventListener('touchmove', draw);
+      canvas.addEventListener('touchend', stopDraw);
+
+      const clearBtn = document.getElementById(clearBtnId);
+      if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+      }
+
+      return {
+        toDataURL: () => {
+          const blank = document.createElement('canvas');
+          blank.width = canvas.width;
+          blank.height = canvas.height;
+          if (canvas.toDataURL() === blank.toDataURL()) return initialDataUrl || '';
+          return canvas.toDataURL('image/png');
+        }
+      };
+    }
+
     renderView() {
       const root = document.querySelector("app-rad-detail-wrapper");
       if (!root) return;
@@ -190,6 +283,14 @@ var RadDetailComponent = (() => {
         existingExpertise = existingRad[0].impression || '';
       }
 
+      const userSig = localStorage.getItem('signatureImage') || localStorage.getItem('userSignature') || '';
+      const userStaffName = localStorage.getItem('namaUser') || localStorage.getItem('userName') || '';
+
+      const initSigDokter = p.radSigDokter || existingRad[0]?.sigDokter || userSig;
+      const initSigPetugas = p.radSigPetugas || existingRad[0]?.sigPetugas || userSig;
+      const initNamaDokter = p.radNamaDokter || existingRad[0]?.namaDokter || (dpjp !== '-' ? dpjp : '');
+      const initNamaPetugas = p.radNamaPetugas || existingRad[0]?.namaPetugas || userStaffName;
+
       let orderRows = '';
       if (this.orders.length === 0) {
         orderRows = '<tr><td colspan="6" class="text-center text-muted py-3 fw-bold">Tidak ada rincian order radiologi.</td></tr>';
@@ -216,7 +317,6 @@ var RadDetailComponent = (() => {
       root.__rad = this;
       
       const saveBtnText = this.saving && !this.syncSatuSehat ? '<span class="spinner-border spinner-border-sm me-1"></span> Menyimpan...' : '<i class="bi bi-save me-2"></i> Simpan Hasil';
-      const syncBtnText = this.saving && this.syncSatuSehat ? '<span class="spinner-border spinner-border-sm me-1"></span> Mengirim...' : '<i class="bi bi-cloud-arrow-up me-2"></i> Simpan & Sync SATUSEHAT';
 
       root.innerHTML = `
         <div class="container-fluid mt-3">
@@ -285,7 +385,35 @@ var RadDetailComponent = (() => {
                     
                     <div class="mb-3">
                        <label class="form-label fw-bold text-muted">Ekspertise Radiologi</label>
-                       <textarea id="rad-expertise" class="form-control" rows="5" placeholder="Ketik ekspertise / bacaan radiologi di sini...">${existingExpertise}</textarea>
+                       <textarea id="rad-expertise" class="form-control" rows="4" placeholder="Ketik ekspertise / bacaan radiologi di sini...">${existingExpertise}</textarea>
+                    </div>
+
+                    <!-- SIGNATURE SECTION -->
+                    <div class="row g-3 my-2">
+                       <div class="col-md-6">
+                          <div class="card bg-light p-2 border">
+                             <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="fw-bold small text-dark mb-0">TTD Dokter Spesialis Radiologi</label>
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" id="rad-btn-clear-dokter" style="font-size:11px;">Hapus</button>
+                             </div>
+                             <div class="text-center mb-2">
+                                <canvas id="rad-sig-canvas-dokter" width="280" height="100" style="border: 1px dashed #bbb; background:#ffffff; border-radius: 4px; touch-action: none; cursor: crosshair; display:inline-block;"></canvas>
+                             </div>
+                             <input type="text" id="rad-nama-dokter" class="form-control form-control-sm" placeholder="Nama Dokter & Gelar" value="${initNamaDokter}">
+                          </div>
+                       </div>
+                       <div class="col-md-6">
+                          <div class="card bg-light p-2 border">
+                             <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="fw-bold small text-dark mb-0">TTD Petugas Radiografer</label>
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" id="rad-btn-clear-petugas" style="font-size:11px;">Hapus</button>
+                             </div>
+                             <div class="text-center mb-2">
+                                <canvas id="rad-sig-canvas-petugas" width="280" height="100" style="border: 1px dashed #bbb; background:#ffffff; border-radius: 4px; touch-action: none; cursor: crosshair; display:inline-block;"></canvas>
+                             </div>
+                             <input type="text" id="rad-nama-petugas" class="form-control form-control-sm" placeholder="Nama Petugas / Radiografer" value="${initNamaPetugas}">
+                          </div>
+                       </div>
                     </div>
                     
                     <hr>
@@ -300,6 +428,11 @@ var RadDetailComponent = (() => {
           </div>
         </div>
       `;
+
+      setTimeout(() => {
+        this.sigDokterCanvasHelper = this.initCanvasHelper('rad-sig-canvas-dokter', 'rad-btn-clear-dokter', initSigDokter);
+        this.sigPetugasCanvasHelper = this.initCanvasHelper('rad-sig-canvas-petugas', 'rad-btn-clear-petugas', initSigPetugas);
+      }, 50);
     }
 
     static {

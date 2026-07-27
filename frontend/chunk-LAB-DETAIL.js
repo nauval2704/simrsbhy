@@ -84,6 +84,25 @@ var LabDetailComponent = (() => {
       const root = document.querySelector("app-lab-detail-wrapper");
       if (!root) return null;
 
+      const userSig = localStorage.getItem('signatureImage') || localStorage.getItem('userSignature') || '';
+      const userStaffName = localStorage.getItem('namaUser') || localStorage.getItem('userName') || '';
+      const dpjpName = this.patient?.dokterDpjp || this.patient?.dpjp || '';
+
+      const labNamaDokter = root.querySelector('#lab-nama-dokter')?.value || dpjpName;
+      const labNamaPetugas = root.querySelector('#lab-nama-petugas')?.value || userStaffName;
+
+      let labSigDokter = userSig;
+      if (this.sigDokterCanvasHelper) {
+        const url = this.sigDokterCanvasHelper.toDataURL();
+        if (url) labSigDokter = url;
+      }
+
+      let labSigPetugas = userSig;
+      if (this.sigPetugasCanvasHelper) {
+        const url = this.sigPetugasCanvasHelper.toDataURL();
+        if (url) labSigPetugas = url;
+      }
+
       const catatan = root.querySelector('#lab-catatan')?.value || '';
       const laboratorium = [];
 
@@ -98,12 +117,15 @@ var LabDetailComponent = (() => {
             value: val,
             unit: unit || "unit",
             referenceRange: ref || "",
-            expertise: catatan
+            expertise: catatan,
+            namaPetugas: labNamaPetugas,
+            sigPetugas: labSigPetugas,
+            namaDokter: labNamaDokter,
+            sigDokter: labSigDokter
           });
         }
       });
 
-      // Add a single entry just for expertise if no values were provided
       if (laboratorium.length === 0 && catatan) {
         laboratorium.push({
           testCode: "11502-2",
@@ -111,7 +133,11 @@ var LabDetailComponent = (() => {
           value: "0",
           unit: "unit",
           referenceRange: "",
-          expertise: catatan
+          expertise: catatan,
+          namaPetugas: labNamaPetugas,
+          sigPetugas: labSigPetugas,
+          namaDokter: labNamaDokter,
+          sigDokter: labSigDokter
         });
       }
 
@@ -119,6 +145,10 @@ var LabDetailComponent = (() => {
         noCheckin: this.noCheckin,
         patientIhsNumber: this.patient?.userData?.[0]?.ihsNumber || '',
         laboratorium: laboratorium,
+        labSigDokter: labSigDokter,
+        labSigPetugas: labSigPetugas,
+        labNamaDokter: labNamaDokter,
+        labNamaPetugas: labNamaPetugas,
         syncSatuSehat: this.syncSatuSehat
       };
     }
@@ -162,6 +192,69 @@ var LabDetailComponent = (() => {
       setTimeout(() => toast.remove(), 4000);
     }
 
+    initCanvasHelper(canvasId, clearBtnId, initialDataUrl) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return null;
+      const ctx = canvas.getContext('2d');
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 2;
+      let isDrawing = false;
+
+      if (initialDataUrl) {
+        const img = new Image();
+        img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        img.src = initialDataUrl;
+      }
+
+      const getPos = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: clientX - rect.left, y: clientY - rect.top };
+      };
+
+      const startDraw = (e) => {
+        isDrawing = true;
+        const pos = getPos(e);
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+      };
+      const draw = (e) => {
+        if (!isDrawing) return;
+        e.preventDefault();
+        const pos = getPos(e);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+      };
+      const stopDraw = () => { isDrawing = false; };
+
+      canvas.addEventListener('mousedown', startDraw);
+      canvas.addEventListener('mousemove', draw);
+      canvas.addEventListener('mouseup', stopDraw);
+      canvas.addEventListener('mouseleave', stopDraw);
+
+      canvas.addEventListener('touchstart', startDraw);
+      canvas.addEventListener('touchmove', draw);
+      canvas.addEventListener('touchend', stopDraw);
+
+      const clearBtn = document.getElementById(clearBtnId);
+      if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+      }
+
+      return {
+        toDataURL: () => {
+          const blank = document.createElement('canvas');
+          blank.width = canvas.width;
+          blank.height = canvas.height;
+          if (canvas.toDataURL() === blank.toDataURL()) return initialDataUrl || '';
+          return canvas.toDataURL('image/png');
+        }
+      };
+    }
+
     renderView() {
       const root = document.querySelector("app-lab-detail-wrapper");
       if (!root) return;
@@ -195,6 +288,14 @@ var LabDetailComponent = (() => {
       if (existingLab.length > 0) {
         existingCatatan = existingLab[0].expertise || '';
       }
+
+      const userSig = localStorage.getItem('signatureImage') || localStorage.getItem('userSignature') || '';
+      const userStaffName = localStorage.getItem('namaUser') || localStorage.getItem('userName') || '';
+
+      const initSigDokter = p.labSigDokter || existingLab[0]?.sigDokter || userSig;
+      const initSigPetugas = p.labSigPetugas || existingLab[0]?.sigPetugas || userSig;
+      const initNamaDokter = p.labNamaDokter || existingLab[0]?.namaDokter || (dpjp !== '-' ? dpjp : '');
+      const initNamaPetugas = p.labNamaPetugas || existingLab[0]?.namaPetugas || userStaffName;
 
       let orderRows = '';
       if (this.orders.length === 0) {
@@ -231,8 +332,7 @@ var LabDetailComponent = (() => {
       root.__lab = this;
       
       const saveBtnText = this.saving && !this.syncSatuSehat ? '<span class="spinner-border spinner-border-sm me-1"></span> Menyimpan...' : '<i class="bi bi-save me-2"></i> Simpan Hasil';
-      const syncBtnText = this.saving && this.syncSatuSehat ? '<span class="spinner-border spinner-border-sm me-1"></span> Mengirim...' : '<i class="bi bi-cloud-arrow-up me-2"></i> Simpan & Sync SATUSEHAT';
-      
+
       root.innerHTML = `
         <div class="container-fluid mt-3">
           <div class="row">
@@ -302,7 +402,35 @@ var LabDetailComponent = (() => {
                     
                     <div class="mb-3">
                        <label class="form-label fw-bold text-muted">Catatan / Hasil Keterangan</label>
-                       <textarea id="lab-catatan" class="form-control" rows="5" placeholder="Ketik deskripsi hasil klinis pemeriksaan laboratorium di sini...">${existingCatatan}</textarea>
+                       <textarea id="lab-catatan" class="form-control" rows="4" placeholder="Ketik deskripsi hasil klinis pemeriksaan laboratorium di sini...">${existingCatatan}</textarea>
+                    </div>
+
+                    <!-- SIGNATURE SECTION -->
+                    <div class="row g-3 my-2">
+                       <div class="col-md-6">
+                          <div class="card bg-light p-2 border">
+                             <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="fw-bold small text-dark mb-0">TTD Dokter Spesialis Patologi Klinik</label>
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" id="lab-btn-clear-dokter" style="font-size:11px;">Hapus</button>
+                             </div>
+                             <div class="text-center mb-2">
+                                <canvas id="lab-sig-canvas-dokter" width="280" height="100" style="border: 1px dashed #bbb; background:#ffffff; border-radius: 4px; touch-action: none; cursor: crosshair; display:inline-block;"></canvas>
+                             </div>
+                             <input type="text" id="lab-nama-dokter" class="form-control form-control-sm" placeholder="Nama Dokter & Gelar" value="${initNamaDokter}">
+                          </div>
+                       </div>
+                       <div class="col-md-6">
+                          <div class="card bg-light p-2 border">
+                             <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="fw-bold small text-dark mb-0">TTD Petugas Laboratorium</label>
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" id="lab-btn-clear-petugas" style="font-size:11px;">Hapus</button>
+                             </div>
+                             <div class="text-center mb-2">
+                                <canvas id="lab-sig-canvas-petugas" width="280" height="100" style="border: 1px dashed #bbb; background:#ffffff; border-radius: 4px; touch-action: none; cursor: crosshair; display:inline-block;"></canvas>
+                             </div>
+                             <input type="text" id="lab-nama-petugas" class="form-control form-control-sm" placeholder="Nama Petugas Lab" value="${initNamaPetugas}">
+                          </div>
+                       </div>
                     </div>
                     
                     <hr>
@@ -317,6 +445,11 @@ var LabDetailComponent = (() => {
           </div>
         </div>
       `;
+
+      setTimeout(() => {
+        this.sigDokterCanvasHelper = this.initCanvasHelper('lab-sig-canvas-dokter', 'lab-btn-clear-dokter', initSigDokter);
+        this.sigPetugasCanvasHelper = this.initCanvasHelper('lab-sig-canvas-petugas', 'lab-btn-clear-petugas', initSigPetugas);
+      }, 50);
     }
 
     static {

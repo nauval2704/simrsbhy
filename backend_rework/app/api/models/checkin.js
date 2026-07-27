@@ -233,5 +233,13 @@ const CheckinSchema = new Schema({
     required: false,
     default: [],
   },
+  labSigDokter: { type: String, default: null },
+  labSigPetugas: { type: String, default: null },
+  labNamaDokter: { type: String, default: null },
+  labNamaPetugas: { type: String, default: null },
+  radSigDokter: { type: String, default: null },
+  radSigPetugas: { type: String, default: null },
+  radNamaDokter: { type: String, default: null },
+  radNamaPetugas: { type: String, default: null },
 });
 module.exports = mongoose.model("Checkin", CheckinSchema);

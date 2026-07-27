@@ -33433,6 +33433,17 @@ var xd = (() => {
                testsHtml = '<tr><td colspan="4" class="text-center text-muted fst-italic">Belum ada data detail pemeriksaan</td></tr>';
             }
 
+            const userSig = localStorage.getItem('signatureImage') || localStorage.getItem('userSignature') || '';
+            const userStaffName = localStorage.getItem('namaUser') || localStorage.getItem('userName') || '';
+
+            const labSigDokter = p.labSigDokter || labData[0]?.sigDokter || p.triase?.sigDokter || p.pengkajian?.sigDokter || userSig;
+            const labSigPetugas = p.labSigPetugas || labData[0]?.sigPetugas || p.triase?.sigPerawat || p.pengkajian?.sigPerawat || userSig;
+            const labNamaDokter = p.labNamaDokter || labData[0]?.namaDokter || (dpjp !== '-' ? dpjp : '');
+            const labNamaPetugas = p.labNamaPetugas || labData[0]?.namaPetugas || (userStaffName || '-');
+
+            const labSigPetugasImg = labSigPetugas && labSigPetugas.startsWith('data:image') ? `<img src="${labSigPetugas}" style="max-height:60px; max-width:160px; display:block; margin: 0 auto; object-fit:contain;" />` : '';
+            const labSigDokterImg = labSigDokter && labSigDokter.startsWith('data:image') ? `<img src="${labSigDokter}" style="max-height:60px; max-width:160px; display:block; margin: 0 auto; object-fit:contain;" />` : '';
+
             let html = `
                         <style>
                             #lab-print-container {
@@ -33538,18 +33549,28 @@ var xd = (() => {
                                 font-size: 13px;
                             }
                             .sig-box {
-                                width: 38%;
+                                width: 42%;
                                 text-align: center;
+                                display: flex;
+                                flex-direction: column;
+                                justify-content: space-between;
+                                min-height: 110px;
                             }
                             .sig-title {
                                 font-weight: 700;
-                                margin-bottom: 52px;
+                                margin-bottom: 6px;
+                            }
+                            .sig-container {
+                                min-height: 65px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
                             }
                             .sig-line {
-                                border-top: 1px solid #444;
                                 padding-top: 4px;
                                 font-size: 12px;
                                 color: #333;
+                                font-weight: 600;
                             }
                             @media print {
                                 body * { visibility: hidden !important; }
@@ -33596,11 +33617,13 @@ var xd = (() => {
                             <div class="footer-signatures">
                                 <div class="sig-box">
                                     <div class="sig-title">Pemeriksa</div>
-                                    <div class="sig-line">(.....................................)</div>
+                                    ${labSigPetugasImg}
+                                    <div class="sig-line">${labNamaPetugas}</div>
                                 </div>
                                 <div class="sig-box">
                                     <div class="sig-title">Dokter Konsultan</div>
-                                    <div class="sig-line">(.....................................)</div>
+                                    ${labSigDokterImg}
+                                    <div class="sig-line">${labNamaDokter}</div>
                                 </div>
                             </div>
                           </div>
@@ -34337,7 +34360,19 @@ var bd = (() => {
             const dpjp = p.dokterDpjp || p.dpjp || "-";
             const ruangan = p.cabar || "IGD";
 
+            const userSig = localStorage.getItem('signatureImage') || localStorage.getItem('userSignature') || '';
+            const userStaffName = localStorage.getItem('namaUser') || localStorage.getItem('userName') || '';
+
             const radData = p.radiologi || [];
+            let radNamaPetugas = p.radNamaPetugas || radData[0]?.namaPetugas || (userStaffName || '-');
+            let radNamaDokter = p.radNamaDokter || radData[0]?.namaDokter || (dpjp !== '-' ? dpjp : 'Dokter Spesialis Radiologi');
+            
+            const radSigDokter = p.radSigDokter || radData[0]?.sigDokter || p.triase?.sigDokter || p.pengkajian?.sigDokter || userSig;
+            const radSigPetugas = p.radSigPetugas || radData[0]?.sigPetugas || p.triase?.sigPerawat || p.pengkajian?.sigPerawat || userSig;
+
+            const radSigPetugasImg = radSigPetugas && radSigPetugas.startsWith('data:image') ? `<img src="${radSigPetugas}" style="max-height:60px; max-width:160px; display:block; margin: 0 auto; object-fit:contain;" />` : '';
+            const radSigDokterImg = radSigDokter && radSigDokter.startsWith('data:image') ? `<img src="${radSigDokter}" style="max-height:60px; max-width:160px; display:block; margin: 0 auto; object-fit:contain;" />` : '';
+
             const getExpertise = () => {
               const res = radData.find((l) => l.expertise || l.impression);
               return res ? (res.expertise || res.impression) : "";
@@ -34462,18 +34497,28 @@ var bd = (() => {
                                 font-size: 13px;
                             }
                             .rad-sig-box {
-                                width: 38%;
+                                width: 42%;
                                 text-align: center;
+                                display: flex;
+                                flex-direction: column;
+                                justify-content: space-between;
+                                min-height: 110px;
                             }
                             .rad-sig-title {
                                 font-weight: 700;
-                                margin-bottom: 52px;
+                                margin-bottom: 6px;
+                            }
+                            .rad-sig-container {
+                                min-height: 65px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
                             }
                             .rad-sig-line {
-                                border-top: 1px solid #444;
                                 padding-top: 4px;
                                 font-size: 12px;
                                 color: #333;
+                                font-weight: 600;
                             }
                             @media print {
                                 body * { visibility: hidden !important; }
@@ -34520,11 +34565,13 @@ var bd = (() => {
                             <div class="rad-footer-signatures">
                                 <div class="rad-sig-box">
                                     <div class="rad-sig-title">Radiografer</div>
-                                    <div class="rad-sig-line">(.....................................)</div>
+                                    <div class="rad-sig-container">${radSigPetugasImg}</div>
+                                    <div class="rad-sig-line">${radNamaPetugas}</div>
                                 </div>
                                 <div class="rad-sig-box">
                                     <div class="rad-sig-title">Dokter Spesialis Radiologi</div>
-                                    <div class="rad-sig-line">(.....................................)</div>
+                                    <div class="rad-sig-container">${radSigDokterImg}</div>
+                                    <div class="rad-sig-line">${radNamaDokter}</div>
                                 </div>
                             </div>
                         </div>
