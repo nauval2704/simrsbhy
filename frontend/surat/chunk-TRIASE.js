@@ -279,15 +279,6 @@ var TriaseComponent = (() => {
                 <div class="col-md-3">
                   <label class="form-label small fw-semibold mb-1">Tekanan Darah (TD)</label>
                   <div class="input-group input-group-sm mb-2"><span class="input-group-text">TD</span><input type="text" id="f-td" class="form-control" placeholder="120/80"></div>
-                  <label class="form-label small fw-semibold mb-1">Label Triase</label>
-                  <select id="f-triageColor" class="form-select form-select-sm">
-                    <option value="">-- Pilih Level --</option>
-                    <option value="red" data-label="Level 1">Level 1 - Resusitasi (Merah)</option>
-                    <option value="red" data-label="Level 2">Level 2 - Emergensi (Merah)</option>
-                    <option value="yellow" data-label="Level 3">Level 3 - Urgent (Kuning)</option>
-                    <option value="green" data-label="Level 4">Level 4 - Non Urgent (Hijau)</option>
-                    <option value="green" data-label="Level 5">Level 5 - False Emergency / DOA (Hijau)</option>
-                  </select>
                 </div>
                 <div class="col-md-5">
                   <div class="row g-2 mb-2">
@@ -314,11 +305,22 @@ var TriaseComponent = (() => {
         <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_t_2">
             <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_2" aria-expanded="false" aria-controls="collapse_t_2">
-              <span class="fw-bold text-danger" style="font-size:13px;"><i class="bi bi-exclamation-octagon me-2"></i> 2. Level 1 : Resusitasi (Red Zone)</span>
+              <span class="fw-bold text-danger" style="font-size:13px;"><i class="bi bi-exclamation-octagon me-2"></i> 2. Resusitasi (Red Zone)</span>
             </button>
           </h2>
           <div id="collapse_t_2" class="accordion-collapse collapse" aria-labelledby="heading_t_2" data-bs-parent="#accordionTriase">
             <div class="accordion-body bg-white p-3">
+              <div class="mb-3 p-2 bg-light border rounded d-flex align-items-center gap-3">
+                <label class="form-label small fw-bold mb-0 text-danger" style="min-width:100px;">Label Triase :</label>
+                <select id="f-triageColor" class="form-select form-select-sm" style="max-width:320px;">
+                  <option value="">-- Pilih Level --</option>
+                  <option value="red" data-label="Resusitasi">Resusitasi (Merah)</option>
+                  <option value="red" data-label="Level 1">Level 1 - Emergensi (Merah)</option>
+                  <option value="yellow" data-label="Level 2">Level 2 - Urgent (Kuning)</option>
+                  <option value="green" data-label="Level 3">Level 3 - Non Urgent (Hijau)</option>
+                  <option value="green" data-label="Level 4">Level 4 - False Emergency / DOA (Hijau)</option>
+                </select>
+              </div>
               <div class="row g-2">
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">AIRWAY</p>
@@ -356,12 +358,12 @@ var TriaseComponent = (() => {
         <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_t_3">
             <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_3" aria-expanded="false" aria-controls="collapse_t_3">
-              <span class="fw-bold text-danger" style="font-size:13px;"><i class="bi bi-exclamation-triangle me-2"></i> 3. Level 2 : Emergensi (Red Zone)</span>
+              <span class="fw-bold text-danger" style="font-size:13px;"><i class="bi bi-exclamation-triangle me-2"></i> 3. Level 1 : Emergensi (Red Zone)</span>
             </button>
           </h2>
           <div id="collapse_t_3" class="accordion-collapse collapse" aria-labelledby="heading_t_3" data-bs-parent="#accordionTriase">
             <div class="accordion-body bg-white p-3">
-              <div class="alert alert-danger py-1 px-2 mb-2 small fw-bold">Keterangan: Termasuk level 2 apabila peringatan yang ada menimbulkan / berkaitan dengan kondisi yang berisiko tinggi memburuk pada pasien</div>
+              <div class="alert alert-danger py-1 px-2 mb-2 small fw-bold">Keterangan: Termasuk level 1 apabila peringatan yang ada menimbulkan / berkaitan dengan kondisi yang berisiko tinggi memburuk pada pasien</div>
               <div class="row g-2">
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">AIRWAY</p>
@@ -412,7 +414,7 @@ var TriaseComponent = (() => {
         <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_t_4">
             <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_4" aria-expanded="false" aria-controls="collapse_t_4">
-              <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-clock-history me-2 text-secondary"></i> 4. Level 3 : Urgent (Yellow Zone)</span>
+              <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-clock-history me-2 text-secondary"></i> 4. Level 2 : Urgent (Yellow Zone)</span>
             </button>
           </h2>
           <div id="collapse_t_4" class="accordion-collapse collapse" aria-labelledby="heading_t_4" data-bs-parent="#accordionTriase">
@@ -456,7 +458,7 @@ var TriaseComponent = (() => {
         <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_t_5">
             <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_5" aria-expanded="false" aria-controls="collapse_t_5">
-              <span class="fw-bold text-success" style="font-size:13px;"><i class="bi bi-check-circle me-2"></i> 5. Level 4 : Non Urgent (Green Zone)</span>
+              <span class="fw-bold text-success" style="font-size:13px;"><i class="bi bi-check-circle me-2"></i> 5. Level 3 : Non Urgent (Green Zone)</span>
             </button>
           </h2>
           <div id="collapse_t_5" class="accordion-collapse collapse" aria-labelledby="heading_t_5" data-bs-parent="#accordionTriase">
@@ -496,7 +498,7 @@ var TriaseComponent = (() => {
         <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_t_6">
             <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_6" aria-expanded="false" aria-controls="collapse_t_6">
-              <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-pencil-square me-2 text-secondary"></i> 6. Level 5 : False Emergency &amp; Tanda Tangan</span>
+              <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-pencil-square me-2 text-secondary"></i> 6. Level 4 : False Emergency &amp; Tanda Tangan</span>
             </button>
           </h2>
           <div id="collapse_t_6" class="accordion-collapse collapse" aria-labelledby="heading_t_6" data-bs-parent="#accordionTriase">
@@ -504,7 +506,7 @@ var TriaseComponent = (() => {
               <div class="row g-3">
                 <div class="col-md-4">
                   <div class="border rounded p-3 mb-3" style="background-color: #e8f5e9; border-color: #4caf50 !important;">
-                    <span class="fw-bold small d-block mb-2 text-success"><i class="bi bi-shield-check me-1"></i>LEVEL 5 : FALSE EMERGENCY</span>
+                    <span class="fw-bold small d-block mb-2 text-success"><i class="bi bi-shield-check me-1"></i>LEVEL 4 : FALSE EMERGENCY</span>
                     <div class="form-check mb-2">
                       <input class="form-check-input f-symptom" type="checkbox" value="L5_DOA" id="l5_s1">
                       <label class="form-check-label small fw-bold text-dark" for="l5_s1">DOA (Dead on Arrival)</label>
