@@ -314,7 +314,6 @@ var TriaseComponent = (() => {
                 <label class="form-label small fw-bold mb-0 text-danger" style="min-width:100px;">Label Triase :</label>
                 <select id="f-triageColor" class="form-select form-select-sm" style="max-width:320px;">
                   <option value="">-- Pilih Level --</option>
-                  <option value="red" data-label="Resusitasi">Resusitasi (Merah)</option>
                   <option value="red" data-label="Level 1">Level 1 - Emergensi (Merah)</option>
                   <option value="yellow" data-label="Level 2">Level 2 - Urgent (Kuning)</option>
                   <option value="green" data-label="Level 3">Level 3 - Non Urgent (Hijau)</option>
