@@ -264,6 +264,30 @@ var TriaseComponent = (() => {
         </div>
       </div>
 
+      <div class="card border mb-3">
+        <div class="card-header bg-light py-2 fw-bold text-dark d-flex align-items-center justify-content-between">
+          <span><i class="bi bi-tag-fill me-2 text-danger"></i> Label Triase Pasien</span>
+          <span class="badge bg-secondary text-white fw-normal" style="font-size: 11px;">Pilihan Utama Triase</span>
+        </div>
+        <div class="card-body p-3 bg-white">
+          <div class="row align-items-center">
+            <div class="col-md-3">
+              <label for="f-triageColor" class="form-label small fw-bold text-dark mb-0">Hasil Label Triase :</label>
+            </div>
+            <div class="col-md-6">
+              <select id="f-triageColor" class="form-select form-select-sm fw-semibold border-secondary">
+                <option value="">-- Pilih Level Triase --</option>
+                <option value="red" data-label="Level 1">Level 1 - Resusitasi (Merah)</option>
+                <option value="red" data-label="Level 2">Level 2 - Emergensi (Merah)</option>
+                <option value="yellow" data-label="Level 3">Level 3 - Urgent (Kuning)</option>
+                <option value="green" data-label="Level 4">Level 4 - Non Urgent (Hijau)</option>
+                <option value="green" data-label="Level 5">Level 5 - False Emergency / DOA (Hijau)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="accordion mb-3" id="accordionTriase">
 
         <!-- Section 1 -->
@@ -305,21 +329,11 @@ var TriaseComponent = (() => {
         <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_t_2">
             <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_2" aria-expanded="false" aria-controls="collapse_t_2">
-              <span class="fw-bold text-danger" style="font-size:13px;"><i class="bi bi-exclamation-octagon me-2"></i> 2. Resusitasi (Red Zone)</span>
+              <span class="fw-bold text-danger" style="font-size:13px;"><i class="bi bi-exclamation-octagon me-2"></i> 2. Level 1 : Resusitasi (Red Zone)</span>
             </button>
           </h2>
           <div id="collapse_t_2" class="accordion-collapse collapse" aria-labelledby="heading_t_2" data-bs-parent="#accordionTriase">
             <div class="accordion-body bg-white p-3">
-              <div class="mb-3 p-2 bg-light border rounded d-flex align-items-center gap-3">
-                <label class="form-label small fw-bold mb-0 text-danger" style="min-width:100px;">Label Triase :</label>
-                <select id="f-triageColor" class="form-select form-select-sm" style="max-width:320px;">
-                  <option value="">-- Pilih Level --</option>
-                  <option value="red" data-label="Level 1">Level 1 - Emergensi (Merah)</option>
-                  <option value="yellow" data-label="Level 2">Level 2 - Urgent (Kuning)</option>
-                  <option value="green" data-label="Level 3">Level 3 - Non Urgent (Hijau)</option>
-                  <option value="green" data-label="Level 4">Level 4 - False Emergency / DOA (Hijau)</option>
-                </select>
-              </div>
               <div class="row g-2">
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">AIRWAY</p>
@@ -357,12 +371,12 @@ var TriaseComponent = (() => {
         <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_t_3">
             <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_3" aria-expanded="false" aria-controls="collapse_t_3">
-              <span class="fw-bold text-danger" style="font-size:13px;"><i class="bi bi-exclamation-triangle me-2"></i> 3. Level 1 : Emergensi (Red Zone)</span>
+              <span class="fw-bold text-danger" style="font-size:13px;"><i class="bi bi-exclamation-triangle me-2"></i> 3. Level 2 : Emergensi (Red Zone)</span>
             </button>
           </h2>
           <div id="collapse_t_3" class="accordion-collapse collapse" aria-labelledby="heading_t_3" data-bs-parent="#accordionTriase">
             <div class="accordion-body bg-white p-3">
-              <div class="alert alert-danger py-1 px-2 mb-2 small fw-bold">Keterangan: Termasuk level 1 apabila peringatan yang ada menimbulkan / berkaitan dengan kondisi yang berisiko tinggi memburuk pada pasien</div>
+              <div class="alert alert-danger py-1 px-2 mb-2 small fw-bold">Keterangan: Termasuk level 2 apabila peringatan yang ada menimbulkan / berkaitan dengan kondisi yang berisiko tinggi memburuk pada pasien</div>
               <div class="row g-2">
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">AIRWAY</p>
@@ -413,7 +427,7 @@ var TriaseComponent = (() => {
         <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_t_4">
             <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_4" aria-expanded="false" aria-controls="collapse_t_4">
-              <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-clock-history me-2 text-secondary"></i> 4. Level 2 : Urgent (Yellow Zone)</span>
+              <span class="fw-bold text-warning" style="font-size:13px;"><i class="bi bi-clock-history me-2"></i> 4. Level 3 : Urgent (Yellow Zone)</span>
             </button>
           </h2>
           <div id="collapse_t_4" class="accordion-collapse collapse" aria-labelledby="heading_t_4" data-bs-parent="#accordionTriase">
@@ -421,32 +435,28 @@ var TriaseComponent = (() => {
               <div class="row g-2">
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">AIRWAY</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L3_Bebas" id="l3_s1"><label class="form-check-label small" for="l3_s1">Bebas</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Bebas" id="l3_s1"><label class="form-check-label small" for="l3_s1">Bebas</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">BREATHING</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L3_Spontan" id="l3_s2"><label class="form-check-label small" for="l3_s2">Spontan</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L3_Normal" id="l3_s3"><label class="form-check-label small" for="l3_s3">Normal</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L3_Takipnue" id="l3_s4"><label class="form-check-label small" for="l3_s4">Takipnue</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Spontan" id="l3_s2"><label class="form-check-label small" for="l3_s2">Spontan</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Normal" id="l3_s3"><label class="form-check-label small" for="l3_s3">Normal</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Takipnue" id="l3_s4"><label class="form-check-label small" for="l3_s4">Takipnue</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">CIRCULATION</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L3_Nadi Teraba Berat" id="l3_s5"><label class="form-check-label small" for="l3_s5">Nadi Teraba Berat</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Nadi Teraba Berat" id="l3_s5"><label class="form-check-label small" for="l3_s5">Nadi Teraba Berat</label></div>
                   <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Nadi Teraba Lemah" id="l3_s6"><label class="form-check-label small" for="l3_s6">Nadi Teraba Lemah</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L3_Akral Hangat" id="l3_s7"><label class="form-check-label small" for="l3_s7">Akral Hangat</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L3_Turgor Sedang" id="l3_s8"><label class="form-check-label small" for="l3_s8">Turgor Sedang</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Akral Hangat" id="l3_s7"><label class="form-check-label small" for="l3_s7">Akral Hangat</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Turgor Sedang" id="l3_s8"><label class="form-check-label small" for="l3_s8">Turgor Sedang</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">DISABILITY</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L3_GCS 15" id="l3_s9"><label class="form-check-label small" for="l3_s9">GCS 15</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="GCS 15" id="l3_s9"><label class="form-check-label small" for="l3_s9">GCS 15</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">PREDIKSI PENUNJANG</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L3_≥ 2" id="l3_s10"><label class="form-check-label small" for="l3_s10">≥ 2</label></div>
-                </div>
-                <div class="col">
-                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">PREDIKSI SDM</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L3_Spesialis / dr. Umum" id="l3_s11"><label class="form-check-label small" for="l3_s11">Spesialis / dr. Umum</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="≥ 2" id="l3_s10"><label class="form-check-label small" for="l3_s10">≥ 2</label></div>
                 </div>
               </div>
             </div>
@@ -457,7 +467,7 @@ var TriaseComponent = (() => {
         <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_t_5">
             <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_5" aria-expanded="false" aria-controls="collapse_t_5">
-              <span class="fw-bold text-success" style="font-size:13px;"><i class="bi bi-check-circle me-2"></i> 5. Level 3 : Non Urgent (Green Zone)</span>
+              <span class="fw-bold text-success" style="font-size:13px;"><i class="bi bi-check-circle me-2"></i> 5. Level 4 : Non Urgent (Green Zone)</span>
             </button>
           </h2>
           <div id="collapse_t_5" class="accordion-collapse collapse" aria-labelledby="heading_t_5" data-bs-parent="#accordionTriase">
@@ -465,28 +475,30 @@ var TriaseComponent = (() => {
               <div class="row g-2">
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">AIRWAY</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_Bebas" id="l4_s1"><label class="form-check-label small" for="l4_s1">Bebas</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L3_Bebas" id="l4_s1"><label class="form-check-label small" for="l4_s1">Bebas</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">BREATHING</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_Spontan" id="l4_s2"><label class="form-check-label small" for="l4_s2">Spontan</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_Normal" id="l4_s3"><label class="form-check-label small" for="l4_s3">Normal</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L3_Spontan" id="l4_s2"><label class="form-check-label small" for="l4_s2">Spontan</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L3_Normal" id="l4_s3"><label class="form-check-label small" for="l4_s3">Normal</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">CIRCULATION</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_Nadi Teraba Berat" id="l4_s4"><label class="form-check-label small" for="l4_s4">Nadi Teraba Berat</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_Akral Hangat" id="l4_s5"><label class="form-check-label small" for="l4_s5">Akral Hangat</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L3_Nadi Teraba Berat" id="l4_s4"><label class="form-check-label small" for="l4_s4">Nadi Teraba Berat</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L3_Akral Hangat" id="l4_s5"><label class="form-check-label small" for="l4_s5">Akral Hangat</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">DISABILITY</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_Sadar" id="l4_s6"><label class="form-check-label small" for="l4_s6">Sadar</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_GCS 15" id="l4_s7"><label class="form-check-label small" for="l4_s7">GCS 15</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L3_Sadar" id="l4_s6"><label class="form-check-label small" for="l4_s6">Sadar</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L3_GCS 15" id="l4_s7"><label class="form-check-label small" for="l4_s7">GCS 15</label></div>
                 </div>
                 <div class="col">
-                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">PREDIKSI</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_Tidak Ada" id="l4_s8"><label class="form-check-label small" for="l4_s8">Penunjang: Tidak Ada</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_Spesialis / dr. Umum" id="l4_s9"><label class="form-check-label small" for="l4_s9">SDM: Spesialis / dr. Umum</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_dr. Umum" id="l4_s10"><label class="form-check-label small" for="l4_s10">SDM: dr. Umum</label></div>
+                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">PREDIKSI PENUNJANG</p>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L3_≥ 2" id="l4_s8"><label class="form-check-label small" for="l4_s8">≥ 2</label></div>
+                </div>
+                <div class="col">
+                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">PREDIKSI SDM</p>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L3_Spesialis / dr. Umum" id="l4_s9"><label class="form-check-label small" for="l4_s9">Spesialis / dr. Umum</label></div>
                 </div>
               </div>
             </div>
@@ -497,24 +509,67 @@ var TriaseComponent = (() => {
         <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_t_6">
             <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_6" aria-expanded="false" aria-controls="collapse_t_6">
-              <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-pencil-square me-2 text-secondary"></i> 6. Level 4 : False Emergency &amp; Tanda Tangan</span>
+              <span class="fw-bold text-success" style="font-size:13px;"><i class="bi bi-shield-check me-2"></i> 6. Level 5 : False Emergency &amp; DOA</span>
             </button>
           </h2>
           <div id="collapse_t_6" class="accordion-collapse collapse" aria-labelledby="heading_t_6" data-bs-parent="#accordionTriase">
             <div class="accordion-body bg-white p-3">
+              <div class="row g-2 mb-3 border-bottom pb-3">
+                <div class="col">
+                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">AIRWAY</p>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_Bebas" id="l5_s1"><label class="form-check-label small" for="l5_s1">Bebas</label></div>
+                </div>
+                <div class="col">
+                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">BREATHING</p>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_Spontan" id="l5_s2"><label class="form-check-label small" for="l5_s2">Spontan</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_Normal" id="l5_s3"><label class="form-check-label small" for="l5_s3">Normal</label></div>
+                </div>
+                <div class="col">
+                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">CIRCULATION</p>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_Nadi Teraba Berat" id="l5_s4"><label class="form-check-label small" for="l5_s4">Nadi Teraba Berat</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_Akral Hangat" id="l5_s5"><label class="form-check-label small" for="l5_s5">Akral Hangat</label></div>
+                </div>
+                <div class="col">
+                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">DISABILITY</p>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_Sadar" id="l5_s6"><label class="form-check-label small" for="l5_s6">Sadar</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_GCS 15" id="l5_s7"><label class="form-check-label small" for="l5_s7">GCS 15</label></div>
+                </div>
+                <div class="col">
+                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">PREDIKSI PENUNJANG</p>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_Tidak Ada" id="l5_s8"><label class="form-check-label small" for="l5_s8">Tidak Ada</label></div>
+                </div>
+                <div class="col">
+                  <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">PREDIKSI SDM</p>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_dr. Umum" id="l5_s9"><label class="form-check-label small" for="l5_s9">dr. Umum</label></div>
+                </div>
+              </div>
+
+              <!-- DOA Section inside False Emergency -->
+              <div class="border rounded p-3" style="background-color: #ffebee; border-color: #ef5350 !important;">
+                <div class="form-check mb-2">
+                  <input class="form-check-input f-symptom" type="checkbox" value="L5_DOA" id="l5_doa">
+                  <label class="form-check-label small fw-bold text-danger" for="l5_doa">DOA (Dead on Arrival)</label>
+                </div>
+                <div class="mt-2">
+                  <label class="form-label small text-muted mb-1 fw-semibold d-block">Catatan / Keterangan DOA:</label>
+                  <textarea id="f-doaDetail" class="form-control form-control-sm" rows="3" placeholder="Tuliskan keterangan detail DOA (misal: waktu kematian, kondisi saat tiba, dll)..." style="font-size:12px;"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 7 -->
+        <div class="accordion-item mb-2 border rounded">
+          <h2 class="accordion-header" id="heading_t_7">
+            <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_7" aria-expanded="false" aria-controls="collapse_t_7">
+              <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-pencil-square me-2 text-secondary"></i> 7. Konsul, Ruang Tujuan &amp; Tanda Tangan</span>
+            </button>
+          </h2>
+          <div id="collapse_t_7" class="accordion-collapse collapse" aria-labelledby="heading_t_7" data-bs-parent="#accordionTriase">
+            <div class="accordion-body bg-white p-3">
               <div class="row g-3">
                 <div class="col-md-4">
-                  <div class="border rounded p-3 mb-3" style="background-color: #e8f5e9; border-color: #4caf50 !important;">
-                    <span class="fw-bold small d-block mb-2 text-success"><i class="bi bi-shield-check me-1"></i>LEVEL 4 : FALSE EMERGENCY</span>
-                    <div class="form-check mb-2">
-                      <input class="form-check-input f-symptom" type="checkbox" value="L5_DOA" id="l5_s1">
-                      <label class="form-check-label small fw-bold text-dark" for="l5_s1">DOA (Dead on Arrival)</label>
-                    </div>
-                    <div class="mt-2">
-                      <label class="form-label small text-muted mb-1 fw-semibold d-block">Catatan / Keterangan DOA:</label>
-                      <textarea id="f-doaDetail" class="form-control form-control-sm" rows="3" placeholder="Tuliskan keterangan detail DOA (misal: waktu kematian, kondisi saat tiba, dll)..." style="font-size:12px;"></textarea>
-                    </div>
-                  </div>
                   <div class="border rounded p-3 bg-light">
                     <span class="fw-bold small d-block mb-2 text-dark"><i class="bi bi-hospital me-1"></i>KONSUL &amp; RUANG TUJUAN</span>
                     <div class="mb-2">
