@@ -299,7 +299,7 @@ var TriaseComponent = (() => {
           </h2>
           <div id="collapse_t_1" class="accordion-collapse collapse show" aria-labelledby="heading_t_1" data-bs-parent="#accordionTriase">
             <div class="accordion-body bg-white p-3">
-              <div class="row g-3">
+              <div class="row g-3 mb-3">
                 <div class="col-md-3">
                   <label class="form-label small fw-semibold mb-1">Tekanan Darah (TD)</label>
                   <div class="input-group input-group-sm mb-2"><span class="input-group-text">TD</span><input type="text" id="f-td" class="form-control" placeholder="120/80"></div>
@@ -321,19 +321,7 @@ var TriaseComponent = (() => {
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
 
-        <!-- Section 2 -->
-        <div class="accordion-item mb-2 border rounded">
-          <h2 class="accordion-header" id="heading_t_2">
-            <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_2" aria-expanded="false" aria-controls="collapse_t_2">
-              <span class="fw-bold text-danger" style="font-size:13px;"><i class="bi bi-exclamation-octagon me-2"></i> 2. Level 1 : Resusitasi (Red Zone)</span>
-            </button>
-          </h2>
-          <div id="collapse_t_2" class="accordion-collapse collapse" aria-labelledby="heading_t_2" data-bs-parent="#accordionTriase">
-            <div class="accordion-body bg-white p-3">
               <div class="row g-2">
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">AIRWAY</p>
@@ -367,16 +355,15 @@ var TriaseComponent = (() => {
           </div>
         </div>
 
-        <!-- Section 3 -->
+        <!-- Section 2: Level 1 Resusitasi -->
         <div class="accordion-item mb-2 border rounded">
-          <h2 class="accordion-header" id="heading_t_3">
-            <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_3" aria-expanded="false" aria-controls="collapse_t_3">
-              <span class="fw-bold text-danger" style="font-size:13px;"><i class="bi bi-exclamation-triangle me-2"></i> 3. Level 2 : Emergensi (Red Zone)</span>
+          <h2 class="accordion-header" id="heading_t_2">
+            <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_2" aria-expanded="false" aria-controls="collapse_t_2">
+              <span class="fw-bold text-danger" style="font-size:13px;"><i class="bi bi-exclamation-octagon me-2"></i> 2. Level 1 : Resusitasi (Red Zone)</span>
             </button>
           </h2>
-          <div id="collapse_t_3" class="accordion-collapse collapse" aria-labelledby="heading_t_3" data-bs-parent="#accordionTriase">
+          <div id="collapse_t_2" class="accordion-collapse collapse" aria-labelledby="heading_t_2" data-bs-parent="#accordionTriase">
             <div class="accordion-body bg-white p-3">
-              <div class="alert alert-danger py-1 px-2 mb-2 small fw-bold">Keterangan: Termasuk level 2 apabila peringatan yang ada menimbulkan / berkaitan dengan kondisi yang berisiko tinggi memburuk pada pasien</div>
               <div class="row g-2">
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">AIRWAY</p>
@@ -423,15 +410,16 @@ var TriaseComponent = (() => {
           </div>
         </div>
 
-        <!-- Section 4 -->
+        <!-- Section 3: Level 2 Emergensi -->
         <div class="accordion-item mb-2 border rounded">
-          <h2 class="accordion-header" id="heading_t_4">
-            <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_4" aria-expanded="false" aria-controls="collapse_t_4">
-              <span class="fw-bold text-warning" style="font-size:13px;"><i class="bi bi-clock-history me-2"></i> 4. Level 3 : Urgent (Yellow Zone)</span>
+          <h2 class="accordion-header" id="heading_t_3">
+            <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_3" aria-expanded="false" aria-controls="collapse_t_3">
+              <span class="fw-bold text-danger" style="font-size:13px;"><i class="bi bi-exclamation-triangle me-2"></i> 3. Level 2 : Emergensi (Red Zone)</span>
             </button>
           </h2>
-          <div id="collapse_t_4" class="accordion-collapse collapse" aria-labelledby="heading_t_4" data-bs-parent="#accordionTriase">
+          <div id="collapse_t_3" class="accordion-collapse collapse" aria-labelledby="heading_t_3" data-bs-parent="#accordionTriase">
             <div class="accordion-body bg-white p-3">
+              <div class="alert alert-danger py-1 px-2 mb-2 small fw-bold">Keterangan: Termasuk level 2 apabila peringatan yang ada menimbulkan / berkaitan dengan kondisi yang berisiko tinggi memburuk pada pasien</div>
               <div class="row g-2">
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">AIRWAY</p>
@@ -463,14 +451,14 @@ var TriaseComponent = (() => {
           </div>
         </div>
 
-        <!-- Section 5 -->
+        <!-- Section 4: Level 3 Urgent -->
         <div class="accordion-item mb-2 border rounded">
-          <h2 class="accordion-header" id="heading_t_5">
-            <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_5" aria-expanded="false" aria-controls="collapse_t_5">
-              <span class="fw-bold text-success" style="font-size:13px;"><i class="bi bi-check-circle me-2"></i> 5. Level 4 : Non Urgent (Green Zone)</span>
+          <h2 class="accordion-header" id="heading_t_4">
+            <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_4" aria-expanded="false" aria-controls="collapse_t_4">
+              <span class="fw-bold text-warning" style="font-size:13px;"><i class="bi bi-clock-history me-2"></i> 4. Level 3 : Urgent (Yellow Zone)</span>
             </button>
           </h2>
-          <div id="collapse_t_5" class="accordion-collapse collapse" aria-labelledby="heading_t_5" data-bs-parent="#accordionTriase">
+          <div id="collapse_t_4" class="accordion-collapse collapse" aria-labelledby="heading_t_4" data-bs-parent="#accordionTriase">
             <div class="accordion-body bg-white p-3">
               <div class="row g-2">
                 <div class="col">
@@ -505,16 +493,16 @@ var TriaseComponent = (() => {
           </div>
         </div>
 
-        <!-- Section 6 -->
+        <!-- Section 5: Level 4 Non Urgent -->
         <div class="accordion-item mb-2 border rounded">
-          <h2 class="accordion-header" id="heading_t_6">
-            <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_6" aria-expanded="false" aria-controls="collapse_t_6">
-              <span class="fw-bold text-success" style="font-size:13px;"><i class="bi bi-shield-check me-2"></i> 6. Level 5 : False Emergency &amp; DOA</span>
+          <h2 class="accordion-header" id="heading_t_5">
+            <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_5" aria-expanded="false" aria-controls="collapse_t_5">
+              <span class="fw-bold text-success" style="font-size:13px;"><i class="bi bi-check-circle me-2"></i> 5. Level 4 : Non Urgent (Green Zone)</span>
             </button>
           </h2>
-          <div id="collapse_t_6" class="accordion-collapse collapse" aria-labelledby="heading_t_6" data-bs-parent="#accordionTriase">
+          <div id="collapse_t_5" class="accordion-collapse collapse" aria-labelledby="heading_t_5" data-bs-parent="#accordionTriase">
             <div class="accordion-body bg-white p-3">
-              <div class="row g-2 mb-3 border-bottom pb-3">
+              <div class="row g-2">
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">AIRWAY</p>
                   <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_Bebas" id="l5_s1"><label class="form-check-label small" for="l5_s1">Bebas</label></div>
@@ -543,8 +531,19 @@ var TriaseComponent = (() => {
                   <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_dr. Umum" id="l5_s9"><label class="form-check-label small" for="l5_s9">dr. Umum</label></div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
 
-              <!-- DOA Section inside False Emergency -->
+        <!-- Section 6: Level 5 False Emergency (DOA ONLY) -->
+        <div class="accordion-item mb-2 border rounded">
+          <h2 class="accordion-header" id="heading_t_6">
+            <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_6" aria-expanded="false" aria-controls="collapse_t_6">
+              <span class="fw-bold text-success" style="font-size:13px;"><i class="bi bi-shield-check me-2"></i> 6. Level 5 : False Emergency</span>
+            </button>
+          </h2>
+          <div id="collapse_t_6" class="accordion-collapse collapse" aria-labelledby="heading_t_6" data-bs-parent="#accordionTriase">
+            <div class="accordion-body bg-white p-3">
               <div class="border rounded p-3" style="background-color: #ffebee; border-color: #ef5350 !important;">
                 <div class="form-check mb-2">
                   <input class="form-check-input f-symptom" type="checkbox" value="L5_DOA" id="l5_doa">
