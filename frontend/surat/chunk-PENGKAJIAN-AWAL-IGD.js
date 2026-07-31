@@ -591,8 +591,13 @@ var PengkajianAwalIgdComponent = (() => {
             <div class="t-col" style="flex:2; padding:4px 6px;">Tanggal : ${getVal('tglMasukDate') || new Date().toISOString().split('T')[0]}</div>
             <div class="t-col" style="flex:1; padding:4px 6px;">Jam : ${getVal('tglMasukTime') || new Date().toTimeString().slice(0,5)}</div>
             <div class="t-col" style="flex:3; padding:4px 6px;">
-              Asal Pasien : &nbsp; ${sq('asalPasien','Umum')} Umum<br>
-              <div style="padding-left:90px;">${sq('asalPasien','Rujukan')} Rujukan dari : ${getVal('rujukanDari')}</div>
+              <div style="display:flex; align-items:flex-start; gap:6px;">
+                <span style="white-space:nowrap;">Asal Pasien :</span>
+                <div>
+                  <div>${sq('asalPasien','Umum')} Umum</div>
+                  <div style="display:flex; align-items:center; gap:4px;">${sq('asalPasien','Rujukan')} Rujukan dari : <span>${getVal('rujukanDari') || '..............................'}</span></div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -602,10 +607,16 @@ var PengkajianAwalIgdComponent = (() => {
               <strong>KELUHAN UTAMA: (Auto/Allo Anamnesis)</strong>
               <div style="white-space:pre-wrap; margin-top:2px;">${getVal('keluhanUtama')}</div>
             </div>
-            <div class="t-col t-f1" style="padding:4px 6px;">
-              <strong>RIWAYAT PENGOBATAN : (*perawat)</strong>
-              <div style="white-space:pre-wrap; margin-bottom:4px;">${getVal('riwayatPengobatan')}</div>
-              Riwayat Alergi Obat : ${sq('alergiObat','Tidak')} Tidak &nbsp; ${sq('alergiObat','Ya')} Ya, Nama obat : ${getVal('namaObatAlergi')}
+            <div class="t-col t-f1" style="padding:4px 6px; display:flex; flex-direction:column; justify-content:space-between;">
+              <div>
+                <strong>RIWAYAT PENGOBATAN : (*perawat)</strong>
+                <div style="white-space:pre-wrap; margin-top:2px;">${getVal('riwayatPengobatan')}</div>
+              </div>
+              <div style="display:flex; align-items:center; gap:6px; margin-top:4px; flex-wrap:wrap;">
+                <span>Riwayat Alergi Obat :</span>
+                <span>${sq('alergiObat','Tidak')} Tidak</span>
+                <span>${sq('alergiObat','Ya')} Ya, Nama obat : ${getVal('namaObatAlergi') || '...........................'}</span>
+              </div>
             </div>
           </div>
 
@@ -628,15 +639,15 @@ var PengkajianAwalIgdComponent = (() => {
           <!-- ROW 5: Tanda Vital & Psikosial -->
           <div class="t-row" style="flex-shrink:0;">
             <div class="t-col t-f1" style="min-height:95px; padding:4px 6px;">
-              <strong>TANDA-TANDA VITAL (*perawat)</strong><br>
-              Keadaan Umum : ${getVal('ku')}<br>
-              <div style="display:grid; grid-template-columns:1fr 1fr; margin-top:2px; row-gap:1px;">
-                <div>Tekanan darah : ${getVal('td') || '............'} mmHg</div>
-                <div>Suhu&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: ${getVal('suhu') || '............'} &deg;C</div>
-                <div>Nadi&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: ${getVal('nadi') || '............'} x/Menit</div>
-                <div>Pernapasan&nbsp;&nbsp;: ${getVal('rr') || '............'} x/Menit</div>
-                <div>Berat Badan&nbsp;&nbsp;&nbsp;: ${getVal('bb') || '............'} Kg</div>
-                <div>GCS : E ${getVal('gcsE') || '........'} M ${getVal('gcsM') || '........'} V ${getVal('gcsV') || '........'}</div>
+              <strong>TANDA-TANDA VITAL (*perawat)</strong>
+              <div style="display:flex; margin-top:2px;"><div style="width:90px;">Keadaan Umum</div><div style="width:8px;">:</div><div>${getVal('ku') || '..................'}</div></div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; margin-top:2px; row-gap:2px;">
+                <div style="display:flex;"><div style="width:90px;">Tekanan darah</div><div style="width:8px;">:</div><div>${getVal('td') || '............'} mmHg</div></div>
+                <div style="display:flex;"><div style="width:90px;">Suhu</div><div style="width:8px;">:</div><div>${getVal('suhu') || '............'} &deg;C</div></div>
+                <div style="display:flex;"><div style="width:90px;">Nadi</div><div style="width:8px;">:</div><div>${getVal('nadi') || '............'} x/Menit</div></div>
+                <div style="display:flex;"><div style="width:90px;">Pernapasan</div><div style="width:8px;">:</div><div>${getVal('rr') || '............'} x/Menit</div></div>
+                <div style="display:flex;"><div style="width:90px;">Berat Badan</div><div style="width:8px;">:</div><div>${getVal('bb') || '............'} Kg</div></div>
+                <div style="display:flex;"><div style="width:90px;">GCS</div><div style="width:8px;">:</div><div>E ${getVal('gcsE') || '.....'} M ${getVal('gcsM') || '.....'} V ${getVal('gcsV') || '.....'}</div></div>
               </div>
             </div>
             <div class="t-col t-f1" style="padding:4px 6px;">
@@ -725,103 +736,86 @@ var PengkajianAwalIgdComponent = (() => {
             </div>
           </div>
 
+          <!-- ROW 12: Diagnosa Keperawatan (Moved up to Page 1) -->
+          <div class="t-row" style="flex-shrink:0;">
+            <div class="t-col t-f1" style="min-height:55px; padding:4px 6px;">
+              <strong>DIAGNOSA KEPERAWATAN : (*perawat)</strong>
+              <div style="white-space:pre-wrap; margin-top:2px;">${getVal('diagnosaKeperawatan')}</div>
+            </div>
+          </div>
+
         </div>
       `;
 
       const page2Html = `
         <div class="t-border" style="border-top:2px solid black;">
 
-          <!-- ROW 1: Diagnosa Keperawatan -->
-          <div class="t-row" style="flex-shrink:0;">
-            <div class="t-col t-f1" style="min-height:60px; padding:5px 6px;">
-              <strong>DIAGNOSA KEPERAWATAN : (*perawat)</strong>
-              <div style="white-space:pre-wrap; margin-top:3px;">${getVal('diagnosaKeperawatan')}</div>
-            </div>
-          </div>
-
-          <!-- ROW 2: Skrining Gizi Anak & Dewasa -->
-          <div class="t-row" style="flex-shrink:0; background-color:#f2f2f2; font-weight:bold;">
-            <div class="t-col t-f1" style="padding:5px 6px;">SKRINING GIZI ANAK (usia 1 bulan - 18 tahun) (*perawat)</div>
-            <div class="t-col t-f1" style="padding:5px 6px;">SKRINING GIZI DEWASA (*perawat)</div>
-          </div>
-          <div class="t-row" style="flex-shrink:0; align-items:stretch;">
-
-            <!-- Gizi Anak -->
-            <div class="t-col t-f1" style="padding:0; display:flex; flex-direction:column; justify-content:space-between;">
-              <div>
-                <div class="t-inner-row" style="background-color:#f9f9f9; text-align:center; font-weight:bold;">
-                  <div class="t-inner-col" style="flex:3; padding:4px;">PARAMETER</div>
-                  <div class="t-inner-col" style="flex:1; padding:4px;">Ya</div>
-                  <div class="t-inner-col" style="flex:1; padding:4px;">Tidak</div>
-                </div>
-                <div class="t-inner-row">
-                  <div class="t-inner-col" style="flex:3; padding:4px 6px;">1. &nbsp; Apakah pasien tampak kurus?</div>
-                  <div class="t-inner-col" style="flex:1; text-align:center; padding:4px;">${sq('giziA1','1')} 1</div>
-                  <div class="t-inner-col" style="flex:1; text-align:center; padding:4px;">${sq('giziA1','0')} 0</div>
-                </div>
-                <div class="t-inner-row">
-                  <div class="t-inner-col" style="flex:3; padding:4px 6px;">
-                    2. &nbsp; Apakah terdapat penurunan BB selama 1 bulan terakhir?<br>
-                    &nbsp;&nbsp;&nbsp;- Berdasarkan penilaian obyektif/subyektif orang tua<br>
-                    &nbsp;&nbsp;&nbsp;- Bayi &lt;1 thn BB tidak naik 3 bln terakhir
-                  </div>
-                  <div class="t-inner-col" style="flex:1; text-align:center; vertical-align:middle; padding:4px;">${sq('giziA2','2')} 2</div>
-                  <div class="t-inner-col" style="flex:1; text-align:center; vertical-align:middle; padding:4px;">${sq('giziA2','0')} 0</div>
-                </div>
-                <div class="t-inner-row">
-                  <div class="t-inner-col" style="flex:3; padding:4px 6px;">
-                    3. &nbsp; Apakah terdapat salah satu kondisi berikut?<br>
-                    &nbsp;&nbsp;&nbsp;- Diare &gt;5x/hari atau asupan makanan berkurang 1 mgg
-                  </div>
-                  <div class="t-inner-col" style="flex:1; text-align:center; vertical-align:middle; padding:4px;">${sq('giziA3','1')} 1</div>
-                  <div class="t-inner-col" style="flex:1; text-align:center; vertical-align:middle; padding:4px;">${sq('giziA3','0')} 0</div>
-                </div>
-                <div class="t-inner-row">
-                  <div class="t-inner-col" style="flex:3; padding:4px 6px;">
-                    4. &nbsp; Apakah terdapat penyakit/keadaan berisiko malnutrisi?<br>
-                    &nbsp;&nbsp;&nbsp;(diare kronis, HIV, PJB, ginjal, stoma, dll)
-                  </div>
-                  <div class="t-inner-col" style="flex:1; text-align:center; vertical-align:middle; padding:4px;">${sq('giziA4','2')} 2</div>
-                  <div class="t-inner-col" style="flex:1; text-align:center; vertical-align:middle; padding:4px;">${sq('giziA4','0')} 0</div>
-                </div>
-              </div>
-              <div class="t-inner-row" style="background-color:#f9f9f9; font-weight:bold; text-align:center; border-top:1px solid black;">
-                <div class="t-inner-col" style="flex:3; padding:5px;">TOTAL SKOR</div>
-                <div class="t-inner-col" style="flex:2; font-size:14px !important; padding:5px;">${giziATotal}</div>
-              </div>
-            </div>
-
-            <!-- Gizi Dewasa -->
-            <div class="t-col t-f1" style="padding:0; display:flex; flex-direction:column; justify-content:space-between;">
-              <div>
-                <div class="t-inner-row" style="background-color:#f9f9f9; text-align:center; font-weight:bold;">
-                  <div class="t-inner-col" style="flex:3; padding:4px;">PARAMETER</div>
-                  <div class="t-inner-col" style="flex:1; padding:4px;">Ya</div>
-                  <div class="t-inner-col" style="flex:1; padding:4px;">Tidak</div>
-                </div>
-                <div class="t-inner-row">
-                  <div class="t-inner-col" style="flex:3; padding:4px 6px;">
-                    1. &nbsp; Apakah pasien mengalami penurunan berat badan<br>
-                    &nbsp;&nbsp;&nbsp;tidak direncanakan/diinginkan 6 bulan terakhir?
-                  </div>
-                  <div class="t-inner-col" style="flex:1; text-align:center; vertical-align:middle; padding:4px;">${sq('giziD1','2')} 2</div>
-                  <div class="t-inner-col" style="flex:1; text-align:center; vertical-align:middle; padding:4px;">${sq('giziD1','0')} 0</div>
-                </div>
-                <div class="t-inner-row">
-                  <div class="t-inner-col" style="flex:3; padding:4px 6px;">
-                    2. &nbsp; Apakah asupan makan pasien berkurang karena<br>
-                    &nbsp;&nbsp;&nbsp;penurunan nafsu makan / kesulitan menerima makanan?
-                  </div>
-                  <div class="t-inner-col" style="flex:1; text-align:center; vertical-align:middle; padding:4px;">${sq('giziD2','1')} 1</div>
-                  <div class="t-inner-col" style="flex:1; text-align:center; vertical-align:middle; padding:4px;">${sq('giziD2','0')} 0</div>
-                </div>
-              </div>
-              <div class="t-inner-row" style="background-color:#f9f9f9; font-weight:bold; text-align:center; border-top:1px solid black;">
-                <div class="t-inner-col" style="flex:3; padding:5px;">TOTAL SKOR</div>
-                <div class="t-inner-col" style="flex:2; font-size:14px !important; padding:5px;">${giziDTotal}</div>
-              </div>
-            </div>
-
+          <!-- ROW 1: Skrining Gizi – single unified table -->
+          <div class="t-row" style="flex-shrink:0; padding:0;">
+            <table style="width:100%; border-collapse:collapse; font-size:11px !important;">
+              <colgroup>
+                <col style="width:38%;">
+                <col style="width:6%;">
+                <col style="width:6%;">
+                <col style="width:38%;">
+                <col style="width:6%;">
+                <col style="width:6%;">
+              </colgroup>
+              <!-- Section headers -->
+              <tr style="background-color:#f2f2f2; font-weight:bold;">
+                <td colspan="3" style="padding:4px 6px; border-bottom:1px solid black; border-right:2px solid black;">SKRINING GIZI ANAK (usia 1 bulan - 18 tahun) (*perawat)</td>
+                <td colspan="3" style="padding:4px 6px; border-bottom:1px solid black;">SKRINING GIZI DEWASA (*perawat)</td>
+              </tr>
+              <!-- Column headers -->
+              <tr style="background-color:#f9f9f9; font-weight:bold; text-align:center;">
+                <th style="padding:4px 6px; border-bottom:1px solid black; border-right:1px solid black; text-align:left;">PARAMETER</th>
+                <th style="padding:4px; border-bottom:1px solid black; border-right:1px solid black;">Ya</th>
+                <th style="padding:4px; border-bottom:1px solid black; border-right:2px solid black;">Tidak</th>
+                <th style="padding:4px 6px; border-bottom:1px solid black; border-right:1px solid black; text-align:left;">PARAMETER</th>
+                <th style="padding:4px; border-bottom:1px solid black; border-right:1px solid black;">Ya</th>
+                <th style="padding:4px; border-bottom:1px solid black;">Tidak</th>
+              </tr>
+              <!-- Row 1: Anak Q1 | Dewasa Q1 -->
+              <tr>
+                <td style="padding:4px 6px; border-bottom:1px solid black; border-right:1px solid black; vertical-align:top;">1. Apakah pasien tampak kurus?</td>
+                <td style="padding:4px; border-bottom:1px solid black; border-right:1px solid black; text-align:center; vertical-align:middle;">${sq('giziA1','1')} 1</td>
+                <td style="padding:4px; border-bottom:1px solid black; border-right:2px solid black; text-align:center; vertical-align:middle;">${sq('giziA1','0')} 0</td>
+                <td style="padding:4px 6px; border-bottom:1px solid black; border-right:1px solid black; vertical-align:top;">1. Apakah pasien mengalami penurunan berat badan<br>&nbsp;&nbsp;&nbsp;tidak direncanakan/diinginkan 6 bulan terakhir?</td>
+                <td style="padding:4px; border-bottom:1px solid black; border-right:1px solid black; text-align:center; vertical-align:middle;">${sq('giziD1','2')} 2</td>
+                <td style="padding:4px; border-bottom:1px solid black; text-align:center; vertical-align:middle;">${sq('giziD1','0')} 0</td>
+              </tr>
+              <!-- Row 2: Anak Q2 | Dewasa Q2 -->
+              <tr>
+                <td style="padding:4px 6px; border-bottom:1px solid black; border-right:1px solid black; vertical-align:top;">2. Apakah terdapat penurunan BB selama 1 bulan terakhir?<br>&nbsp;&nbsp;&nbsp;- Berdasarkan penilaian obyektif/subyektif orang tua<br>&nbsp;&nbsp;&nbsp;- Bayi &lt;1 thn BB tidak naik 3 bln terakhir</td>
+                <td style="padding:4px; border-bottom:1px solid black; border-right:1px solid black; text-align:center; vertical-align:middle;">${sq('giziA2','2')} 2</td>
+                <td style="padding:4px; border-bottom:1px solid black; border-right:2px solid black; text-align:center; vertical-align:middle;">${sq('giziA2','0')} 0</td>
+                <td style="padding:4px 6px; border-bottom:1px solid black; border-right:1px solid black; vertical-align:top;">2. Apakah asupan makan pasien berkurang karena<br>&nbsp;&nbsp;&nbsp;penurunan nafsu makan / kesulitan menerima makanan?</td>
+                <td style="padding:4px; border-bottom:1px solid black; border-right:1px solid black; text-align:center; vertical-align:middle;">${sq('giziD2','1')} 1</td>
+                <td style="padding:4px; border-bottom:1px solid black; text-align:center; vertical-align:middle;">${sq('giziD2','0')} 0</td>
+              </tr>
+              <!-- Row 3: Anak Q3 | Dewasa empty (rowspan 2) -->
+              <tr>
+                <td style="padding:4px 6px; border-bottom:1px solid black; border-right:1px solid black; vertical-align:top;">3. Apakah terdapat salah satu kondisi berikut?<br>&nbsp;&nbsp;&nbsp;- Diare &gt;5x/hari atau asupan makanan berkurang 1 mgg</td>
+                <td style="padding:4px; border-bottom:1px solid black; border-right:1px solid black; text-align:center; vertical-align:middle;">${sq('giziA3','1')} 1</td>
+                <td style="padding:4px; border-bottom:1px solid black; border-right:2px solid black; text-align:center; vertical-align:middle;">${sq('giziA3','0')} 0</td>
+                <td rowspan="2" style="border-bottom:1px solid black; border-right:1px solid black;"></td>
+                <td rowspan="2" style="border-bottom:1px solid black; border-right:1px solid black;"></td>
+                <td rowspan="2" style="border-bottom:1px solid black;"></td>
+              </tr>
+              <!-- Row 4: Anak Q4 | Dewasa empty (continued rowspan) -->
+              <tr>
+                <td style="padding:4px 6px; border-bottom:1px solid black; border-right:1px solid black; vertical-align:top;">4. Apakah terdapat penyakit/keadaan berisiko malnutrisi?<br>&nbsp;&nbsp;&nbsp;(diare kronis, HIV, PJB, ginjal, stoma, dll)</td>
+                <td style="padding:4px; border-bottom:1px solid black; border-right:1px solid black; text-align:center; vertical-align:middle;">${sq('giziA4','2')} 2</td>
+                <td style="padding:4px; border-bottom:1px solid black; border-right:2px solid black; text-align:center; vertical-align:middle;">${sq('giziA4','0')} 0</td>
+              </tr>
+              <!-- TOTAL SKOR: single shared row perfectly aligned -->
+              <tr style="background-color:#f9f9f9; font-weight:bold; text-align:center;">
+                <td style="padding:5px 6px; border-right:1px solid black;">TOTAL SKOR</td>
+                <td colspan="2" style="padding:5px; border-right:2px solid black; font-size:13px !important;">${giziATotal}</td>
+                <td style="padding:5px 6px; border-right:1px solid black;">TOTAL SKOR</td>
+                <td colspan="2" style="padding:5px; font-size:13px !important;">${giziDTotal}</td>
+              </tr>
+            </table>
           </div>
 
           <!-- ROW 3: Terapi dan Tindakan -->

@@ -200,6 +200,12 @@ router.get("/pengkajian-awal-poli/:noCheckin", simrsBaController.getPengkajianAw
 router.post("/pengkajian-awal-igd", simrsBaController.savePengkajianAwalIgd);
 router.get("/pengkajian-awal-igd/:noCheckin", simrsBaController.getPengkajianAwalIgd);
 
+router.post("/general-consent", simrsBaController.saveGeneralConsent);
+router.get("/general-consent/:noCheckin", simrsBaController.getGeneralConsent);
+
+router.post("/tata-tertib-ranap", simrsBaController.saveTataTertibRanap);
+router.get("/tata-tertib-ranap/:noCheckin", simrsBaController.getTataTertibRanap);
+
 router.post("/lab/save", simrsBaController.saveLab);
 router.post("/rad/save", simrsBaController.saveRad);
 

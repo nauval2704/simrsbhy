@@ -38,6 +38,9 @@ class SimrsPatientSidebar extends HTMLElement {
                 <a href="javascript:void(0)" data-path="satusehat" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> SATUSEHAT</a>
                 <a href="javascript:void(0)" data-path="triase" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Triase</a>
                 <a href="javascript:void(0)" data-path="pengkajian-awal-igd" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Pengkajian Awal IGD</a>
+                <a href="javascript:void(0)" data-path="general-consent" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> General Consent</a>
+                <a href="javascript:void(0)" data-path="hak-kewajiban-pasien" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Hak &amp; Kewajiban Pasien</a>
+                <a href="javascript:void(0)" data-path="tata-tertib-ranap" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Tata Tertib Ranap</a>
                 <a href="javascript:void(0)" data-path="igd" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Input Pelayanan IGD</a>
                 <a href="javascript:void(0)" data-path="farmasi" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Input Obat / BHP</a>
                 <a href="javascript:void(0)" data-path="lab" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Input LAB</a>
@@ -85,6 +88,9 @@ class SimrsPatientSidebar extends HTMLElement {
       // INAP
       return `
                 <a href="javascript:void(0)" data-path="satusehat" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> SATUSEHAT</a>
+                <a href="javascript:void(0)" data-path="general-consent" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> General Consent</a>
+                <a href="javascript:void(0)" data-path="hak-kewajiban-pasien" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Hak &amp; Kewajiban Pasien</a>
+                <a href="javascript:void(0)" data-path="tata-tertib-ranap" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Tata Tertib Ranap</a>
                 <a href="javascript:void(0)" data-path="inap" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Input Pelayanan Inap</a>
                 <a href="javascript:void(0)" data-path="kamar-bedah" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Input Kamar Bedah</a>
                 <a href="javascript:void(0)" data-path="farmasi" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Input Obat / BHP</a>

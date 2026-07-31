@@ -72,8 +72,10 @@
   height: 1247px;
   background-color: #fff;
   box-shadow: 0 0 10px rgba(0,0,0,0.5);
-  margin: 20px 0;
+  margin: 20px auto !important;
   flex-shrink: 0;
+  box-sizing: border-box !important;
+  padding: 6mm !important;
 }
 
 .surat-canvas {
@@ -96,12 +98,13 @@
   height: 100%;
   z-index: 1;
   pointer-events: none;
-  padding: 20px 30px;
+  padding: 20px !important;
   display: flex;
   flex-direction: column;
   font-family: 'Times New Roman', Times, serif;
   font-size: 13px;
   color: #000;
+  box-sizing: border-box !important;
 }
 
 .surat-border {
@@ -327,10 +330,60 @@
     size: 215.9mm 330.2mm !important;
     margin: 0mm !important;
   }
-  .surat-toolbar { display: none !important; }
-  app-header, .pap-tabs, .cppt-tabs, .tr-tabs, .rp-tabs, .fpo-tabs, .nav-tabs, .no-print, .d-print-none, .modal, .simrs-sidebar-col { display: none !important; }
-  body, html, app-root, .tab-content, .tab-pane, .surat-body {
-    width: 215.9mm !important;
+  @page surat-landscape {
+    size: 330.2mm 215.9mm !important;
+    margin: 0mm !important;
+  }
+
+  /* ABSOLUTE HIDE FOR NON-PRINT UI ELEMENTS & INPUT PANES */
+  app-header,
+  app-footer,
+  app-sidebar,
+  app-administrator-sidebar,
+  simrs-patient-sidebar,
+  .simrs-sidebar-col,
+  .sidebar,
+  .main-sidebar,
+  #sidebar,
+  #sidebar-wrapper,
+  aside,
+  header,
+  footer,
+  nav,
+  .navbar,
+  .surat-toolbar,
+  .pap-tabs,
+  .cppt-tabs,
+  .tr-tabs,
+  .rp-tabs,
+  .fpo-tabs,
+  .nav-tabs,
+  .no-print,
+  .d-print-none,
+  .modal,
+  .btn:not(.surat-print-btn) {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    opacity: 0 !important;
+    overflow: hidden !important;
+    position: absolute !important;
+    left: -9999px !important;
+  }
+
+  /* HIDE ALL INPUT CARDS, ALERTS, & NON-PRINT TAB PANES TO PREVENT PRECEDING BLANK/INPUT PAGES */
+  .tab-pane:not(:has(.surat-document)):not(:has(.surat-document-landscape)),
+  .card:not(:has(.surat-document)):not(:has(.surat-document-landscape)),
+  .alert:not(:has(.surat-document)):not(:has(.surat-document-landscape)),
+  .tab-content > *:not(:has(.surat-document)):not(:has(.surat-document-landscape)),
+  .f-group, .form-group, .form-control, .form-select {
+    display: none !important;
+  }
+
+  html, body, app-root, app-pasien-details, .content-wrapper, .container-fluid, .container, .main-content, .card:has(.surat-document), .card:has(.surat-document-landscape), .card-body:has(.surat-document), .card-body:has(.surat-document-landscape), .tab-content:has(.surat-document), .tab-pane:has(.surat-document), .tab-pane:has(.surat-document-landscape), .row, [class*="col-"]:not(.simrs-sidebar-col), .surat-body {
+    width: 100% !important;
+    max-width: 100% !important;
     height: auto !important; 
     min-height: 0 !important; 
     max-height: none !important; 
@@ -338,20 +391,32 @@
     position: static !important; 
     padding: 0 !important; 
     margin: 0 !important;
+    float: none !important;
+    display: block !important;
+    box-sizing: border-box !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
+
   .surat-body { background: transparent !important; }
+  .surat-print-bg {
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    display: block !important;
+    box-sizing: border-box !important;
+  }
   .surat-document, .surat-page {
     width: 215.9mm !important;
     height: 330.2mm !important;
     max-width: 215.9mm !important;
     max-height: 330.2mm !important;
     box-sizing: border-box !important;
-    padding: 5mm !important;
+    padding: 6mm !important;
     position: relative !important;
     box-shadow: none !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     overflow: hidden !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
@@ -364,15 +429,16 @@
     max-width: 330.2mm !important;
     max-height: 215.9mm !important;
     box-sizing: border-box !important;
-    padding: 5mm !important;
+    padding: 6mm !important;
     position: relative !important;
     box-shadow: none !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     overflow: hidden !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
     page-break-after: always !important;
     break-after: page !important;
+    page: surat-landscape !important;
   }
   .surat-document:last-child, .surat-page:last-child,
   .surat-document-landscape:last-child, .surat-page-landscape:last-child {
@@ -382,6 +448,12 @@
   .surat-canvas, .surat-content {
     width: 100% !important;
     height: 100% !important;
+  }
+  .pap-master-grid, table.master-grid, table.t-border, table.fpo-table, table.pap-inner-align, table {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    box-sizing: border-box !important;
   }
 }
 

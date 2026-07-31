@@ -136772,6 +136772,24 @@ var rb = [
         canActivate: [st],
       },
       {
+        path: "general-consent/:nocheckin",
+        loadComponent: () =>
+          import("./surat/chunk-GENERAL-CONSENT.js").then((t) => t.GeneralConsentComponent),
+        canActivate: [st],
+      },
+      {
+        path: "hak-kewajiban-pasien/:nocheckin",
+        loadComponent: () =>
+          import("./surat/chunk-HAK-KEWAJIBAN-PASIEN.js").then((t) => t.HakKewajibanPasienComponent),
+        canActivate: [st],
+      },
+      {
+        path: "tata-tertib-ranap/:nocheckin",
+        loadComponent: () =>
+          import("./surat/chunk-TATA-TERTIB-RANAP.js").then((t) => t.SimrsTataTertibRanap),
+        canActivate: [st],
+      },
+      {
         path: "cppt-igd/:nocheckin",
         loadComponent: () =>
           import("./surat/chunk-CPPT-IGD.js").then((t) => t.CpptIgdComponent),

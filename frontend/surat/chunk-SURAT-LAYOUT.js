@@ -67,35 +67,35 @@ export function showConfirmDialog(title, callback) {
 
 export function getStandardGridCSS() {
   return `
-.pap-page{box-sizing:border-box;width:100%;height:100%;padding:5mm;position:relative;display:flex;flex-direction:column;}
-.pap-master-grid{width:100%;border-collapse:collapse;font-size:11px;border:1px solid black;table-layout:fixed;font-family:'Times New Roman',Times,serif;}
+.pap-page{box-sizing:border-box !important;width:100% !important;height:100% !important;padding:6mm !important;position:relative;display:flex;flex-direction:column;margin:0 auto !important;}
+.pap-master-grid{width:100% !important;margin:0 auto !important;border-collapse:collapse;font-size:11px;border:1px solid black;table-layout:fixed;font-family:'Times New Roman',Times,serif;box-sizing:border-box !important;}
 .pap-master-grid>tbody>tr>td{border:1px solid black;padding:5px 7px;vertical-align:top;line-height:1.4;}
 .pap-inner-align{width:100%;border-collapse:collapse;}
 .pap-inner-align td{border:none;padding:1px 2px;vertical-align:top;}
 .pap-rounded-meta-box{border:1px solid black;border-radius:10px;padding:5px;width:100%;}
 .pap-cb{font-size:13px;line-height:1;margin-right:3px;vertical-align:middle;}
 .pap-footer-label{position:absolute;bottom:25px;right:35px;font-size:8px;font-style:italic;}
-.surat-autopage-container { width:100%; border-collapse:collapse; background:#fff; margin:0 auto; font-family:'Times New Roman',Times,serif; }
+.surat-autopage-container { width:100% !important; margin:0 auto !important; border-collapse:collapse; background:#fff; font-family:'Times New Roman',Times,serif; box-sizing:border-box !important; }
 .surat-autopage-container thead { display:table-header-group; }
 .surat-autopage-container tfoot { display:table-footer-group; }
 .surat-autopage-container tr { page-break-inside:avoid; break-inside:avoid; }
-.surat-document, .surat-page { box-sizing:border-box; padding: 5mm; width:816px !important; height:1247px !important; overflow:hidden !important; position:relative !important; margin:0 auto 20px auto !important; background:#fff; box-shadow:0 0 10px rgba(0,0,0,0.1); text-align:left; display:flex; flex-direction:column; }
-.surat-document-landscape, .surat-page-landscape { box-sizing:border-box; padding: 5mm; width:1247px !important; height:816px !important; overflow:hidden !important; position:relative !important; margin:0 auto 20px auto !important; background:#fff; box-shadow:0 0 10px rgba(0,0,0,0.1); text-align:left; display:flex; flex-direction:column; }
-.surat-content{position:relative !important;height:auto !important;overflow:visible !important;}
-.surat-print-bg{padding:10px;background-color:#525659;text-align:center;border-radius:4px;overflow:auto;}
+.surat-document, .surat-page { box-sizing:border-box !important; padding: 6mm !important; width:816px !important; height:1247px !important; overflow:hidden !important; position:relative !important; margin:0 auto 20px auto !important; background:#fff; box-shadow:0 0 10px rgba(0,0,0,0.1); text-align:left; display:flex; flex-direction:column; }
+.surat-document-landscape, .surat-page-landscape { box-sizing:border-box !important; padding: 6mm !important; width:1247px !important; height:816px !important; overflow:hidden !important; position:relative !important; margin:0 auto 20px auto !important; background:#fff; box-shadow:0 0 10px rgba(0,0,0,0.1); text-align:left; display:flex; flex-direction:column; }
+.surat-content{position:relative !important;height:auto !important;overflow:visible !important;padding: 6mm !important;box-sizing:border-box !important;}
+.surat-print-bg{padding:20px 10px;background-color:#525659;text-align:center;border-radius:4px;overflow:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;}
 @media print{.no-print{display:none !important;}}
 @page{size: 215.9mm 330.2mm; margin: 0;}
 @page surat-landscape { size: 330.2mm 215.9mm; margin: 0; }
 @media print{
   body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  app-header, .nav-tabs, .no-print, .modal, .simrs-sidebar-col { display: none !important; }
-  body, html, app-root, .tab-content, .tab-pane { height: auto !important; min-height: 0 !important; max-height: none !important; overflow: visible !important; position: static !important; padding: 0 !important; margin: 0 !important; }
-  .row { display: block !important; margin: 0 !important; }
-  [class^="col-"]:not(th):not(td), [class*=" col-"]:not(th):not(td) { width: 100% !important; max-width: 100% !important; flex: none !important; padding: 0 !important; }
-  .surat-print-bg { background: transparent !important; padding: 0 !important; margin: 0 !important; overflow: visible !important; position: static !important; }
-  .surat-document, .surat-page {box-sizing:border-box !important;width:100% !important;max-width:100% !important;padding: 5mm !important;overflow:hidden !important;page-break-inside:avoid !important;break-inside:avoid !important;height:330.2mm !important;box-shadow:none !important;margin:0 !important;page-break-after:always;break-after:page;}
-  .surat-document-landscape, .surat-page-landscape {box-sizing:border-box !important;width:100% !important;max-width:100% !important;padding: 5mm !important;overflow:hidden !important;page-break-inside:avoid !important;break-inside:avoid !important;height:215.9mm !important;box-shadow:none !important;margin:0 !important;page-break-after:always;break-after:page;page:surat-landscape;}
+  app-header, app-footer, app-sidebar, app-administrator-sidebar, simrs-patient-sidebar, .simrs-sidebar-col, .sidebar, .main-sidebar, #sidebar, #sidebar-wrapper, aside, header, footer, nav, .navbar, .surat-toolbar, .pap-tabs, .cppt-tabs, .tr-tabs, .rp-tabs, .fpo-tabs, .nav-tabs, .no-print, .d-print-none, .modal { display: none !important; visibility: hidden !important; height: 0 !important; width: 0 !important; opacity: 0 !important; overflow: hidden !important; position: absolute !important; left: -9999px !important; }
+  .tab-pane:not(:has(.surat-document)):not(:has(.surat-document-landscape)), .card:not(:has(.surat-document)):not(:has(.surat-document-landscape)), .alert:not(:has(.surat-document)):not(:has(.surat-document-landscape)), .tab-content > *:not(:has(.surat-document)):not(:has(.surat-document-landscape)), .f-group, .form-group, .form-control, .form-select { display: none !important; }
+  html, body, app-root, app-pasien-details, .content-wrapper, .container-fluid, .container, .main-content, .card:has(.surat-document), .card:has(.surat-document-landscape), .card-body:has(.surat-document), .card-body:has(.surat-document-landscape), .tab-content:has(.surat-document), .tab-pane:has(.surat-document), .tab-pane:has(.surat-document-landscape), .row, [class*="col-"]:not(.simrs-sidebar-col) { width: 100% !important; max-width: 100% !important; height: auto !important; min-height: 0 !important; max-height: none !important; overflow: visible !important; position: static !important; padding: 0 !important; margin: 0 !important; float: none !important; display: block !important; box-sizing: border-box !important; }
+  .surat-print-bg { background: transparent !important; padding: 0 !important; margin: 0 !important; width: 100% !important; display: block !important; box-sizing: border-box !important; }
+  .surat-document, .surat-page {box-sizing:border-box !important;width:215.9mm !important;max-width:215.9mm !important;padding: 6mm !important;overflow:hidden !important;page-break-inside:avoid !important;break-inside:avoid !important;height:330.2mm !important;box-shadow:none !important;margin:0 auto !important;page-break-after:always;break-after:page;}
+  .surat-document-landscape, .surat-page-landscape {box-sizing:border-box !important;width:330.2mm !important;max-width:330.2mm !important;padding: 6mm !important;overflow:hidden !important;page-break-inside:avoid !important;break-inside:avoid !important;height:215.9mm !important;box-shadow:none !important;margin:0 auto !important;page-break-after:always;break-after:page;page:surat-landscape;}
   .surat-document:last-child, .surat-page:last-child, .surat-document-landscape:last-child, .surat-page-landscape:last-child {page-break-after:auto;}
+  .pap-master-grid, table.master-grid, table.t-border, table.fpo-table, table.pap-inner-align, table { width: 100% !important; max-width: 100% !important; margin: 0 auto !important; box-sizing: border-box !important; }
 }
 `;
 }
@@ -218,6 +218,13 @@ export function bindSuratPrintButton(root) {
     btn.addEventListener('click', () => {
       const isLandscape = !!root.querySelector('.surat-document-landscape, .surat-page-landscape');
       forceChromePrintStyles(isLandscape);
+      const printTabTrigger = root.querySelector('.nav-link[id*="print"], button[id*="print"]');
+      if (printTabTrigger && window.bootstrap && window.bootstrap.Tab) {
+        try {
+          const bsTab = window.bootstrap.Tab.getOrCreateInstance(printTabTrigger);
+          bsTab.show();
+        } catch (e) {}
+      }
       window.print();
     });
   }
