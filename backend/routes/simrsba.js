@@ -178,6 +178,7 @@ router.post("/edukasi-poli", simrsBaController.saveEdukasiPoli);
 router.get("/edukasi-poli/:noCheckin", simrsBaController.getEdukasiPoli);
 
 router.post("/cppt-igd", simrsBaController.saveCpptIgd);
+router.get("/cppt-igd/list/:noMr", simrsBaController.listCpptIgd);
 router.get("/cppt-igd/:noCheckin", simrsBaController.getCpptIgd);
 
 router.post("/cppt-poli", simrsBaController.saveCpptPoli);

@@ -33,10 +33,7 @@ var CpptPoliComponent = (() => {
       };
 
       const pathParts = window.location.pathname.split("/");
-      this.noCheckin = pathParts[5] || pathParts[2];
-      if (!this.noCheckin && pathParts[pathParts.length - 1]) {
-        this.noCheckin = pathParts[pathParts.length - 1];
-      }
+      this.noCheckin = (pathParts[5] || pathParts[2] || pathParts[pathParts.length - 1] || '').split('?')[0].split('#')[0];
     }
 
     ngOnInit() {
@@ -67,6 +64,11 @@ var CpptPoliComponent = (() => {
     }
 
     fetchPatient() {
+      if (!this.noCheckin) {
+        this.loading = false;
+        this.renderView();
+        return;
+      }
       this.http
         .get(
           i.apiUrl +
@@ -75,7 +77,10 @@ var CpptPoliComponent = (() => {
         )
         .subscribe({
           next: (res) => {
-            if (res && res.length > 0) this.patient = res[0];
+            if (Array.isArray(res) && res.length > 0) this.patient = res[0];
+            else if (res && res.data) this.patient = Array.isArray(res.data) ? res.data[0] : res.data;
+            else if (res) this.patient = res;
+
             if (this.patient && (this.patient.noMr || this.patient.norm)) {
               this.fetchCpptList();
               this.fetchCurrentVisitCppt();
@@ -92,7 +97,8 @@ var CpptPoliComponent = (() => {
     }
 
     fetchCpptList() {
-      const noMr = this.patient.noMr || this.patient.norm;
+      const noMr = this.patient?.noMr || this.patient?.norm;
+      if (!noMr) return;
       this.http.get(i.apiUrl + "/simrsba/cppt-poli/list/" + noMr).subscribe({
         next: (res) => {
           if (res && res.data) {
@@ -109,6 +115,7 @@ var CpptPoliComponent = (() => {
     }
 
     fetchCurrentVisitCppt() {
+      if (!this.noCheckin) return;
       this.http.get(i.apiUrl + "/simrsba/pengkajian-awal-poli/" + this.noCheckin).subscribe({
         next: (res) => {
           if (res && res.data) {
@@ -129,8 +136,11 @@ var CpptPoliComponent = (() => {
                 this.formData.entries = res.data.entries;
               }
             }
+            this.renderView();
           },
-          error: () => {},
+          error: () => {
+            this.renderView();
+          },
         });
     }
 
@@ -427,11 +437,13 @@ var CpptPoliComponent = (() => {
             '<div class="col-md-4"><label class="f-label">Nama DPJP / Verifikator</label><input type="text" class="f-input form-data-input mb-1" style="font-size:12px;" data-idx="' + idx + '" data-field="verifikasi" value="' + (e.verifikasi || dpjp) + '" placeholder="Nama Verifikator / DPJP..." ' + (this.isReadOnly ? 'disabled' : '') + '></div>' +
             '<div class="col-md-8">' +
               '<div class="d-flex justify-content-between align-items-center mb-1">' +
-                '<label class="f-label mb-0">TTD & Paraf Signature Box</label>' +
-                (!this.isReadOnly ? '<button type="button" class="btn btn-sm btn-outline-secondary sig-clear-cppt-btn" data-idx="' + idx + '" style="font-size:10px; padding:1px 7px;"><i class="bi bi-eraser me-1"></i>Hapus TTD</button>' : '') +
+                '<label class="f-label mb-0"><i class="bi bi-pen me-1"></i>TTD & Paraf Signature Box</label>' +
+                (!this.isReadOnly ? '<div><button type="button" class="btn btn-sm btn-outline-primary sig-use-saved-cppt-btn me-1" data-idx="' + idx + '" style="font-size:10px; padding:1px 7px;"><i class="bi bi-person-check me-1"></i>Gunakan TTD Saya</button><button type="button" class="btn btn-sm btn-outline-secondary sig-clear-cppt-btn" data-idx="' + idx + '" style="font-size:10px; padding:1px 7px;"><i class="bi bi-eraser me-1"></i>Hapus TTD</button></div>' : '') +
               '</div>' +
-              '<div style="border:1px solid #ced4da; border-radius:6px; background:#fafafa; overflow:hidden;">' +
-                '<canvas id="sig-cppt-poli-' + idx + '" class="cppt-sig-canvas" data-idx="' + idx + '" width="600" height="180" style="display:block; width:100%; height:150px; cursor:crosshair; touch-action:none;"></canvas>' +
+              '<div style="border:1px solid #ced4da; border-radius:6px; background:#ffffff; overflow:hidden; position:relative;">' +
+                '<canvas id="sig-cppt-poli-' + idx + '" class="cppt-sig-canvas" data-idx="' + idx + '" width="600" height="180" style="display:block; width:100%; height:150px; cursor:crosshair; touch-action:none; position:relative; z-index:2; background:transparent;"></canvas>' +
+                '<div style="position:absolute; bottom:25px; left:20px; right:20px; border-bottom:1px dashed #cbd5e1; height:1px; pointer-events:none; z-index:1;"></div>' +
+                '<div style="position:absolute; bottom:6px; right:12px; font-size:10px; color:#94a3b8; pointer-events:none; z-index:1;"><i class="bi bi-pen me-1"></i>Tanda Tangan Di Sini</div>' +
               '</div>' +
             '</div>' +
           '</div>' +
@@ -546,7 +558,10 @@ var CpptPoliComponent = (() => {
         const ent = this.formData.entries[idx];
         if (ent.ttd) {
           const img = new Image();
-          img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          img.onload = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          };
           img.src = ent.ttd;
         }
         if (this.isReadOnly) return;
@@ -564,9 +579,10 @@ var CpptPoliComponent = (() => {
           if (!drawing) return;
           const [x, y] = getPos(ev);
           ctx.beginPath();
-          ctx.strokeStyle = "#000";
-          ctx.lineWidth = 2;
+          ctx.strokeStyle = "#000000";
+          ctx.lineWidth = 5;
           ctx.lineCap = "round";
+          ctx.lineJoin = "round";
           ctx.moveTo(lastX, lastY);
           ctx.lineTo(x, y);
           ctx.stroke();
@@ -585,6 +601,28 @@ var CpptPoliComponent = (() => {
         canvas.addEventListener("touchstart", (ev) => { ev.preventDefault(); startDraw(ev); }, { passive: false });
         canvas.addEventListener("touchmove", (ev) => { ev.preventDefault(); moveDraw(ev); }, { passive: false });
         canvas.addEventListener("touchend", stopDraw);
+      });
+
+      root.querySelectorAll(".sig-use-saved-cppt-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const idx = parseInt(btn.dataset.idx);
+          const canvas = root.querySelector("#sig-cppt-poli-" + idx);
+          if (canvas && !isNaN(idx) && this.formData.entries[idx]) {
+            const savedSig = localStorage.getItem("signatureImage") || localStorage.getItem("userSignature") || "";
+            if (!savedSig) {
+              alert("Belum ada TTD tersimpan di profil/browser Anda.");
+              return;
+            }
+            const ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const img = new Image();
+            img.onload = () => {
+              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+              this.formData.entries[idx].ttd = canvas.toDataURL();
+            };
+            img.src = savedSig;
+          }
+        });
       });
 
       root.querySelectorAll(".sig-clear-cppt-btn").forEach((btn) => {
@@ -623,7 +661,7 @@ var CpptPoliComponent = (() => {
             '<td style="white-space:pre-wrap; padding: 6px 6px;">' + soapText + '</td>' +
             '<td style="white-space:pre-wrap; padding: 6px 6px;">' + (e.instruksi || '') + '</td>' +
             '<td style="text-align:center; vertical-align:bottom; padding: 6px 4px;">' +
-                (e.ttd ? '<img src="' + e.ttd + '" style="max-height:50px; max-width:90%; display:block; margin:2px auto;">' : '') +
+                (e.ttd ? '<img src="' + e.ttd + '" style="max-height:60px; max-width:92%; object-fit:contain; display:block; margin:2px auto;">' : '') +
                 '<div style="font-weight:bold; font-size:10px;">' + (e.verifikasi || '') + '</div>' +
             '</td>' +
         '</tr>';
@@ -647,10 +685,10 @@ var CpptPoliComponent = (() => {
               '<table class="cppt-table" style="border:none; border-top:1px solid black; flex:1;">' +
                 '<colgroup>' +
                     '<col style="width:10%">' +
-                    '<col style="width:12%">' +
-                    '<col style="width:42%">' +
+                    '<col style="width:11%">' +
+                    '<col style="width:39%">' +
                     '<col style="width:22%">' +
-                    '<col style="width:14%">' +
+                    '<col style="width:18%">' +
                 '</colgroup>' +
                 '<thead>' +
                     '<tr>' +

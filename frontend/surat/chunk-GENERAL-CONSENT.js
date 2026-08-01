@@ -403,9 +403,10 @@ export var GeneralConsentComponent = (() => {
       const canvas = document.getElementById(id);
       if (!canvas) return;
       const ctx = canvas.getContext("2d");
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 1.8;
       ctx.lineCap = "round";
-      ctx.strokeStyle = "#000";
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = "#000000";
 
       if (this.formData[fieldKey]) {
         const img = new Image();

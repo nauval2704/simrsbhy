@@ -3,7 +3,7 @@ class SuratCanvas extends HTMLElement {
     super();
     this._mode = 'pen';
     this._color = '#000000';
-    this._width = 1.5;
+    this._width = 1.8;
     this.isDrawing = false;
     this._canvasDataUrl = null;
   }
@@ -72,7 +72,7 @@ ${printStyle}
     <button id="rp-back-btn" style="display:none;">Kembali</button>
     <div class="toolbar-sep"></div>
     <label>Tebal:</label>
-    <input type="range" id="rp-width" min="0.5" max="10" step="0.5" value="1.5" title="Ketebalan">
+    <input type="range" id="rp-width" min="0.5" max="10" step="0.1" value="1.8" title="Ketebalan Pen (0.5 mm)">
     <div class="toolbar-sep"></div>
     <button id="rp-eraser-btn">Hapus</button>
     <button id="rp-clear-btn">Clear</button>

@@ -3883,6 +3883,15 @@ module.exports = {
       return res.status(400).send({ status: 400, message: "Gagal mengambil data CPPT IGD", data: null });
     }
   },
+  listCpptIgd: async (req, res) => {
+    try {
+      const data = await CpptIgd.find({ noMr: req.params.noMr })
+        .sort({ tglInput: -1 });
+      return res.status(200).send({ status: 200, message: "Ok", data: data });
+    } catch (error) {
+      return res.status(400).send({ status: 400, message: "Gagal mengambil daftar CPPT IGD", data: null });
+    }
+  },
   saveCpptPoli: async (req, res) => {
     try {
       const payload = req.body;

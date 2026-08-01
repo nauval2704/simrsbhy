@@ -33,10 +33,7 @@ var CpptIgdComponent = (() => {
       };
 
       const pathParts = window.location.pathname.split("/");
-      this.noCheckin = pathParts[5] || pathParts[2];
-      if (!this.noCheckin && pathParts[pathParts.length - 1]) {
-        this.noCheckin = pathParts[pathParts.length - 1];
-      }
+      this.noCheckin = (pathParts[5] || pathParts[2] || pathParts[pathParts.length - 1] || '').split('?')[0].split('#')[0];
     }
 
     ngOnInit() {
@@ -67,6 +64,11 @@ var CpptIgdComponent = (() => {
     }
 
     fetchPatient() {
+      if (!this.noCheckin) {
+        this.loading = false;
+        this.renderView();
+        return;
+      }
       this.http
         .get(
           i.apiUrl +
@@ -75,7 +77,10 @@ var CpptIgdComponent = (() => {
         )
         .subscribe({
           next: (res) => {
-            if (res && res.length > 0) this.patient = res[0];
+            if (Array.isArray(res) && res.length > 0) this.patient = res[0];
+            else if (res && res.data) this.patient = Array.isArray(res.data) ? res.data[0] : res.data;
+            else if (res) this.patient = res;
+
             if (this.patient && (this.patient.noMr || this.patient.norm)) {
               this.fetchCpptList();
               this.fetchCurrentVisitCppt();
@@ -92,7 +97,8 @@ var CpptIgdComponent = (() => {
     }
 
     fetchCpptList() {
-      const noMr = this.patient.noMr || this.patient.norm;
+      const noMr = this.patient?.noMr || this.patient?.norm;
+      if (!noMr) return;
       this.http.get(i.apiUrl + "/simrsba/cppt-igd/list/" + noMr).subscribe({
         next: (res) => {
           if (res && res.data) {
@@ -109,6 +115,7 @@ var CpptIgdComponent = (() => {
     }
 
     fetchCurrentVisitCppt() {
+      if (!this.noCheckin) return;
       this.http
         .get(i.apiUrl + "/simrsba/cppt-igd/" + this.noCheckin)
         .subscribe({
@@ -121,9 +128,11 @@ var CpptIgdComponent = (() => {
               }
             }
             this.fetchTriaseData();
+            this.renderView();
           },
           error: () => {
             this.fetchTriaseData();
+            this.renderView();
           },
         });
     }
@@ -554,7 +563,10 @@ var CpptIgdComponent = (() => {
         const ent = this.formData.entries[idx];
         if (ent.ttd) {
           const img = new Image();
-          img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          img.onload = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          };
           img.src = ent.ttd;
         }
         if (this.isReadOnly) return;
@@ -572,9 +584,10 @@ var CpptIgdComponent = (() => {
           if (!drawing) return;
           const [x, y] = getPos(ev);
           ctx.beginPath();
-          ctx.strokeStyle = "#000";
-          ctx.lineWidth = 2;
+          ctx.strokeStyle = "#000000";
+          ctx.lineWidth = 5;
           ctx.lineCap = "round";
+          ctx.lineJoin = "round";
           ctx.moveTo(lastX, lastY);
           ctx.lineTo(x, y);
           ctx.stroke();
@@ -593,6 +606,28 @@ var CpptIgdComponent = (() => {
         canvas.addEventListener("touchstart", (ev) => { ev.preventDefault(); startDraw(ev); }, { passive: false });
         canvas.addEventListener("touchmove", (ev) => { ev.preventDefault(); moveDraw(ev); }, { passive: false });
         canvas.addEventListener("touchend", stopDraw);
+      });
+
+      root.querySelectorAll(".sig-use-saved-cppt-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const idx = parseInt(btn.dataset.idx);
+          const canvas = root.querySelector("#sig-cppt-" + idx);
+          if (canvas && !isNaN(idx) && this.formData.entries[idx]) {
+            const savedSig = localStorage.getItem("signatureImage") || localStorage.getItem("userSignature") || "";
+            if (!savedSig) {
+              alert("Belum ada TTD tersimpan di profil/browser Anda.");
+              return;
+            }
+            const ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const img = new Image();
+            img.onload = () => {
+              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+              this.formData.entries[idx].ttd = canvas.toDataURL();
+            };
+            img.src = savedSig;
+          }
+        });
       });
 
       root.querySelectorAll(".sig-clear-cppt-btn").forEach((btn) => {
@@ -631,7 +666,7 @@ var CpptIgdComponent = (() => {
             '<td style="white-space:pre-wrap; padding: 6px 6px;">' + soapText + '</td>' +
             '<td style="white-space:pre-wrap; padding: 6px 6px;">' + (e.instruksi || '') + '</td>' +
             '<td style="text-align:center; vertical-align:bottom; padding: 6px 4px;">' +
-                (e.ttd ? '<img src="' + e.ttd + '" style="max-height:50px; max-width:90%; display:block; margin:2px auto;">' : '') +
+                (e.ttd ? '<img src="' + e.ttd + '" style="max-height:60px; max-width:92%; object-fit:contain; display:block; margin:2px auto;">' : '') +
                 '<div style="font-weight:bold; font-size:10px;">' + (e.verifikasi || '') + '</div>' +
             '</td>' +
         '</tr>';
@@ -655,10 +690,10 @@ var CpptIgdComponent = (() => {
               '<table class="cppt-table" style="border:none; border-top:1px solid black; flex:1;">' +
                 '<colgroup>' +
                     '<col style="width:10%">' +
-                    '<col style="width:12%">' +
-                    '<col style="width:42%">' +
+                    '<col style="width:11%">' +
+                    '<col style="width:39%">' +
                     '<col style="width:22%">' +
-                    '<col style="width:14%">' +
+                    '<col style="width:18%">' +
                 '</colgroup>' +
                 '<thead>' +
                     '<tr>' +

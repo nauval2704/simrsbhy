@@ -191,7 +191,9 @@ var RadDetailComponent = (() => {
       if (!canvas) return null;
       const ctx = canvas.getContext('2d');
       ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 1.8;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
       let isDrawing = false;
 
       if (initialDataUrl) {
