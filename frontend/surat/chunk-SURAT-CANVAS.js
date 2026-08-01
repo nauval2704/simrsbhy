@@ -1,3 +1,5 @@
+import { showConfirmDialog } from "./chunk-SURAT-LAYOUT.js";
+
 class SuratCanvas extends HTMLElement {
   constructor() {
     super();
@@ -110,11 +112,12 @@ ${printStyle}
       }
     });
     this.querySelector('#rp-clear-btn').addEventListener('click', () => {
-      if (!confirm('Bersihkan seluruh coretan?')) return;
-      const canvases = Array.from(this.querySelectorAll('.surat-canvas'));
-      canvases.forEach((canvas) => {
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      showConfirmDialog('Bersihkan seluruh coretan?', () => {
+        const canvases = Array.from(this.querySelectorAll('.surat-canvas'));
+        canvases.forEach((canvas) => {
+          const ctx = canvas.getContext('2d');
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
       });
     });
     this.querySelector('#rp-zoom-in-btn').addEventListener('click', () => {

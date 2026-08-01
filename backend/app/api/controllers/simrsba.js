@@ -22,6 +22,8 @@ const PemberianObatIgd = require("../models/pemberianObatIgd");
 const PengkajianAwalPoli = require("../models/pengkajianAwalPoli");
 const PengkajianAwalIgd = require("../models/pengkajianAwalIgd");
 const PoliGigi = require("../models/poliGigi");
+const GeneralConsent = require("../models/generalConsent");
+const TataTertibRanap = require("../models/tataTertibRanap");
 var mongoose = require("mongoose");
 const { ObjectId } = mongoose.Types.ObjectId;
 
@@ -4052,6 +4054,48 @@ module.exports = {
       return res.status(200).send({ status: 200, message: "Hasil Radiologi berhasil disimpan", data: { checkin: saved } });
     } catch (error) {
       return res.status(400).send({ status: 400, message: "Gagal menyimpan hasil Radiologi", data: null });
+    }
+  },
+  saveGeneralConsent: async (req, res) => {
+    try {
+      const payload = req.body;
+      const saved = await GeneralConsent.findOneAndUpdate(
+        { noCheckin: payload.noCheckin },
+        payload,
+        { new: true, upsert: true }
+      );
+      return res.status(200).send({ status: 200, message: "General Consent berhasil disimpan", data: saved });
+    } catch (error) {
+      return res.status(400).send({ status: 400, message: "Gagal menyimpan General Consent", data: null });
+    }
+  },
+  getGeneralConsent: async (req, res) => {
+    try {
+      const data = await GeneralConsent.findOne({ noCheckin: req.params.noCheckin });
+      return res.status(200).send({ status: 200, message: "Ok", data: data });
+    } catch (error) {
+      return res.status(400).send({ status: 400, message: "Gagal mengambil data General Consent", data: null });
+    }
+  },
+  saveTataTertibRanap: async (req, res) => {
+    try {
+      const payload = req.body;
+      const saved = await TataTertibRanap.findOneAndUpdate(
+        { noCheckin: payload.noCheckin },
+        payload,
+        { new: true, upsert: true }
+      );
+      return res.status(200).send({ status: 200, message: "Tata Tertib Ranap berhasil disimpan", data: saved });
+    } catch (error) {
+      return res.status(400).send({ status: 400, message: "Gagal menyimpan Tata Tertib Ranap", data: null });
+    }
+  },
+  getTataTertibRanap: async (req, res) => {
+    try {
+      const data = await TataTertibRanap.findOne({ noCheckin: req.params.noCheckin });
+      return res.status(200).send({ status: 200, message: "Ok", data: data });
+    } catch (error) {
+      return res.status(400).send({ status: 400, message: "Gagal mengambil data Tata Tertib Ranap", data: null });
     }
   },
 };

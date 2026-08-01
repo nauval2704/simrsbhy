@@ -14,6 +14,17 @@
  *   showConfirmDialog(title, cb)  - SweetAlert2 confirmation dialog
  */
 
+function getOrCreateToastContainer() {
+  let container = document.getElementById("custom-surat-toast-container");
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "custom-surat-toast-container";
+    container.style.cssText = "position:fixed; top:20px; right:20px; z-index:999999; display:flex; flex-direction:column; gap:10px; pointer-events:none;";
+    document.body.appendChild(container);
+  }
+  return container;
+}
+
 export function showSuccessToast(title = 'Berhasil disimpan!') {
   if (typeof window !== 'undefined' && window.Swal) {
     window.Swal.fire({
@@ -22,12 +33,26 @@ export function showSuccessToast(title = 'Berhasil disimpan!') {
       toast: true,
       position: 'top-end',
       showConfirmButton: false,
-      timer: 2000,
+      timer: 2500,
       timerProgressBar: true
     });
-  } else {
-    alert(title);
+    return;
   }
+  const container = getOrCreateToastContainer();
+  const toast = document.createElement("div");
+  toast.className = "custom-surat-toast";
+  toast.style.cssText = "pointer-events:auto; background:#198754; color:#fff; padding:12px 20px; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,0.2); font-family:sans-serif; font-size:14px; font-weight:600; display:flex; align-items:center; gap:10px; transition:all 0.3s ease; transform:translateY(-10px); opacity:0;";
+  toast.innerHTML = `<i class="bi bi-check-circle-fill" style="font-size:18px;"></i><span>${title}</span>`;
+  container.appendChild(toast);
+  requestAnimationFrame(() => {
+    toast.style.transform = "translateY(0)";
+    toast.style.opacity = "1";
+  });
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transform = "translateY(-10px)";
+    setTimeout(() => toast.remove(), 300);
+  }, 2500);
 }
 
 export function showErrorAlert(title = 'Gagal menyimpan data!') {
@@ -38,9 +63,23 @@ export function showErrorAlert(title = 'Gagal menyimpan data!') {
       text: title,
       confirmButtonColor: '#dc3545'
     });
-  } else {
-    alert(title);
+    return;
   }
+  const container = getOrCreateToastContainer();
+  const toast = document.createElement("div");
+  toast.className = "custom-surat-toast";
+  toast.style.cssText = "pointer-events:auto; background:#dc3545; color:#fff; padding:12px 20px; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,0.2); font-family:sans-serif; font-size:14px; font-weight:600; display:flex; align-items:center; gap:10px; transition:all 0.3s ease; transform:translateY(-10px); opacity:0;";
+  toast.innerHTML = `<i class="bi bi-exclamation-triangle-fill" style="font-size:18px;"></i><span>${title}</span>`;
+  container.appendChild(toast);
+  requestAnimationFrame(() => {
+    toast.style.transform = "translateY(0)";
+    toast.style.opacity = "1";
+  });
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transform = "translateY(-10px)";
+    setTimeout(() => toast.remove(), 300);
+  }, 3500);
 }
 
 export function showConfirmDialog(title, callback) {
@@ -51,18 +90,33 @@ export function showConfirmDialog(title, callback) {
       showCancelButton: true,
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Ya, Hapus',
+      confirmButtonText: 'Ya, Lanjutkan',
       cancelButtonText: 'Batal'
     }).then((result) => {
       if (result.isConfirmed && typeof callback === 'function') {
         callback();
       }
     });
-  } else {
-    if (confirm(title)) {
-      if (typeof callback === 'function') callback();
-    }
+    return;
   }
+  const overlay = document.createElement("div");
+  overlay.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.4); z-index:999999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(2px);";
+  overlay.innerHTML = `
+    <div style="background:#fff; border-radius:12px; padding:24px; max-width:400px; width:90%; box-shadow:0 10px 25px rgba(0,0,0,0.2); text-align:center; font-family:sans-serif;">
+      <div style="font-size:36px; color:#ffc107; margin-bottom:12px;"><i class="bi bi-exclamation-circle"></i></div>
+      <div style="font-size:16px; font-weight:600; color:#212529; margin-bottom:20px;">${title}</div>
+      <div style="display:flex; justify-content:center; gap:12px;">
+        <button id="custom-confirm-btn-cancel" class="btn btn-secondary px-3">Batal</button>
+        <button id="custom-confirm-btn-ok" class="btn btn-danger px-3">Ya, Lanjutkan</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  overlay.querySelector("#custom-confirm-btn-cancel").onclick = () => overlay.remove();
+  overlay.querySelector("#custom-confirm-btn-ok").onclick = () => {
+    overlay.remove();
+    if (typeof callback === "function") callback();
+  };
 }
 
 export function getStandardGridCSS() {

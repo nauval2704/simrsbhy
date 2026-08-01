@@ -6,7 +6,7 @@ import {
   hc as _elementEnd,
   ra as inject,
 } from "../chunk-UYVTZL26.js";
-import { getStandardGridCSS, createSuratShell, createAutoPageSurat, bindSuratPrintButton, hospitalHeaderDiv } from "./chunk-SURAT-LAYOUT.js";
+import { getStandardGridCSS, createSuratShell, createAutoPageSurat, bindSuratPrintButton, hospitalHeaderDiv, showSuccessToast, showErrorAlert } from "./chunk-SURAT-LAYOUT.js";
 
 function renderTemplate(t, s) {
   if (t & 1) {
@@ -615,7 +615,7 @@ var CpptIgdComponent = (() => {
           if (canvas && !isNaN(idx) && this.formData.entries[idx]) {
             const savedSig = localStorage.getItem("signatureImage") || localStorage.getItem("userSignature") || "";
             if (!savedSig) {
-              alert("Belum ada TTD tersimpan di profil/browser Anda.");
+              showErrorAlert("Belum ada TTD tersimpan di profil/browser Anda.");
               return;
             }
             const ctx = canvas.getContext("2d");

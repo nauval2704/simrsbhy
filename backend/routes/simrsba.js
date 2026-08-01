@@ -203,4 +203,10 @@ router.get("/pengkajian-awal-igd/:noCheckin", simrsBaController.getPengkajianAwa
 router.post("/lab/save", simrsBaController.saveLab);
 router.post("/rad/save", simrsBaController.saveRad);
 
+router.post("/general-consent", simrsBaController.saveGeneralConsent);
+router.get("/general-consent/:noCheckin", simrsBaController.getGeneralConsent);
+
+router.post("/tata-tertib-ranap", simrsBaController.saveTataTertibRanap);
+router.get("/tata-tertib-ranap/:noCheckin", simrsBaController.getTataTertibRanap);
+
 module.exports = router;
