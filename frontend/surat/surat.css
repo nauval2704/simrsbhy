@@ -335,7 +335,6 @@
     margin: 0mm !important;
   }
 
-  /* ABSOLUTE HIDE FOR NON-PRINT UI ELEMENTS & INPUT PANES */
   app-header,
   app-footer,
   app-sidebar,
@@ -372,7 +371,6 @@
     left: -9999px !important;
   }
 
-  /* HIDE ALL INPUT CARDS, ALERTS, & NON-PRINT TAB PANES TO PREVENT PRECEDING BLANK/INPUT PAGES */
   .tab-pane:not(:has(.surat-document)):not(:has(.surat-document-landscape)),
   .card:not(:has(.surat-document)):not(:has(.surat-document-landscape)),
   .alert:not(:has(.surat-document)):not(:has(.surat-document-landscape)),
@@ -456,8 +454,6 @@
     box-sizing: border-box !important;
   }
 }
-
-/* TRIASE SPECIFIC CLASSES */
 .surat-label-row {
   display: flex;
   border-bottom: 1px solid #000;

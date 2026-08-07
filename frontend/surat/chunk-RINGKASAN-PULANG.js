@@ -104,7 +104,6 @@ var RingkasanPulangComponent = (() => {
               kk.kesadaran = `E${tr.gcsE || ''} V${tr.gcsV || ''} M${tr.gcsM || ''}`.trim();
             }
 
-            // Auto-inherit Dokter signature from Triase if blank:
             if (!this.formData.sigDokter && tr.canvasImage) {
               this.formData.sigDokter = tr.canvasImage;
             }
@@ -118,7 +117,6 @@ var RingkasanPulangComponent = (() => {
     }
 
     fetchPengkajianIfEmpty() {
-      // Auto-fill admission date/time from patient checkin if blank:
       if (this.patient && this.patient.tglMasuk) {
         const tmStr = String(this.patient.tglMasuk);
         const parts = tmStr.split(" ");
@@ -143,10 +141,16 @@ var RingkasanPulangComponent = (() => {
               this.formData.tglKeluarTime = pk.outPukul;
             }
           }
+          if (!this.formData.namaDokter && this.patient) {
+            this.formData.namaDokter = this.patient.dokterDpjp || this.patient.dpjp || this.patient.namaDokter || "";
+          }
           this.loading = false;
           this.renderUI();
         },
         error: () => {
+          if (!this.formData.namaDokter && this.patient) {
+            this.formData.namaDokter = this.patient.dokterDpjp || this.patient.dpjp || this.patient.namaDokter || "";
+          }
           this.loading = false;
           this.renderUI();
         }

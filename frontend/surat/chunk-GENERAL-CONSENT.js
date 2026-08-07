@@ -74,7 +74,6 @@ export var GeneralConsentComponent = (() => {
             if (res && res.length > 0) {
               this.patient = res[0];
             } else {
-              // Fallback for Poli/Inap search endpoint
               this.fetchPatientFallback();
             }
             this.fetchDraft();
@@ -231,11 +230,10 @@ export var GeneralConsentComponent = (() => {
         </div>
 
         <div class="accordion mb-3" id="accGeneralConsent">
-          <!-- 1. Identitas Wali / Penanggung Jawab -->
           <div class="accordion-item mb-2 border rounded">
             <h2 class="accordion-header" id="heading_gc_1">
               <button class="accordion-button py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_gc_1" aria-expanded="true">
-                <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-person-fill me-2 text-primary"></i> 1. Identitas Pasien / Wali Penanggung Jawab</span>
+                <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-person-fill me-2 text-secondary"></i> 1. Identitas Pasien / Wali Penanggung Jawab</span>
               </button>
             </h2>
             <div id="collapse_gc_1" class="accordion-collapse collapse show" data-bs-parent="#accGeneralConsent">
@@ -263,11 +261,10 @@ export var GeneralConsentComponent = (() => {
             </div>
           </div>
 
-          <!-- 2. Pre Admisi (Keyakinan & Budaya) -->
           <div class="accordion-item mb-2 border rounded">
             <h2 class="accordion-header" id="heading_gc_2">
               <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_gc_2">
-                <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-shield-check me-2 text-success"></i> 2. I. Pre Admisi (Keyakinan, Kepercayaan &amp; Budaya)</span>
+                <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-shield-check me-2 text-secondary"></i> 2. I. Pre Admisi (Keyakinan, Kepercayaan &amp; Budaya)</span>
               </button>
             </h2>
             <div id="collapse_gc_2" class="accordion-collapse collapse" data-bs-parent="#accGeneralConsent">
@@ -284,11 +281,10 @@ export var GeneralConsentComponent = (() => {
             </div>
           </div>
 
-          <!-- 3. Pelepasan Informasi & Privasi -->
           <div class="accordion-item mb-2 border rounded">
             <h2 class="accordion-header" id="heading_gc_3">
               <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_gc_3">
-                <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-lock me-2 text-info"></i> 3. III. Pelepasan Informasi &amp; Privasi Keluarga</span>
+                <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-lock me-2 text-secondary"></i> 3. III. Pelepasan Informasi &amp; Privasi Keluarga</span>
               </button>
             </h2>
             <div id="collapse_gc_3" class="accordion-collapse collapse" data-bs-parent="#accGeneralConsent">
@@ -322,11 +318,10 @@ export var GeneralConsentComponent = (() => {
             </div>
           </div>
 
-          <!-- 4. Verifikasi & Tanda Tangan -->
           <div class="accordion-item mb-2 border rounded">
             <h2 class="accordion-header" id="heading_gc_4">
               <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_gc_4">
-                <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-pencil-square me-2 text-danger"></i> 4. Verifikasi &amp; Tanda Tangan</span>
+                <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-pencil-square me-2 text-secondary"></i> 4. Verifikasi &amp; Tanda Tangan</span>
               </button>
             </h2>
             <div id="collapse_gc_4" class="accordion-collapse collapse" data-bs-parent="#accGeneralConsent">
@@ -487,7 +482,6 @@ export var GeneralConsentComponent = (() => {
         </table>
       `;
 
-      // Page 1 Body Content
       const page1Body = `
         <table class="pap-master-grid">
           <colgroup>
@@ -499,21 +493,18 @@ export var GeneralConsentComponent = (() => {
             <col style="width: 16.66%;">
           </colgroup>
           <tbody>
-            <!-- JUDUL FORMULIR -->
             <tr>
               <td colspan="6" style="background-color: #e0e0e0; text-align: center; font-weight: bold; font-size: 12px; padding: 6px;">
                 FORMULIR PERSETUJUAN UMUM (GENERAL CONSENT)<br>UNTUK MENERIMA PELAYANAN KESEHATAN
               </td>
             </tr>
 
-            <!-- INSTRUKSI PASIEN -->
             <tr>
               <td colspan="6" style="font-style: italic; text-align: center; background-color: #fafafa; font-size:11px;">
                 Pasien dan/atau Wali Harus Membaca, Memahami dan Mengisi Informasi Berikut:
               </td>
             </tr>
 
-            <!-- IDENTITAS PASIEN / WALI -->
             <tr>
               <td colspan="6">
                 Yang bertanda tangan dibawah ini:<br>
@@ -528,7 +519,6 @@ export var GeneralConsentComponent = (() => {
               </td>
             </tr>
 
-            <!-- SEKSI I: PRE ADMISI -->
             <tr>
               <td colspan="6">
                 <div style="font-weight:bold;text-transform:uppercase;margin-bottom:3px;">I. PRE ADMISI</div>
@@ -543,7 +533,6 @@ export var GeneralConsentComponent = (() => {
               </td>
             </tr>
 
-            <!-- SEKSI II: PERSETUJUAN PERAWATAN DAN PENGOBATAN -->
             <tr>
               <td colspan="6">
                 <div style="font-weight:bold;text-transform:uppercase;margin-bottom:3px;">II. PERSETUJUAN UNTUK PERAWATAN DAN PENGOBATAN</div>
@@ -556,7 +545,6 @@ export var GeneralConsentComponent = (() => {
               </td>
             </tr>
 
-            <!-- SEKSI III: PELEPASAN INFORMASI DAN PRIVASI -->
             <tr>
               <td colspan="6">
                 <div style="font-weight:bold;text-transform:uppercase;margin-bottom:3px;">III. PERSETUJUAN PELEPASAN INFORMASI DAN PRIVASI</div>
@@ -573,7 +561,6 @@ export var GeneralConsentComponent = (() => {
               </td>
             </tr>
 
-            <!-- SEKSI IV: INFORMASI RAWAT INAP -->
             <tr>
               <td colspan="6">
                 <div style="font-weight:bold;text-transform:uppercase;margin-bottom:3px;">IV. INFORMASI RAWAT INAP</div>
@@ -588,7 +575,6 @@ export var GeneralConsentComponent = (() => {
         </table>
       `;
 
-      // Page 2 Body Content
       const page2Body = `
         <table class="pap-master-grid">
           <colgroup>
@@ -600,7 +586,6 @@ export var GeneralConsentComponent = (() => {
             <col style="width: 16.66%;">
           </colgroup>
           <tbody>
-            <!-- SEKSI V: PENGAJUAN KELUHAN -->
             <tr>
               <td colspan="6">
                 <div style="font-weight:bold;text-transform:uppercase;margin-bottom:3px;">V. PENGAJUAN KELUHAN</div>
@@ -613,7 +598,6 @@ export var GeneralConsentComponent = (() => {
               </td>
             </tr>
 
-            <!-- SEKSI VI: INFORMASI BIAYA -->
             <tr>
               <td colspan="6">
                 <div style="font-weight:bold;text-transform:uppercase;margin-bottom:3px;">VI. INFORMASI BIAYA</div>
@@ -621,14 +605,12 @@ export var GeneralConsentComponent = (() => {
               </td>
             </tr>
 
-            <!-- HEADLINE BIAYA & TINDAKAN KEDOKTERAN -->
             <tr>
               <td colspan="6" style="background-color: #e0e0e0; text-align: center; font-weight: bold; font-size: 12px; padding: 6px;">
                 PERSETUJUAN UMUM UNTUK TINDAKAN KEDOKTERAN
               </td>
             </tr>
 
-            <!-- PERSAJAAN ASUHAN KESEHATAN & KEJADIAN TIDAK TERDUGA -->
             <tr>
               <td colspan="6">
                 <ol type="1" style="padding-left: 20px;">
@@ -648,14 +630,12 @@ export var GeneralConsentComponent = (() => {
               </td>
             </tr>
 
-            <!-- VERIFIKASI PERNYATAAN -->
             <tr>
               <td colspan="6" style="text-align: center; font-weight: bold; background-color: #fafafa; padding: 8px;">
                 SAYA TELAH DIJELASKAN, MEMBACA, MEMAHAMI, dan SEPENUHNYA SETUJU terhadap pernyataan tersebut diatas.
               </td>
             </tr>
 
-            <!-- TANDA TANGAN -->
             <tr>
               <td colspan="6" style="padding-top: 15px; padding-bottom: 15px;">
                 <table class="pap-inner-align">
@@ -690,7 +670,7 @@ export var GeneralConsentComponent = (() => {
 
       const pages = [
         { headerHtml: headerHtml, bodyHtml: page1Body },
-        { headerHtml: headerHtml, bodyHtml: page2Body }
+        { headerHtml: '', bodyHtml: page2Body }
       ];
 
       container.innerHTML = createMultiPageSurat(pages, 'RM01/Rev02/RSBHY/2026');

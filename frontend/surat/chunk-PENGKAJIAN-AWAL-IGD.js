@@ -64,8 +64,7 @@ var PengkajianAwalIgdComponent = (() => {
           }
           this.fetchTriaseIfEmpty();
         },
-        error: (err) => {
-          console.error("Error fetching draft", err);
+        error: () => {
           this.fetchTriaseIfEmpty();
         }
       });
@@ -84,7 +83,6 @@ var PengkajianAwalIgdComponent = (() => {
             if (!this.formData.gcsV && tr.gcsV) this.formData.gcsV = tr.gcsV;
             if (!this.formData.gcsM && tr.gcsM) this.formData.gcsM = tr.gcsM;
 
-            // Also peek into initial vitals for discharge vitals if blank:
             if (!this.formData.outTd && tr.td) this.formData.outTd = tr.td;
             if (!this.formData.outSuhu && tr.suhu) this.formData.outSuhu = tr.suhu;
             if (!this.formData.outNadi && tr.hr) this.formData.outNadi = tr.hr;
@@ -92,7 +90,6 @@ var PengkajianAwalIgdComponent = (() => {
               this.formData.outGcs = `E${tr.gcsE || ''} V${tr.gcsV || ''} M${tr.gcsM || ''}`.trim();
             }
 
-            // Auto-inherit Dokter and Perawat signatures from Triase if blank:
             if (!this.formData.sigDokter && tr.canvasImage) {
               this.formData.sigDokter = tr.canvasImage;
             }
@@ -100,12 +97,57 @@ var PengkajianAwalIgdComponent = (() => {
               this.formData.sigPerawat = tr.canvasImagePerawat;
             }
 
-            // Auto-fill admission date/time from patient checkin if blank:
             if (this.patient && this.patient.tglMasuk) {
               const tmStr = String(this.patient.tglMasuk);
               const parts = tmStr.split(" ");
               if (!this.formData.tglMasukDate && parts[0]) this.formData.tglMasukDate = parts[0];
               if (!this.formData.tglMasukTime && parts[1]) this.formData.tglMasukTime = parts[1].substring(0, 5);
+            }
+          }
+          if (!this.formData.namaDokter && this.patient) {
+            this.formData.namaDokter = this.patient.dokterDpjp || this.patient.dpjp || this.patient.namaDokter || "";
+          }
+          this.fetchRingkasanPulangIfEmpty();
+        },
+        error: () => {
+          if (!this.formData.namaDokter && this.patient) {
+            this.formData.namaDokter = this.patient.dokterDpjp || this.patient.dpjp || this.patient.namaDokter || "";
+          }
+          this.fetchRingkasanPulangIfEmpty();
+        }
+      });
+    }
+
+    fetchRingkasanPulangIfEmpty() {
+      this.http.get(i.apiUrl + "/simrsba/ringkasan-pulang/" + this.noCheckin).subscribe({
+        next: (res) => {
+          if (res && res.data) {
+            const rp = res.data;
+            if (!this.formData.keluhanUtama && rp.indikasiMasuk) {
+              this.formData.keluhanUtama = rp.indikasiMasuk;
+            }
+            if (!this.formData.riwayatPenyakitSekarang && rp.keluhanUtama) {
+              this.formData.riwayatPenyakitSekarang = rp.keluhanUtama;
+            }
+            if (!this.formData.pemeriksaanFisik && rp.pemeriksaanFisik) {
+              this.formData.pemeriksaanFisik = rp.pemeriksaanFisik;
+            }
+            const kuVal = (rp.alasanTidakDirawat && rp.alasanTidakDirawat.keadaanUmum) || (rp.kondisiKeluar && rp.kondisiKeluar.ku) || "";
+            if (!this.formData.ku && kuVal) {
+              this.formData.ku = kuVal;
+            }
+            if (!this.formData.outKu && kuVal) {
+              this.formData.outKu = kuVal;
+            }
+            const kesadaranVal = rp.kondisiKeluar && rp.kondisiKeluar.kesadaran;
+            if (!this.formData.outKesadaran && kesadaranVal) {
+              this.formData.outKesadaran = kesadaranVal;
+            }
+            if (!this.formData.diagnosisKerja && rp.diagnosisKerja) {
+              this.formData.diagnosisKerja = rp.diagnosisKerja;
+            }
+            if (!this.formData.terapi && rp.tindakanTerapi) {
+              this.formData.terapi = rp.tindakanTerapi;
             }
           }
           this.loading = false;
@@ -194,7 +236,6 @@ var PengkajianAwalIgdComponent = (() => {
 
       <div class="accordion mb-3" id="accordionIgd">
 
-        <!-- Section 1 -->
         <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_sec_1">
             <button class="accordion-button py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_sec_1" aria-expanded="true" aria-controls="collapse_sec_1">
@@ -219,7 +260,6 @@ var PengkajianAwalIgdComponent = (() => {
           </div>
         </div>
 
-        <!-- Section 2 -->
         <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_sec_2">
             <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_sec_2" aria-expanded="false" aria-controls="collapse_sec_2">
@@ -242,8 +282,8 @@ var PengkajianAwalIgdComponent = (() => {
                 <div class="col-md-6"><div class="f-group"><label class="f-label">Pemeriksaan Fisik (Positif)</label><textarea class="f-input form-data-input" data-field="fisik" rows="2">${getVal('fisik')}</textarea></div></div>
                 <div class="col-12 mt-2">
                   <label class="f-label mb-1 fw-bold">Penandaan Anatomi Tubuh (Pemeriksaan Fisik)</label>
-                  <div style="position:relative; width:360px; height:180px; border:1px solid #ccc; border-radius:6px; background:#fff; overflow:hidden; margin:0 auto;">
-                    <canvas id="canvas-anatomi-input" width="360" height="180" style="display:block; cursor:crosshair; touch-action:none;"></canvas>
+                  <div style="position:relative; width:600px; height:300px; border:1px solid #ccc; border-radius:6px; background:#fff; overflow:hidden; margin:0 auto;">
+                    <canvas id="canvas-anatomi-input" width="600" height="300" style="display:block; cursor:crosshair; touch-action:none;"></canvas>
                     <button type="button" class="btn btn-sm btn-outline-danger" id="btn-clear-anatomi" style="position:absolute; top:5px; right:5px; font-size:10px; padding:2px 6px;">Hapus Coretan</button>
                   </div>
                 </div>
@@ -258,7 +298,6 @@ var PengkajianAwalIgdComponent = (() => {
           </div>
         </div>
 
-        <!-- Section 3 -->
         <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_sec_3">
             <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_sec_3" aria-expanded="false" aria-controls="collapse_sec_3">
@@ -274,21 +313,23 @@ var PengkajianAwalIgdComponent = (() => {
                 <div class="col-md-3"><div class="f-group"><label class="f-label">Pemeriksaan Penunjang</label><input type="text" class="f-input form-data-input" data-field="penunjang" value="${getVal('penunjang')}"></div></div>
                 <div class="col-12"><hr class="my-1"></div>
                 <div class="col-md-6">
-                  <span class="fw-bold small text-secondary">Skrining Gizi Anak</span>
-                  <div class="f-group mt-1"><label class="f-label">Tampak Kurus?</label><label class="f-radio-label"><input type="radio" name="giziA1" class="form-data-input" data-field="giziA1" value="1" ${getVal('giziA1') === '1' ? 'checked' : ''}> Ya (1)</label><label class="f-radio-label"><input type="radio" name="giziA1" class="form-data-input" data-field="giziA1" value="0" ${getVal('giziA1') === '0' ? 'checked' : ''}> Tidak (0)</label></div>
-                  <div class="f-group"><label class="f-label">Penurunan BB 1 bulan terakhir?</label><label class="f-radio-label"><input type="radio" name="giziA2" class="form-data-input" data-field="giziA2" value="2" ${getVal('giziA2') === '2' ? 'checked' : ''}> Ya (2)</label><label class="f-radio-label"><input type="radio" name="giziA2" class="form-data-input" data-field="giziA2" value="0" ${getVal('giziA2') === '0' ? 'checked' : ''}> Tidak (0)</label></div>
+                  <span class="fw-bold small text-secondary">Skrining Gizi Anak (1 bln - 18 thn)</span>
+                  <div class="f-group mt-1"><label class="f-label">1. Tampak Kurus?</label><label class="f-radio-label"><input type="radio" name="giziA1" class="form-data-input" data-field="giziA1" value="1" ${getVal('giziA1') === '1' ? 'checked' : ''}> Ya (1)</label><label class="f-radio-label"><input type="radio" name="giziA1" class="form-data-input" data-field="giziA1" value="0" ${getVal('giziA1') === '0' ? 'checked' : ''}> Tidak (0)</label></div>
+                  <div class="f-group"><label class="f-label">2. Penurunan BB 1 bulan terakhir?</label><label class="f-radio-label"><input type="radio" name="giziA2" class="form-data-input" data-field="giziA2" value="2" ${getVal('giziA2') === '2' ? 'checked' : ''}> Ya (2)</label><label class="f-radio-label"><input type="radio" name="giziA2" class="form-data-input" data-field="giziA2" value="0" ${getVal('giziA2') === '0' ? 'checked' : ''}> Tidak (0)</label></div>
+                  <div class="f-group"><label class="f-label">3. Diare >5x/hari atau asupan berkurang?</label><label class="f-radio-label"><input type="radio" name="giziA3" class="form-data-input" data-field="giziA3" value="1" ${getVal('giziA3') === '1' ? 'checked' : ''}> Ya (1)</label><label class="f-radio-label"><input type="radio" name="giziA3" class="form-data-input" data-field="giziA3" value="0" ${getVal('giziA3') === '0' ? 'checked' : ''}> Tidak (0)</label></div>
+                  <div class="f-group"><label class="f-label">4. Ada penyakit berisiko malnutrisi?</label><label class="f-radio-label"><input type="radio" name="giziA4" class="form-data-input" data-field="giziA4" value="2" ${getVal('giziA4') === '2' ? 'checked' : ''}> Ya (2)</label><label class="f-radio-label"><input type="radio" name="giziA4" class="form-data-input" data-field="giziA4" value="0" ${getVal('giziA4') === '0' ? 'checked' : ''}> Tidak (0)</label></div>
+                  <div class="f-group mt-1"><label class="f-label">Detail Penyakit Berisiko Malnutrisi</label><input type="text" class="f-input form-data-input" data-field="giziA4Detail" value="${getVal('giziA4Detail')}" placeholder="Diare kronis, HIV, PJB, dll"></div>
                 </div>
                 <div class="col-md-6">
                   <span class="fw-bold small text-secondary">Skrining Gizi Dewasa</span>
-                  <div class="f-group mt-1"><label class="f-label">Penurunan BB tidak diinginkan?</label><label class="f-radio-label"><input type="radio" name="giziD1" class="form-data-input" data-field="giziD1" value="2" ${getVal('giziD1') === '2' ? 'checked' : ''}> Ya (2)</label><label class="f-radio-label"><input type="radio" name="giziD1" class="form-data-input" data-field="giziD1" value="0" ${getVal('giziD1') === '0' ? 'checked' : ''}> Tidak (0)</label></div>
-                  <div class="f-group"><label class="f-label">Asupan makan berkurang?</label><label class="f-radio-label"><input type="radio" name="giziD2" class="form-data-input" data-field="giziD2" value="1" ${getVal('giziD2') === '1' ? 'checked' : ''}> Ya (1)</label><label class="f-radio-label"><input type="radio" name="giziD2" class="form-data-input" data-field="giziD2" value="0" ${getVal('giziD2') === '0' ? 'checked' : ''}> Tidak (0)</label></div>
+                  <div class="f-group mt-1"><label class="f-label">1. Penurunan BB tidak diinginkan (6 bln)?</label><label class="f-radio-label"><input type="radio" name="giziD1" class="form-data-input" data-field="giziD1" value="2" ${getVal('giziD1') === '2' ? 'checked' : ''}> Ya (2)</label><label class="f-radio-label"><input type="radio" name="giziD1" class="form-data-input" data-field="giziD1" value="0" ${getVal('giziD1') === '0' ? 'checked' : ''}> Tidak (0)</label></div>
+                  <div class="f-group"><label class="f-label">2. Asupan makan berkurang?</label><label class="f-radio-label"><input type="radio" name="giziD2" class="form-data-input" data-field="giziD2" value="1" ${getVal('giziD2') === '1' ? 'checked' : ''}> Ya (1)</label><label class="f-radio-label"><input type="radio" name="giziD2" class="form-data-input" data-field="giziD2" value="0" ${getVal('giziD2') === '0' ? 'checked' : ''}> Tidak (0)</label></div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Section 4 -->
         <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_sec_4">
             <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_sec_4" aria-expanded="false" aria-controls="collapse_sec_4">
@@ -305,8 +346,9 @@ var PengkajianAwalIgdComponent = (() => {
                 <div class="col-12"><hr class="my-1"></div>
                 <div class="col-md-3"><div class="f-group"><label class="f-label">Tindak Lanjut</label><select class="f-input form-data-input" data-field="tl"><option value="" ${getVal('tl') === '' ? 'selected' : ''}>-Pilih-</option><option value="APS" ${getVal('tl') === 'APS' ? 'selected' : ''}>APS</option><option value="Pulang" ${getVal('tl') === 'Pulang' ? 'selected' : ''}>Pulang</option><option value="Dirujuk" ${getVal('tl') === 'Dirujuk' ? 'selected' : ''}>Dirujuk</option><option value="Meninggal" ${getVal('tl') === 'Meninggal' ? 'selected' : ''}>Meninggal</option><option value="Rawat Inap" ${getVal('tl') === 'Rawat Inap' ? 'selected' : ''}>Rawat Inap</option></select></div></div>
                 <div class="col-md-3"><div class="f-group"><label class="f-label">Detail TL (Alasan/Jam/Ke)</label><input type="text" class="f-input form-data-input" data-field="tlDetail" value="${getVal('tlDetail')}"></div></div>
-                <div class="col-md-3"><div class="f-group"><label class="f-label">Indikasi Inap (Preventif/dll)</label><input type="text" class="f-input form-data-input" data-field="inapIndikasi" value="${getVal('inapIndikasi')}"></div></div>
-                <div class="col-md-3"><div class="f-group"><label class="f-label">Rencana Asuhan</label><input type="text" class="f-input form-data-input" data-field="rencanaAsuhan" value="${getVal('rencanaAsuhan')}"></div></div>
+                <div class="col-md-2"><div class="f-group"><label class="f-label">Indikasi Rawat Inap</label><select class="f-input form-data-input" data-field="inapIndikasi"><option value="" ${getVal('inapIndikasi') === '' ? 'selected' : ''}>-Pilih-</option><option value="preventif" ${getVal('inapIndikasi') === 'preventif' ? 'selected' : ''}>Preventif</option><option value="rehabilitatif" ${getVal('inapIndikasi') === 'rehabilitatif' ? 'selected' : ''}>Rehabilitatif</option><option value="paliatif" ${getVal('inapIndikasi') === 'paliatif' ? 'selected' : ''}>Paliatif</option><option value="kuratif" ${getVal('inapIndikasi') === 'kuratif' ? 'selected' : ''}>Kuratif</option></select></div></div>
+                <div class="col-md-2"><div class="f-group"><label class="f-label">Rencana Asuhan</label><input type="text" class="f-input form-data-input" data-field="rencanaAsuhan" value="${getVal('rencanaAsuhan')}"></div></div>
+                <div class="col-md-2"><div class="f-group"><label class="f-label">Hasil yang Diharapkan</label><input type="text" class="f-input form-data-input" data-field="hasilDiharapkan" value="${getVal('hasilDiharapkan')}"></div></div>
               </div>
 
               <div class="border rounded p-3 bg-light mb-3">
@@ -319,10 +361,12 @@ var PengkajianAwalIgdComponent = (() => {
                   <div class="col-md-3"><div class="f-group"><label class="f-label">Pukul</label><input type="time" class="f-input form-data-input" data-field="outPukul" value="${getVal('outPukul')}"></div></div>
                   <div class="col-md-3"><div class="f-group"><label class="f-label">Keadaan Umum</label><input type="text" class="f-input form-data-input" data-field="outKu" value="${getVal('outKu')}" placeholder="${getVal('ku') || 'Baik'}"></div></div>
                   <div class="col-md-3"><div class="f-group"><label class="f-label">Kesadaran</label><input type="text" class="f-input form-data-input" data-field="outKesadaran" value="${getVal('outKesadaran')}" placeholder="Compos Mentis"></div></div>
-                  <div class="col-md-3"><div class="f-group"><label class="f-label">GCS</label><input type="text" class="f-input form-data-input" data-field="outGcs" value="${getVal('outGcs')}" placeholder="${(getVal('gcsE') || getVal('gcsM') || getVal('gcsV')) ? `E${getVal('gcsE')} M${getVal('gcsM')} V${getVal('gcsV')}` : '15'}"></div></div>
-                  <div class="col-md-3"><div class="f-group"><label class="f-label">Tekanan Darah</label><input type="text" class="f-input form-data-input" data-field="outTd" value="${getVal('outTd')}" placeholder="Awal: ${getVal('td') || '120/80'}"></div></div>
-                  <div class="col-md-3"><div class="f-group"><label class="f-label">Frekuensi Nadi</label><input type="text" class="f-input form-data-input" data-field="outNadi" value="${getVal('outNadi')}" placeholder="Awal: ${getVal('nadi') || '80'}"></div></div>
-                  <div class="col-md-3"><div class="f-group"><label class="f-label">Suhu (°C)</label><input type="text" class="f-input form-data-input" data-field="outSuhu" value="${getVal('outSuhu')}" placeholder="Awal: ${getVal('suhu') || '36.5'}"></div></div>
+                  <div class="col-md-2"><div class="f-group"><label class="f-label">GCS</label><input type="text" class="f-input form-data-input" data-field="outGcs" value="${getVal('outGcs')}" placeholder="${(getVal('gcsE') || getVal('gcsM') || getVal('gcsV')) ? `E${getVal('gcsE')} M${getVal('gcsM')} V${getVal('gcsV')}` : '15'}"></div></div>
+                  <div class="col-md-2"><div class="f-group"><label class="f-label">Tekanan Darah</label><input type="text" class="f-input form-data-input" data-field="outTd" value="${getVal('outTd')}" placeholder="Awal: ${getVal('td') || '120/80'}"></div></div>
+                  <div class="col-md-2"><div class="f-group"><label class="f-label">Frekuensi Tanda Vital</label><input type="text" class="f-input form-data-input" data-field="outFreqTv" value="${getVal('outFreqTv')}" placeholder="Frekuensi TV"></div></div>
+                  <div class="col-md-2"><div class="f-group"><label class="f-label">Suhu (°C)</label><input type="text" class="f-input form-data-input" data-field="outSuhu" value="${getVal('outSuhu')}" placeholder="Awal: ${getVal('suhu') || '36.5'}"></div></div>
+                  <div class="col-md-2"><div class="f-group"><label class="f-label">Frekuensi Nadi</label><input type="text" class="f-input form-data-input" data-field="outNadi" value="${getVal('outNadi')}" placeholder="Awal: ${getVal('nadi') || '80'}"></div></div>
+                  <div class="col-md-2"><div class="f-group"><label class="f-label">Nafas (x/Menit)</label><input type="text" class="f-input form-data-input" data-field="outNafas" value="${getVal('outNafas')}" placeholder="Awal: ${getVal('rr') || '20'}"></div></div>
                 </div>
               </div>
 
@@ -581,13 +625,10 @@ var PengkajianAwalIgdComponent = (() => {
       const giziATotal = (parseInt(fd.giziA1) || 0) + (parseInt(fd.giziA2) || 0) + (parseInt(fd.giziA3) || 0) + (parseInt(fd.giziA4) || 0);
       const giziDTotal = (parseInt(fd.giziD1) || 0) + (parseInt(fd.giziD2) || 0);
 
-      // Helper: checkbox square, filled if field === val
       const sq = (field, val) => `<span class="t-sq ${cb(field, val)}"></span>`;
 
       const page1Html = `
         <div class="t-border" style="border-top:none;">
-
-          <!-- ROW 1: Tanggal / Jam / Asal Pasien -->
           <div class="t-row" style="flex-shrink:0;">
             <div class="t-col" style="flex:2; padding:4px 6px;">Tanggal : ${getVal('tglMasukDate') || new Date().toISOString().split('T')[0]}</div>
             <div class="t-col" style="flex:1; padding:4px 6px;">Jam : ${getVal('tglMasukTime') || new Date().toTimeString().slice(0,5)}</div>
@@ -601,8 +642,6 @@ var PengkajianAwalIgdComponent = (() => {
               </div>
             </div>
           </div>
-
-          <!-- ROW 2: Keluhan Utama & Riwayat Pengobatan -->
           <div class="t-row" style="flex-shrink:0;">
             <div class="t-col t-f1" style="min-height:65px; padding:4px 6px;">
               <strong>KELUHAN UTAMA: (Auto/Allo Anamnesis)</strong>
@@ -620,26 +659,20 @@ var PengkajianAwalIgdComponent = (() => {
               </div>
             </div>
           </div>
-
-          <!-- ROW 3: Riwayat Penyakit Sekarang -->
           <div class="t-row" style="flex-shrink:0;">
-            <div class="t-col t-f1" style="min-height:65px; padding:4px 6px;">
+            <div class="t-col t-f1" style="min-height:95px; padding:4px 6px;">
               <strong>RIWAYAT PENYAKIT SEKARANG</strong>
               <div style="white-space:pre-wrap; margin-top:2px;">${getVal('riwayatPenyakitSekarang')}</div>
             </div>
           </div>
-
-          <!-- ROW 4: Riwayat Penyakit Dahulu -->
           <div class="t-row" style="flex-shrink:0;">
             <div class="t-col t-f1" style="min-height:60px; padding:4px 6px;">
               <strong>RIWAYAT PENYAKIT DAHULU</strong>
               <div style="white-space:pre-wrap; margin-top:2px;">${getVal('riwayatPenyakitDahulu')}</div>
             </div>
           </div>
-
-          <!-- ROW 5: Tanda Vital & Psikosial -->
           <div class="t-row" style="flex-shrink:0;">
-            <div class="t-col t-f1" style="min-height:95px; padding:4px 6px;">
+            <div class="t-col t-f1" style="min-height:90px; padding:4px 6px;">
               <strong>TANDA-TANDA VITAL (*perawat)</strong>
               <div style="display:flex; margin-top:2px;"><div style="width:90px;">Keadaan Umum</div><div style="width:8px;">:</div><div>${getVal('ku') || '..................'}</div></div>
               <div style="display:grid; grid-template-columns:1fr 1fr; margin-top:2px; row-gap:2px;">
@@ -656,32 +689,28 @@ var PengkajianAwalIgdComponent = (() => {
               <div style="white-space:pre-wrap; margin-top:2px;">${getVal('psikososial')}</div>
             </div>
           </div>
-
-          <!-- ROW 6: Riwayat Reproduksi Wanita -->
           <div class="t-row" style="flex-shrink:0;">
             <div class="t-col t-f1" style="padding:4px 6px;">
               <strong>RIWAYAT REPRODUKSI WANITA (*perawat)</strong><br>
-              Haid terakhir : ${getVal('haid') || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}
+              Haid terakhir : ${getVal('haid') || '...................................................'}
               &nbsp; Hamil : ${sq('hamil','Tidak')} Tidak, &nbsp; ${sq('hamil','Ya')} Ya, Umur Kehamilan : ${getVal('umurHamil') || '..........'}Minggu<br>
               <div style="padding-left:370px; margin-top:1px;">G ${getVal('g') || '.......'} P ${getVal('p') || '.......'} A ${getVal('a') || '.......'}</div>
             </div>
           </div>
-
-          <!-- ROW 7: Pemeriksaan Fisik & Anatomi Image -->
-          <div class="t-row" style="flex-shrink:0; min-height:165px;">
-            <div class="t-col t-f1" style="display:flex; flex-direction:row; gap:10px; padding:4px 6px;">
-              <div style="flex:2;">
+          <div class="t-row" style="flex-shrink:0; min-height:350px;">
+            <div class="t-col t-f1" style="display:flex; flex-direction:column; padding:4px 6px; position:relative;">
+              <div style="flex-shrink:0; margin-bottom:2px;">
                 <strong>PEMERIKSAAN FISIK :</strong><br>
-                Keterangan: (Tulis yang positif)<br>
-                <div style="white-space:pre-wrap; margin-top:4px;">${getVal('fisik')}</div>
+                <span style="font-size:10px; font-weight:normal;">Keterangan: (Tulis yang positif)</span>
               </div>
-              <div style="flex:1; display:flex; align-items:center; justify-content:center;">
-                <img src="${getVal('canvasAnatomi') || 'assets/img/anatomi (front &amp; back).jpg'}" style="max-height:145px; max-width:100%; object-fit:contain;" alt="Anatomi">
+              <div style="display:flex; flex:1; flex-direction:row; gap:10px;">
+                <div style="flex:1.2; white-space:pre-wrap; font-size:10px; line-height:1.3; margin-top:2px;">${getVal('fisik')}</div>
+                <div style="flex:1; display:flex; justify-content:flex-end; align-items:flex-end; padding-bottom:2px;">
+                  <img src="${getVal('canvasAnatomi') || 'assets/img/anatomi (front &amp; back).jpg'}" style="max-height:330px; max-width:100%; object-fit:contain; display:block;" alt="Anatomi">
+                </div>
               </div>
             </div>
           </div>
-
-          <!-- ROW 8: Status Fungsional -->
           <div class="t-row" style="flex-shrink:0;">
             <div class="t-col" style="flex:2; text-align:center; padding:5px 6px;">
               <strong>STATUS FUNGSIONAL</strong><br>(*perawat)
@@ -692,15 +721,13 @@ var PengkajianAwalIgdComponent = (() => {
               <div>${sq('fungsional','Ketergantungan Total')} Ketergantungan Total</div>
             </div>
           </div>
-
-          <!-- ROW 9: Skrining Nyeri & Penunjang -->
-          <div class="t-row" style="flex-shrink:0; min-height:90px;">
+          <div class="t-row" style="flex-shrink:0; min-height:125px;">
             <div class="t-col t-f1" style="padding:4px 6px;">
               <strong>SKRINING NYERI : (*diisi oleh perawat)</strong><br>
               <div style="display:flex; align-items:center; margin-top:4px;">
                 <div style="flex:2; text-align:center;">
-                  <div style="font-weight:bold; font-size:9px !important; margin-bottom:2px;">PAIN MEASUREMENT SCALE</div>
-                  <img src="assets/img/pain measurement.png" style="max-width:100%; max-height:48px; object-fit:contain;" alt="Skala Nyeri">
+                  <div style="font-weight:bold; font-size:10px !important; margin-bottom:2px;">PAIN MEASUREMENT SCALE</div>
+                  <img src="assets/img/pain measurement.png" style="max-width:100%; max-height:75px; object-fit:contain;" alt="Skala Nyeri">
                 </div>
                 <div style="flex:1; padding-left:10px;">
                   Skala nyeri: <span style="font-size:18px !important; color:red; font-weight:bold;">${getVal('nyeri')}</span>
@@ -712,192 +739,231 @@ var PengkajianAwalIgdComponent = (() => {
               <div style="white-space:pre-wrap; margin-top:2px;">${getVal('penunjang')}</div>
             </div>
           </div>
-
-          <!-- ROW 10: Diagnosis Kerja & Skrining Jatuh (Moved up to Page 1) -->
-          <div class="t-row" style="flex-shrink:0;">
-            <div class="t-col t-f1" style="min-height:55px; padding:4px 6px;">
-              <strong>DIAGNOSIS KERJA :</strong>
-              <div style="white-space:pre-wrap; margin-top:2px;">${getVal('diagnosisKerja')}</div>
-            </div>
-            <div class="t-col t-f1" style="padding:4px 6px;">
-              <strong>SKRINING JATUH : (*perawat)</strong><br>
-              <div style="margin-top:2px; line-height:1.7;">
-                ${sq('jatuh','Tidak Berisiko')} Tidak Berisiko &emsp;
-                ${sq('jatuh','Risiko Rendah')} Risiko Rendah &emsp;
-                ${sq('jatuh','Risiko Tinggi')} Risiko Tinggi
-              </div>
-            </div>
+          <div class="t-row" style="flex-shrink:0; padding:0;">
+            <table style="width:100%; border-collapse:collapse; font-size:11px !important;">
+              <colgroup>
+                <col style="width:36%;">
+                <col style="width:7%;">
+                <col style="width:7%;">
+                <col style="width:36%;">
+                <col style="width:7%;">
+                <col style="width:7%;">
+              </colgroup>
+              <tr style="background-color:#f2f2f2; font-weight:bold;">
+                <td colspan="3" style="padding:4px 6px; border-bottom:1px solid black; border-right:2px solid black;">SKRINING GIZI ANAK (usia 1 bulan-18 tahun) (*perawat)</td>
+                <td colspan="3" style="padding:4px 6px; border-bottom:1px solid black;">SKRINING GIZI DEWASA (*perawat)</td>
+              </tr>
+              <tr style="background-color:#f9f9f9; font-weight:bold; text-align:center;">
+                <th rowspan="2" style="padding:4px 6px; border-bottom:1px solid black; border-right:1px solid black; text-align:left; vertical-align:middle;">PARAMETER</th>
+                <th colspan="2" style="padding:2px; border-bottom:1px solid black; border-right:2px solid black;">SKOR</th>
+                <th rowspan="2" style="padding:4px 6px; border-bottom:1px solid black; border-right:1px solid black; text-align:left; vertical-align:middle;">PARAMETER</th>
+                <th colspan="2" style="padding:2px; border-bottom:1px solid black;">SKOR</th>
+              </tr>
+              <tr style="background-color:#f9f9f9; text-align:center;">
+                <th style="padding:2px; border-bottom:1px solid black; border-right:1px solid black; width:7%;">Ya</th>
+                <th style="padding:2px; border-bottom:1px solid black; border-right:2px solid black; width:7%;">Tidak</th>
+                <th style="padding:2px; border-bottom:1px solid black; border-right:1px solid black; width:7%;">Ya</th>
+                <th style="padding:2px; border-bottom:1px solid black; width:7%;">Tidak</th>
+              </tr>
+              <tr>
+                <td style="padding:4px 6px; border-bottom:1px solid black; border-right:1px solid black; vertical-align:top;">1. &nbsp; Apakah pasien tampak kurus</td>
+                <td style="padding:4px; border-bottom:1px solid black; border-right:1px solid black; text-align:center; vertical-align:middle;">${sq('giziA1','1')} 1</td>
+                <td style="padding:4px; border-bottom:1px solid black; border-right:2px solid black; text-align:center; vertical-align:middle;">${sq('giziA1','0')} 0</td>
+                <td style="border-bottom:1px solid black; border-right:1px solid black;"></td>
+                <td style="border-bottom:1px solid black; border-right:1px solid black;"></td>
+                <td style="border-bottom:1px solid black;"></td>
+              </tr>
+              <tr>
+                <td style="padding:4px 6px; border-right:1px solid black; vertical-align:top;">2. &nbsp; Apakah terdapat penurunan BB selama satu bulan<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;terakhir?</td>
+                <td style="padding:4px; border-right:1px solid black; text-align:center; vertical-align:middle;">${sq('giziA2','2')} 2</td>
+                <td style="padding:4px; border-right:2px solid black; text-align:center; vertical-align:middle;">${sq('giziA2','0')} 0</td>
+                <td style="border-right:1px solid black;"></td>
+                <td style="border-right:1px solid black;"></td>
+                <td></td>
+              </tr>
+            </table>
           </div>
-
-          <!-- ROW 11: Permasalahan Medis (Moved up to Page 1) -->
-          <div class="t-row" style="flex-shrink:0;">
-            <div class="t-col t-f1" style="min-height:55px; padding:4px 6px;">
-              <strong>PERMASALAHAN MEDIS/INDIKASI RAWAT :</strong>
-              <div style="white-space:pre-wrap; margin-top:2px;">${getVal('permasalahanMedis')}</div>
-            </div>
-          </div>
-
-          <!-- ROW 12: Diagnosa Keperawatan (Moved up to Page 1) -->
-          <div class="t-row" style="flex-shrink:0;">
-            <div class="t-col t-f1" style="min-height:55px; padding:4px 6px;">
-              <strong>DIAGNOSA KEPERAWATAN : (*perawat)</strong>
-              <div style="white-space:pre-wrap; margin-top:2px;">${getVal('diagnosaKeperawatan')}</div>
-            </div>
-          </div>
-
         </div>
       `;
 
       const page2Html = `
         <div class="t-border" style="border-top:2px solid black;">
-
-          <!-- ROW 1: Skrining Gizi – single unified table -->
           <div class="t-row" style="flex-shrink:0; padding:0;">
             <table style="width:100%; border-collapse:collapse; font-size:11px !important;">
               <colgroup>
-                <col style="width:38%;">
-                <col style="width:6%;">
-                <col style="width:6%;">
-                <col style="width:38%;">
-                <col style="width:6%;">
-                <col style="width:6%;">
+                <col style="width:36%;">
+                <col style="width:7%;">
+                <col style="width:7%;">
+                <col style="width:36%;">
+                <col style="width:7%;">
+                <col style="width:7%;">
               </colgroup>
-              <!-- Section headers -->
-              <tr style="background-color:#f2f2f2; font-weight:bold;">
-                <td colspan="3" style="padding:4px 6px; border-bottom:1px solid black; border-right:2px solid black;">SKRINING GIZI ANAK (usia 1 bulan - 18 tahun) (*perawat)</td>
-                <td colspan="3" style="padding:4px 6px; border-bottom:1px solid black;">SKRINING GIZI DEWASA (*perawat)</td>
-              </tr>
-              <!-- Column headers -->
-              <tr style="background-color:#f9f9f9; font-weight:bold; text-align:center;">
-                <th style="padding:4px 6px; border-bottom:1px solid black; border-right:1px solid black; text-align:left;">PARAMETER</th>
-                <th style="padding:4px; border-bottom:1px solid black; border-right:1px solid black;">Ya</th>
-                <th style="padding:4px; border-bottom:1px solid black; border-right:2px solid black;">Tidak</th>
-                <th style="padding:4px 6px; border-bottom:1px solid black; border-right:1px solid black; text-align:left;">PARAMETER</th>
-                <th style="padding:4px; border-bottom:1px solid black; border-right:1px solid black;">Ya</th>
-                <th style="padding:4px; border-bottom:1px solid black;">Tidak</th>
-              </tr>
-              <!-- Row 1: Anak Q1 | Dewasa Q1 -->
               <tr>
-                <td style="padding:4px 6px; border-bottom:1px solid black; border-right:1px solid black; vertical-align:top;">1. Apakah pasien tampak kurus?</td>
-                <td style="padding:4px; border-bottom:1px solid black; border-right:1px solid black; text-align:center; vertical-align:middle;">${sq('giziA1','1')} 1</td>
-                <td style="padding:4px; border-bottom:1px solid black; border-right:2px solid black; text-align:center; vertical-align:middle;">${sq('giziA1','0')} 0</td>
-                <td style="padding:4px 6px; border-bottom:1px solid black; border-right:1px solid black; vertical-align:top;">1. Apakah pasien mengalami penurunan berat badan<br>&nbsp;&nbsp;&nbsp;tidak direncanakan/diinginkan 6 bulan terakhir?</td>
+                <td style="padding:4px 6px; border-bottom:1px solid black; border-right:1px solid black; vertical-align:top;">
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Berdasarkan penilaian obyektif data BB bila ada atau<br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;penilaian subyektif orang tua pasien<br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Untuk bayi kurang 1 tahun BB tidak naik selama 3<br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bulan terakhir
+                </td>
+                <td style="padding:4px; border-bottom:1px solid black; border-right:1px solid black; text-align:center; vertical-align:middle;"></td>
+                <td style="padding:4px; border-bottom:1px solid black; border-right:2px solid black; text-align:center; vertical-align:middle;"></td>
+                <td style="padding:4px 6px; border-bottom:1px solid black; border-right:1px solid black; vertical-align:top;">
+                  1. &nbsp; Apakah pasien mengalami penurunan<br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;berat badan yang tidak direncanakan /<br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tidak diinginkan dalam 6 bulan<br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;terakhir
+                </td>
                 <td style="padding:4px; border-bottom:1px solid black; border-right:1px solid black; text-align:center; vertical-align:middle;">${sq('giziD1','2')} 2</td>
                 <td style="padding:4px; border-bottom:1px solid black; text-align:center; vertical-align:middle;">${sq('giziD1','0')} 0</td>
               </tr>
-              <!-- Row 2: Anak Q2 | Dewasa Q2 -->
               <tr>
-                <td style="padding:4px 6px; border-bottom:1px solid black; border-right:1px solid black; vertical-align:top;">2. Apakah terdapat penurunan BB selama 1 bulan terakhir?<br>&nbsp;&nbsp;&nbsp;- Berdasarkan penilaian obyektif/subyektif orang tua<br>&nbsp;&nbsp;&nbsp;- Bayi &lt;1 thn BB tidak naik 3 bln terakhir</td>
-                <td style="padding:4px; border-bottom:1px solid black; border-right:1px solid black; text-align:center; vertical-align:middle;">${sq('giziA2','2')} 2</td>
-                <td style="padding:4px; border-bottom:1px solid black; border-right:2px solid black; text-align:center; vertical-align:middle;">${sq('giziA2','0')} 0</td>
-                <td style="padding:4px 6px; border-bottom:1px solid black; border-right:1px solid black; vertical-align:top;">2. Apakah asupan makan pasien berkurang karena<br>&nbsp;&nbsp;&nbsp;penurunan nafsu makan / kesulitan menerima makanan?</td>
+                <td style="padding:4px 6px; border-bottom:1px solid black; border-right:1px solid black; vertical-align:top;">
+                  3. &nbsp; Apakah terdapat salah satu dari kondisi berikut?<br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Diare lebih 5 kali perhari dalam seminggu terakhir<br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Asupan makanan berkurang selama 1 minggu<br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;terakhir
+                </td>
+                <td style="padding:4px; border-bottom:1px solid black; border-right:1px solid black; text-align:center; vertical-align:middle;">${sq('giziA3','1')} 1</td>
+                <td style="padding:4px; border-bottom:1px solid black; border-right:2px solid black; text-align:center; vertical-align:middle;">${sq('giziA3','0')} 0</td>
+                <td style="padding:4px 6px; border-bottom:1px solid black; border-right:1px solid black; vertical-align:top;">
+                  2. &nbsp; Apakah asupan makan pasien<br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;berkurang karena penurunan nafsu<br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;makan / kesulitan menerima<br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;makanan?
+                </td>
                 <td style="padding:4px; border-bottom:1px solid black; border-right:1px solid black; text-align:center; vertical-align:middle;">${sq('giziD2','1')} 1</td>
                 <td style="padding:4px; border-bottom:1px solid black; text-align:center; vertical-align:middle;">${sq('giziD2','0')} 0</td>
               </tr>
-              <!-- Row 3: Anak Q3 | Dewasa empty (rowspan 2) -->
               <tr>
-                <td style="padding:4px 6px; border-bottom:1px solid black; border-right:1px solid black; vertical-align:top;">3. Apakah terdapat salah satu kondisi berikut?<br>&nbsp;&nbsp;&nbsp;- Diare &gt;5x/hari atau asupan makanan berkurang 1 mgg</td>
-                <td style="padding:4px; border-bottom:1px solid black; border-right:1px solid black; text-align:center; vertical-align:middle;">${sq('giziA3','1')} 1</td>
-                <td style="padding:4px; border-bottom:1px solid black; border-right:2px solid black; text-align:center; vertical-align:middle;">${sq('giziA3','0')} 0</td>
-                <td rowspan="2" style="border-bottom:1px solid black; border-right:1px solid black;"></td>
-                <td rowspan="2" style="border-bottom:1px solid black; border-right:1px solid black;"></td>
-                <td rowspan="2" style="border-bottom:1px solid black;"></td>
-              </tr>
-              <!-- Row 4: Anak Q4 | Dewasa empty (continued rowspan) -->
-              <tr>
-                <td style="padding:4px 6px; border-bottom:1px solid black; border-right:1px solid black; vertical-align:top;">4. Apakah terdapat penyakit/keadaan berisiko malnutrisi?<br>&nbsp;&nbsp;&nbsp;(diare kronis, HIV, PJB, ginjal, stoma, dll)</td>
+                <td style="padding:4px 6px; border-bottom:1px solid black; border-right:1px solid black; vertical-align:top;">
+                  4. &nbsp; Apakah terdapat penyakit atau keadaan<br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;yang menyebabkan pasien berisiko mengalami<br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;malnutrisi? (penyakit diare kronis, HIV, PJB, hepatum,<br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ginjal, stoma, dan lain-lain<br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sebutkan ${getVal('giziA4Detail') || '.......................................................................'})
+                </td>
                 <td style="padding:4px; border-bottom:1px solid black; border-right:1px solid black; text-align:center; vertical-align:middle;">${sq('giziA4','2')} 2</td>
                 <td style="padding:4px; border-bottom:1px solid black; border-right:2px solid black; text-align:center; vertical-align:middle;">${sq('giziA4','0')} 0</td>
+                <td style="border-bottom:1px solid black; border-right:1px solid black;"></td>
+                <td style="border-bottom:1px solid black; border-right:1px solid black;"></td>
+                <td style="border-bottom:1px solid black;"></td>
               </tr>
-              <!-- TOTAL SKOR: single shared row perfectly aligned -->
-              <tr style="background-color:#f9f9f9; font-weight:bold; text-align:center;">
-                <td style="padding:5px 6px; border-right:1px solid black;">TOTAL SKOR</td>
-                <td colspan="2" style="padding:5px; border-right:2px solid black; font-size:13px !important;">${giziATotal}</td>
-                <td style="padding:5px 6px; border-right:1px solid black;">TOTAL SKOR</td>
-                <td colspan="2" style="padding:5px; font-size:13px !important;">${giziDTotal}</td>
+              <tr style="text-align:center; background-color:#f9f9f9; font-weight:bold;">
+                <td style="padding:4px 6px; border-bottom:1px solid black; border-right:1px solid black;">TOTAL SKOR</td>
+                <td colspan="2" style="padding:4px; border-bottom:1px solid black; border-right:2px solid black; font-size:12px !important;">${giziATotal}</td>
+                <td style="padding:4px 6px; border-bottom:1px solid black; border-right:1px solid black;">TOTAL SKOR</td>
+                <td colspan="2" style="padding:4px; border-bottom:1px solid black; font-size:12px !important;">${giziDTotal}</td>
               </tr>
             </table>
           </div>
-
-          <!-- ROW 3: Terapi dan Tindakan -->
           <div class="t-row" style="flex-shrink:0;">
-            <div class="t-col t-f1" style="min-height:95px; padding:5px 6px;">
+            <div class="t-col t-f1" style="height:60px; padding:4px 6px;">
+              <strong>DIAGNOSIS KERJA :</strong>
+              <div style="white-space:pre-wrap; margin-top:2px;">${getVal('diagnosisKerja')}</div>
+            </div>
+            <div class="t-col t-f1" style="padding:4px 6px;">
+              <strong>SKRINING JATUH : (*perawat)</strong><br>
+              <div style="margin-top:2px; line-height:1.6;">
+                ${sq('jatuh','Tidak Berisiko')} Tidak Berisiko<br>
+                ${sq('jatuh','Risiko Rendah')} Risiko Rendah<br>
+                ${sq('jatuh','Risiko Tinggi')} Risiko Tinggi
+              </div>
+            </div>
+          </div>
+          <div class="t-row" style="flex-shrink:0;">
+            <div class="t-col t-f1" style="height:60px; padding:4px 6px;">
+              <strong>PERMASALAHAN MEDIS/INDIKASI RAWAT :</strong>
+              <div style="white-space:pre-wrap; margin-top:2px;">${getVal('permasalahanMedis')}</div>
+            </div>
+          </div>
+          <div class="t-row" style="flex-shrink:0;">
+            <div class="t-col t-f1" style="height:60px; padding:4px 6px;">
+              <strong>DIAGNOSA KEPERAWATAN : (*perawat)</strong>
+              <div style="white-space:pre-wrap; margin-top:2px;">${getVal('diagnosaKeperawatan')}</div>
+            </div>
+          </div>
+          <div class="t-row" style="flex-shrink:0;">
+            <div class="t-col t-f1" style="height:140px; padding:4px 6px;">
               <strong>TERAPI DAN TINDAKAN</strong>
-              <div style="white-space:pre-wrap; margin-top:3px;">${getVal('terapi')}</div>
+              <div style="white-space:pre-wrap; margin-top:2px;">${getVal('terapi')}</div>
             </div>
           </div>
-
-          <!-- ROW 4: Tindak Lanjut -->
           <div class="t-row" style="flex-shrink:0;">
-            <div class="t-col t-f1" style="min-height:140px; padding:5px 6px;">
+            <div class="t-col t-f1" style="height:170px; padding:4px 6px;">
               <strong>TINDAK LANJUT :</strong><br>
-              <div style="margin-top:3px; line-height:1.6;">
+              <div style="margin-top:2px; line-height:1.5;">
                 ${sq('tl','APS')} Pulang Atas Permintaan Sendiri atau menolak rawat inap.<br>
-                <div style="padding-left:20px;">Alasan menolak rawat inap ........................................................................................................................................</div>
+                &nbsp;&nbsp;&nbsp; Alasan menolak rawat inap : ${getVal('tl') === 'APS' ? getVal('tlDetail') : '.......................................................................................................................................'}<br>
                 ${sq('tl','Pulang')} Pulang Atas persetujuan, pada jam: ${getVal('tl') === 'Pulang' ? getVal('tlDetail') : '.........................................................................................................................'}<br>
-                ${sq('tl','Kontrol')} Kontrol tanggal: ..........................................................................................  Ke: .....................................................<br>
-                ${sq('tl','Dirujuk')} Dirujuk ke ...................................................................................................&nbsp;&nbsp;&nbsp;&nbsp; ${sq('tl','Meninggal')} Meninggal<br>
+                ${sq('tl','Kontrol')} Kontrol tanggal: ${getVal('tl') === 'Kontrol' ? getVal('tlDetail') : '..........................................................................................'} Ke: .....................................................<br>
+                ${sq('tl','Dirujuk')} Dirujuk ke ${getVal('tl') === 'Dirujuk' ? getVal('tlDetail') : '....................................................................................................'} &nbsp;&nbsp;&nbsp;&nbsp; ${sq('tl','Meninggal')} Meninggal<br>
                 ${sq('tl','Rawat Inap')} Rawat Inap, Indikasi :<br>
-                <div style="display:grid; grid-template-columns:1fr 1fr; width:300px; margin-left:15px; row-gap:1px;">
-                  <div>${sq('','')}&nbsp;preventif</div><div>${sq('','')}&nbsp;rehabilitatif</div>
-                  <div>${sq('','')}&nbsp;paliatif</div><div>${sq('','')}&nbsp;kuratif</div>
-                </div>
-                ${sq('','')}&nbsp;Rencana asuhan yang akan diberikan:.....................................................................................................................<br>
-                <div style="padding-left:20px;">Hasil yang diharapkan..............................................................................................................................................</div>
+                <table class="inner-align" style="margin-left:15px; width:300px;">
+                  <tr>
+                    <td>${sq('inapIndikasi','preventif')} preventif</td>
+                    <td>${sq('inapIndikasi','rehabilitatif')} rehabilitatif</td>
+                  </tr>
+                  <tr>
+                    <td>${sq('inapIndikasi','paliatif')} paliatif</td>
+                    <td>${sq('inapIndikasi','kuratif')} kuratif</td>
+                  </tr>
+                </table>
+                ${sq('','')}&nbsp;Rencana asuhan yang akan diberikan: ${getVal('rencanaAsuhan') || '.....................................................................................................................'}<br>
+                &nbsp;&nbsp;&nbsp; Hasil yang diharapkan : ${getVal('hasilDiharapkan') || '..............................................................................................................................................'}
               </div>
             </div>
           </div>
-
-          <!-- ROW 5: Kondisi Saat Keluar IGD -->
-          <div class="t-level" style="padding:5px 6px;">KONDISI SAAT KELUAR IGD (*perawat)</div>
-
+          <div class="t-row" style="background-color:#f2f2f2; font-weight:bold; flex-shrink:0;">
+            <div class="t-col t-f1" style="padding:4px 6px;">
+              KONDISI SAAT KELUAR IGD (*perawat)
+            </div>
+          </div>
           <div class="t-row" style="flex-shrink:0;">
-            <div class="t-col t-f1" style="padding:5px 6px;">
-              <div style="display:flex; line-height:1.7;"><div style="width:110px;">Keadaan Umum</div><div style="width:10px;">:</div><div>${getVal('outKu')}</div></div>
-              <div style="display:flex; line-height:1.7;"><div style="width:110px;">Kesadaran</div><div style="width:10px;">:</div><div>${getVal('outKesadaran')}</div></div>
-              <div style="display:flex; line-height:1.7;"><div style="width:110px;">GCS</div><div style="width:10px;">:</div><div>${getVal('outGcs')}</div></div>
-              <div style="display:flex; line-height:1.7;"><div style="width:110px;">Tekanan Darah</div><div style="width:10px;">:</div><div>${getVal('outTd') || '........................'} mmHg</div></div>
+            <div class="t-col t-f1" style="padding:4px 6px;">
+              <table class="inner-align" style="line-height:1.6;">
+                <tr><td style="width:100px;">Keadaan Umum</td><td style="width:10px;">:</td><td>${getVal('outKu')}</td></tr>
+                <tr><td>Kesadaran</td><td>:</td><td>${getVal('outKesadaran')}</td></tr>
+                <tr><td>GCS</td><td>:</td><td>${getVal('outGcs')}</td></tr>
+                <tr><td>Tekanan Darah</td><td>:</td><td>${getVal('outTd') ? getVal('outTd') + ' mmHg' : '........................ mmHg'}</td></tr>
+              </table>
             </div>
-            <div class="t-col t-f1" style="padding:5px 6px;">
-              <div style="display:flex; line-height:1.7;"><div style="width:140px;">Frekuensi Tanda Vital</div><div style="width:10px;">:</div><div>${getVal('outNadi') || '........................'} mmHg</div></div>
-              <div style="display:flex; line-height:1.7;"><div style="width:140px;">Suhu</div><div style="width:10px;">:</div><div>${getVal('outSuhu') || '........................'} &deg;C</div></div>
-              <div style="display:flex; line-height:1.7;"><div style="width:140px;">Nadi</div><div style="width:10px;">:</div><div>${getVal('outNadi') || '........................'} x/Menit</div></div>
-              <div style="display:flex; line-height:1.7;"><div style="width:140px;">Nafas</div><div style="width:10px;">:</div><div>${getVal('outNafas') || '........................'} x/Menit</div></div>
-            </div>
-          </div>
-
-          <!-- Dedicated Tgl & Pukul Row -->
-          <div class="t-row" style="flex-shrink:0; border-bottom:none; padding:4px 10px 0 0; justify-content:flex-end;">
-            <div style="font-size:11px !important; text-align:right;">
-              Tgl : ${getVal('outTgl') || '.................'} &nbsp;&nbsp;&nbsp;&nbsp; Pukul : ${getVal('outPukul') || '...............'}
+            <div class="t-col t-f1" style="padding:4px 6px;">
+              <table class="inner-align" style="line-height:1.6;">
+                <tr><td style="width:140px;">Frekuensi Tanda Vital</td><td style="width:10px;">:</td><td>${getVal('outFreqTv') || '........................ mmHg'}</td></tr>
+                <tr><td>Suhu</td><td>:</td><td>${getVal('outSuhu') ? getVal('outSuhu') + ' &deg;C' : '........................ &deg;C'}</td></tr>
+                <tr><td>Nadi</td><td>:</td><td>${getVal('outNadi') ? getVal('outNadi') + ' x/Menit' : '........................ x/Menit'}</td></tr>
+                <tr><td>Nafas</td><td>:</td><td>${getVal('outNafas') ? getVal('outNafas') + ' x/Menit' : '........................'}</td></tr>
+              </table>
             </div>
           </div>
-
-          <!-- ROW 6: Signatures -->
-          <div class="t-row" style="flex-shrink:0; height:135px;">
-            <div class="t-col t-f1" style="text-align:center; display:flex; flex-direction:column; justify-content:space-between; padding:4px 10px 6px; border-right:none;">
-              <div>Keluarga Pasien</div>
-              <div style="height:50px; display:flex; align-items:center; justify-content:center;">
-                ${getVal('sigKeluarga') ? `<img src="${getVal('sigKeluarga')}" style="max-height:45px; max-width:100%; object-fit:contain;">` : ''}
-              </div>
-              <div>( &nbsp;${getVal('namaKeluarga') || '........................................'}&nbsp; )</div>
+          <div class="t-row" style="flex-shrink:0; height:160px; border-bottom:none; position:relative;">
+            <div style="position:absolute; right:15px; top:8px; font-size:11px;">
+              Tgl. ${getVal('outTgl') || '........ me............'} Pukul: ${getVal('outPukul') || '...............'}
             </div>
-            <div class="t-col t-f1" style="text-align:center; display:flex; flex-direction:column; justify-content:space-between; padding:4px 10px 6px; border-right:none;">
-              <div>Perawat/Bidan</div>
-              <div style="height:50px; display:flex; align-items:center; justify-content:center;">
-                ${getVal('sigPerawat') ? `<img src="${getVal('sigPerawat')}" style="max-height:45px; max-width:100%; object-fit:contain;">` : ''}
-              </div>
-              <div>( &nbsp;${getVal('namaPerawat') || '........................................'}&nbsp; )</div>
-            </div>
-            <div class="t-col t-f1" style="text-align:center; display:flex; flex-direction:column; justify-content:space-between; padding:4px 10px 6px; border-right:none;">
-              <div>Dokter</div>
-              <div style="height:50px; display:flex; align-items:center; justify-content:center;">
-                ${getVal('sigDokter') ? `<img src="${getVal('sigDokter')}" style="max-height:45px; max-width:100%; object-fit:contain;">` : ''}
-              </div>
-              <div>( &nbsp;${getVal('namaDokter') || '........................................'}&nbsp; )</div>
-            </div>
+            <table class="inner-align" style="margin-top:25px; text-align:center; width:100%;">
+              <tr>
+                <td style="width:33%;">Keluarga Pasien</td>
+                <td style="width:34%;">Perawat/Bidan</td>
+                <td style="width:33%;">Dokter</td>
+              </tr>
+              <tr>
+                <td style="padding-top:10px; height:70px; vertical-align:middle;">
+                  ${getVal('sigKeluarga') ? `<img src="${getVal('sigKeluarga')}" style="max-height:60px; max-width:90%; object-fit:contain;">` : ''}
+                </td>
+                <td style="padding-top:10px; height:70px; vertical-align:middle;">
+                  ${getVal('sigPerawat') ? `<img src="${getVal('sigPerawat')}" style="max-height:60px; max-width:90%; object-fit:contain;">` : ''}
+                </td>
+                <td style="padding-top:10px; height:70px; vertical-align:middle;">
+                  ${getVal('sigDokter') ? `<img src="${getVal('sigDokter')}" style="max-height:60px; max-width:90%; object-fit:contain;">` : ''}
+                </td>
+              </tr>
+              <tr>
+                <td>( ${getVal('namaKeluarga') || '........................................'} )</td>
+                <td>( ${getVal('namaPerawat') || '........................................'} )</td>
+                <td>( ${getVal('namaDokter') || '........................................'} )</td>
+              </tr>
+            </table>
           </div>
-
         </div>
       `;
 
@@ -907,6 +973,7 @@ var PengkajianAwalIgdComponent = (() => {
           bodyHtml: page1Html
         },
         {
+          headerHtml: '',
           bodyHtml: page2Html
         }
       ], 'RM04/Rev02/RSBHY/2022');

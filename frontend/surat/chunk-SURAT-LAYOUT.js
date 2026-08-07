@@ -1,19 +1,3 @@
-/**
- * chunk-SURAT-LAYOUT.js
- * Shared layout helper for all surat documents (IGD + POLI).
- *
- * Exports:
- *   createSuratShell(cfg)         - Tab shell with fixed @media print CSS
- *   bindSuratPrintButton(root)    - Bind the Cetak button inside the shell
- *   getStandardGridCSS()          - Shared CSS for pap-master-grid table layout
- *   suratDocumentWrapper(html)    - surat-document page div wrapper
- *   hospitalHeaderTableRow(...)   - Hospital header as a pap-master-grid <tr>
- *   signatureFooterRows(opts)     - Signature block rows (Pasien, Perawat, Dokter)
- *   showSuccessToast(title)       - SweetAlert2 top-end success toast
- *   showErrorAlert(title)         - SweetAlert2 error modal
- *   showConfirmDialog(title, cb)  - SweetAlert2 confirmation dialog
- */
-
 function getOrCreateToastContainer() {
   let container = document.getElementById("custom-surat-toast-container");
   if (!container) {
@@ -121,7 +105,7 @@ export function showConfirmDialog(title, callback) {
 
 export function getStandardGridCSS() {
   return `
-.pap-page{box-sizing:border-box !important;width:100% !important;height:100% !important;padding:6mm !important;position:relative;display:flex;flex-direction:column;margin:0 auto !important;}
+.pap-page{box-sizing:border-box !important;width:100% !important;height:100% !important;padding:0 !important;position:relative;display:flex;flex-direction:column;margin:0 auto !important;}
 .pap-master-grid{width:100% !important;margin:0 auto !important;border-collapse:collapse;font-size:11px;border:1px solid black;table-layout:fixed;font-family:'Times New Roman',Times,serif;box-sizing:border-box !important;}
 .pap-master-grid>tbody>tr>td{border:1px solid black;padding:5px 7px;vertical-align:top;line-height:1.4;}
 .pap-inner-align{width:100%;border-collapse:collapse;}
@@ -427,7 +411,7 @@ export function createAutoPageSurat({ headerHtml = '', bodyHtml = '', footerHtml
           <tr>
             <td>
               ${footerHtml}
-              <div style="height:30px;"></div> <!-- Spacer for absolute footer label -->
+              <div style="height:30px;"></div>
             </td>
           </tr>
         </tfoot>

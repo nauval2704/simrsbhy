@@ -70,12 +70,52 @@ var PengkajianAwalPoliComponent = (() => {
             if (!this.draftData.dokter && this.patient) {
               this.draftData.dokter = this.patient.dokterDpjp || this.patient.dpjp || this.patient.namaDokter || "";
             }
-            this.renderView();
+            this.fetchRingkasanPulangIfEmpty();
           },
           error: () => {
-            this.renderView();
+            this.fetchRingkasanPulangIfEmpty();
           },
         });
+    }
+
+    fetchRingkasanPulangIfEmpty() {
+      this.http.get(i.apiUrl + "/simrsba/ringkasan-pulang/" + this.noCheckin).subscribe({
+        next: (res) => {
+          if (res && res.data) {
+            const rp = res.data;
+            if (!this.draftData.keluhanUtama && rp.indikasiMasuk) {
+              this.draftData.keluhanUtama = rp.indikasiMasuk;
+            }
+            if (!this.draftData.riwayatPenyakitSekarang && rp.keluhanUtama) {
+              this.draftData.riwayatPenyakitSekarang = rp.keluhanUtama;
+            }
+            if (!this.draftData.pemeriksaanFisik && rp.pemeriksaanFisik) {
+              this.draftData.pemeriksaanFisik = rp.pemeriksaanFisik;
+            }
+            const kuVal = (rp.alasanTidakDirawat && rp.alasanTidakDirawat.keadaanUmum) || (rp.kondisiKeluar && rp.kondisiKeluar.ku) || "";
+            if (!this.draftData.ku && kuVal) {
+              this.draftData.ku = kuVal;
+            }
+            if (!this.draftData.kondisiKUKeluar && kuVal) {
+              this.draftData.kondisiKUKeluar = kuVal;
+            }
+            const kesadaranVal = rp.kondisiKeluar && rp.kondisiKeluar.kesadaran;
+            if (!this.draftData.kondisiKesadaran && kesadaranVal) {
+              this.draftData.kondisiKesadaran = kesadaranVal;
+            }
+            if (!this.draftData.diagnosisKerja && rp.diagnosisKerja) {
+              this.draftData.diagnosisKerja = rp.diagnosisKerja;
+            }
+            if (!this.draftData.terapiTindakan && rp.tindakanTerapi) {
+              this.draftData.terapiTindakan = rp.tindakanTerapi;
+            }
+          }
+          this.renderView();
+        },
+        error: () => {
+          this.renderView();
+        }
+      });
     }
 
     handleSubmit() {
@@ -532,7 +572,6 @@ var PengkajianAwalPoliComponent = (() => {
 
       <div class="accordion mb-3" id="accordionPoli">
 
-        <!-- Section 1 -->
         <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_sec_1">
             <button class="accordion-button py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_sec_1" aria-expanded="true" aria-controls="collapse_sec_1">
@@ -598,7 +637,6 @@ var PengkajianAwalPoliComponent = (() => {
               </div>
             </div>
 
-            <!-- Section 2 -->
         <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_sec_2">
             <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_sec_2" aria-expanded="false" aria-controls="collapse_sec_2">
@@ -644,7 +682,6 @@ var PengkajianAwalPoliComponent = (() => {
               </div>
             </div>
 
-            <!-- Section 3 -->
         <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_sec_3">
             <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_sec_3" aria-expanded="false" aria-controls="collapse_sec_3">
@@ -720,7 +757,6 @@ var PengkajianAwalPoliComponent = (() => {
               </div>
             </div>
 
-            <!-- Section 4 -->
         <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_sec_4">
             <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_sec_4" aria-expanded="false" aria-controls="collapse_sec_4">
@@ -745,7 +781,7 @@ var PengkajianAwalPoliComponent = (() => {
                     <div class="col-12">
                       <label class="f-label">Penandaan Anatomi Tubuh (Coret / Tandai pada Gambar)</label>
                       <div class="border rounded p-2 text-center bg-light">
-                        <canvas id="canvas-anatomi-input" width="360" height="180" style="display:block; margin:0 auto; cursor:crosshair; touch-action:none; background:#fff; border:1px solid #ccc;"></canvas>
+                        <canvas id="canvas-anatomi-input" width="440" height="220" style="display:block; margin:0 auto; cursor:crosshair; touch-action:none; background:#fff; border:1px solid #ccc;"></canvas>
                         <div class="mt-1">
                           <button type="button" class="btn btn-sm btn-outline-secondary py-0" id="btn-clear-anatomi" style="font-size:11px;">Reset Gambar Anatomi</button>
                         </div>
@@ -756,7 +792,6 @@ var PengkajianAwalPoliComponent = (() => {
               </div>
             </div>
 
-            <!-- Section 5 -->
         <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_sec_5">
             <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_sec_5" aria-expanded="false" aria-controls="collapse_sec_5">
@@ -966,20 +1001,14 @@ var PengkajianAwalPoliComponent = (() => {
                   <div style="min-height:60px;margin-top:2px;" id="p-pemeriksaan-penunjang"></div>
                 </td>
               </tr>
-              <tr style="height:250px;">
-                <td colspan="6">
+              <tr style="height:260px;">
+                <td colspan="6" style="vertical-align:top; padding:6px;">
                   <strong>PEMERIKSAAN FISIK :</strong><br>
-                  Keterangan : (Tulis yang positif)<br>
-                  <table class="pap-inner-align" style="margin-top:15px;width:100%;">
-                    <tr>
-                      <td style="width:40%;vertical-align:top;">
-                        <div style="min-height:160px;" id="p-pemeriksaan-fisik"></div>
-                      </td>
-                      <td style="width:60%;text-align:center;vertical-align:middle;">
-                        <img id="p-anatomi-img" src="assets/img/anatomi (front &amp; back).jpg" style="max-width:100%;max-height:170px;object-fit:contain;" alt="Anatomi">
-                      </td>
-                    </tr>
-                  </table>
+                  <span style="font-size:10px;">Keterangan : (Tulis yang positif)</span>
+                  <div style="min-height:60px;margin-top:4px;" id="p-pemeriksaan-fisik"></div>
+                  <div style="text-align:center;margin-top:8px;">
+                    <img id="p-anatomi-img" src="assets/img/anatomi (front &amp; back).jpg" style="width:400px;max-height:180px;object-fit:contain;display:inline-block;" alt="Anatomi">
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -989,7 +1018,7 @@ var PengkajianAwalPoliComponent = (() => {
         suratDocumentWrapper(`
           <table class="pap-master-grid">
             <colgroup>
-              <col style="width:16.66%;"><col style="width:16.66%;"><col style="width:16.66%;"><col style="width:16.66%;"><col style="width:16.66%;"><col style="width:16.66%;">
+              <col style="width:34%;"><col style="width:8%;"><col style="width:8%;"><col style="width:34%;"><col style="width:8%;"><col style="width:8%;">
             </colgroup>
             <tbody>
               <tr>
