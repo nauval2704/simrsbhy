@@ -365,40 +365,40 @@ var TriaseComponent = (() => {
               <div class="row g-2">
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">AIRWAY</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Ancaman" id="l2_s1"><label class="form-check-label small" for="l2_s1">Ancaman</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Bebas" id="l2_s2"><label class="form-check-label small" for="l2_s2">Bebas</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_Ancaman_R" id="l2_s1"><label class="form-check-label small" for="l2_s1">Ancaman</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_Bebas_R" id="l2_s2"><label class="form-check-label small" for="l2_s2">Bebas</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">BREATHING</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Takipnue" id="l2_s3"><label class="form-check-label small" for="l2_s3">Takipnue</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Bradipnue" id="l2_s4"><label class="form-check-label small" for="l2_s4">Bradipnue</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_SPO2 <92" id="l2_s5"><label class="form-check-label small" for="l2_s5">SPO2 &lt;92</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Dangkal" id="l2_s6"><label class="form-check-label small" for="l2_s6">Dangkal</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_Takipnue_R" id="l2_s3"><label class="form-check-label small" for="l2_s3">Takipnue</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_Bradipnue_R" id="l2_s4"><label class="form-check-label small" for="l2_s4">Bradipnue</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_SPO2 <92_R" id="l2_s5"><label class="form-check-label small" for="l2_s5">SPO2 &lt;92</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_Dangkal_R" id="l2_s6"><label class="form-check-label small" for="l2_s6">Dangkal</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">CIRCULATION</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Nadi Terasa Lemah" id="l2_s7"><label class="form-check-label small" for="l2_s7">Nadi Terasa Lemah</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Akral Dingin" id="l2_s8"><label class="form-check-label small" for="l2_s8">Akral Dingin</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Bradikardi" id="l2_s9"><label class="form-check-label small" for="l2_s9">Bradikardi</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Takikardi" id="l2_s10"><label class="form-check-label small" for="l2_s10">Takikardi</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_CRT >2 detik" id="l2_s11"><label class="form-check-label small" for="l2_s11">CRT &gt;2 detik</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Turgor Kulit Jelek" id="l2_s12"><label class="form-check-label small" for="l2_s12">Turgor Kulit Jelek</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_Nadi Terasa Lemah_R" id="l2_s7"><label class="form-check-label small" for="l2_s7">Nadi Terasa Lemah</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_Akral Dingin_R" id="l2_s8"><label class="form-check-label small" for="l2_s8">Akral Dingin</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_Bradikardi_R" id="l2_s9"><label class="form-check-label small" for="l2_s9">Bradikardi</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_Takikardi_R" id="l2_s10"><label class="form-check-label small" for="l2_s10">Takikardi</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_CRT >2 detik_R" id="l2_s11"><label class="form-check-label small" for="l2_s11">CRT &gt;2 detik</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_Turgor Kulit Jelek_R" id="l2_s12"><label class="form-check-label small" for="l2_s12">Turgor Kulit Jelek</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">DISABILITY</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Respon Dengan Rangsangan Nyeri" id="l2_s13"><label class="form-check-label small" for="l2_s13">Respon Nyeri</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Gelisah" id="l2_s14"><label class="form-check-label small" for="l2_s14">Gelisah</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_GCS : > 8 > 15" id="l2_s15"><label class="form-check-label small" for="l2_s15">GCS : &gt; 8 &gt; 15</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_GCS : 15" id="l2_s16"><label class="form-check-label small" for="l2_s16">GCS : 15</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_Respon Dengan Rangsangan Nyeri_R" id="l2_s13"><label class="form-check-label small" for="l2_s13">Respon Nyeri</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_Gelisah_R" id="l2_s14"><label class="form-check-label small" for="l2_s14">Gelisah</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_GCS : > 8 > 15_R" id="l2_s15"><label class="form-check-label small" for="l2_s15">GCS : &gt; 8 &gt; 15</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_GCS : 15_R" id="l2_s16"><label class="form-check-label small" for="l2_s16">GCS : 15</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">PREDIKSI PENUNJANG</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Kompleks" id="l2_s17"><label class="form-check-label small" for="l2_s17">Kompleks</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_≥ 2" id="l2_s18"><label class="form-check-label small" for="l2_s18">≥ 2</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_Kompleks_R" id="l2_s17"><label class="form-check-label small" for="l2_s17">Kompleks</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_≥ 2_R" id="l2_s18"><label class="form-check-label small" for="l2_s18">≥ 2</label></div>
                   <p class="small fw-bold mt-2 mb-1 text-secondary">Catatan Khusus</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Nyeri Berat" id="l2_s19"><label class="form-check-label small" for="l2_s19">Nyeri Berat</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L1_Nyeri Berat_R" id="l2_s19"><label class="form-check-label small" for="l2_s19">Nyeri Berat</label></div>
                   <div class="form-check mb-1">
-                    <input class="form-check-input f-symptom" type="checkbox" value="L2_Situasi Berbahaya :" id="l2_s20">
+                    <input class="form-check-input f-symptom" type="checkbox" value="L1_Situasi Berbahaya :_R" id="l2_s20">
                     <label class="form-check-label small" for="l2_s20">Situasi Berbahaya :</label>
                     <input type="text" id="f-situasiBerbahaya" class="form-control form-control-sm mt-1" style="font-size:11px;" placeholder="Tuliskan situasi berbahaya...">
                   </div>
@@ -769,11 +769,11 @@ const printTab = root.querySelector('#triase-print-tab');
                     <div class="t-col t-f1">AIRWAY</div><div class="t-col t-f1">BREATHING</div><div class="t-col t-f1">CIRCULATION</div><div class="t-col t-f1">DISABILITY</div><div class="t-col t-f2">PREDIKSI PENUNJANG</div>
                   </div>
                   <div class="t-row" style="flex-shrink:0;">
-                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L2_Ancaman"></span>Ancaman</li><li><span class="t-sq p-symptom" data-val="L2_Bebas"></span>Bebas</li></ul></div>
-                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L2_Takipnue"></span>Takipnue</li><li><span class="t-sq p-symptom" data-val="L2_Bradipnue"></span>Bradipnue</li><li><span class="t-sq p-symptom" data-val="L2_SPO2 <92"></span>SPO2 &lt;92</li><li><span class="t-sq p-symptom" data-val="L2_Dangkal"></span>Dangkal</li></ul></div>
-                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L2_Nadi Terasa Lemah"></span>Nadi Terasa Lemah</li><li><span class="t-sq p-symptom" data-val="L2_Akral Dingin"></span>Akral Dingin</li><li><span class="t-sq p-symptom" data-val="L2_Bradikardi"></span>Bradikardi</li><li><span class="t-sq p-symptom" data-val="L2_Takikardi"></span>Takikardi</li><li><span class="t-sq p-symptom" data-val="L2_CRT >2 detik"></span>CRT &gt;2 detik</li><li><span class="t-sq p-symptom" data-val="L2_Turgor Kulit Jelek"></span>Turgor Kulit Jelek</li></ul></div>
-                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L2_Respon Dengan Rangsangan Nyeri"></span>Respon Dengan Rangsangan Nyeri</li><li><span class="t-sq p-symptom" data-val="L2_Gelisah"></span>Gelisah</li><li><span class="t-sq p-symptom" data-val="L2_GCS : > 8 > 15"></span>GCS : &gt; 8 &gt; 15</li><li><span class="t-sq p-symptom" data-val="L2_GCS : 15"></span>GCS : 15</li></ul></div>
-                    <div class="t-col t-f2"><ul><li><span class="t-sq p-symptom" data-val="L2_Kompleks"></span>Kompleks</li><li><span class="t-sq p-symptom" data-val="L2_≥ 2"></span>≥ 2</li><li style="margin-top:3px !important;">Catatan Khusus:</li><li><span class="t-sq p-symptom" data-val="L2_Nyeri Berat"></span>Nyeri Berat</li><li><span class="t-sq p-symptom" data-val="L2_Situasi Berbahaya :"></span>Situasi Berbahaya : <span class="p-val" id="p-situasiBerbahaya"></span></li></ul></div>
+                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L1_Ancaman_R"></span>Ancaman</li><li><span class="t-sq p-symptom" data-val="L1_Bebas_R"></span>Bebas</li></ul></div>
+                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L1_Takipnue_R"></span>Takipnue</li><li><span class="t-sq p-symptom" data-val="L1_Bradipnue_R"></span>Bradipnue</li><li><span class="t-sq p-symptom" data-val="L1_SPO2 <92_R"></span>SPO2 &lt;92</li><li><span class="t-sq p-symptom" data-val="L1_Dangkal_R"></span>Dangkal</li></ul></div>
+                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L1_Nadi Terasa Lemah_R"></span>Nadi Terasa Lemah</li><li><span class="t-sq p-symptom" data-val="L1_Akral Dingin_R"></span>Akral Dingin</li><li><span class="t-sq p-symptom" data-val="L1_Bradikardi_R"></span>Bradikardi</li><li><span class="t-sq p-symptom" data-val="L1_Takikardi_R"></span>Takikardi</li><li><span class="t-sq p-symptom" data-val="L1_CRT >2 detik_R"></span>CRT &gt;2 detik</li><li><span class="t-sq p-symptom" data-val="L1_Turgor Kulit Jelek_R"></span>Turgor Kulit Jelek</li></ul></div>
+                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L1_Respon Dengan Rangsangan Nyeri_R"></span>Respon Dengan Rangsangan Nyeri</li><li><span class="t-sq p-symptom" data-val="L1_Gelisah_R"></span>Gelisah</li><li><span class="t-sq p-symptom" data-val="L1_GCS : > 8 > 15_R"></span>GCS : &gt; 8 &gt; 15</li><li><span class="t-sq p-symptom" data-val="L1_GCS : 15_R"></span>GCS : 15</li></ul></div>
+                    <div class="t-col t-f2"><ul><li><span class="t-sq p-symptom" data-val="L1_Kompleks_R"></span>Kompleks</li><li><span class="t-sq p-symptom" data-val="L1_≥ 2_R"></span>≥ 2</li><li style="margin-top:3px !important;">Catatan Khusus:</li><li><span class="t-sq p-symptom" data-val="L1_Nyeri Berat_R"></span>Nyeri Berat</li><li><span class="t-sq p-symptom" data-val="L1_Situasi Berbahaya :_R"></span>Situasi Berbahaya : <span class="p-val" id="p-situasiBerbahaya"></span></li></ul></div>
                   </div>
 
                   <div class="t-row" style="justify-content:center;padding:3px 4px;font-weight:bold;flex-shrink:0;">
@@ -948,7 +948,7 @@ const syncToPreview = () => {
       };
 
       document
-        .querySelectorAll("#triase-input input, #triase-input select")
+        .querySelectorAll("#triase-input input, #triase-input select, #triase-input textarea")
         .forEach((inp) => {
           inp.addEventListener("input", syncToPreview);
           inp.addEventListener("change", syncToPreview);
@@ -986,7 +986,15 @@ const syncToPreview = () => {
             img.src = d.canvasImage;
             img.style.cssText =
               "max-width:100%;max-height:48px;object-fit:contain;";
+            pd.innerHTML = "";
             pd.appendChild(img);
+          }
+          const cd = document.getElementById("sig-dokter");
+          if (cd) {
+            const ctx = cd.getContext("2d");
+            const img = new Image();
+            img.onload = () => ctx.drawImage(img, 0, 0, cd.width, cd.height);
+            img.src = d.canvasImage;
           }
         }
         if (d.canvasImagePerawat) {
@@ -996,7 +1004,15 @@ const syncToPreview = () => {
             img.src = d.canvasImagePerawat;
             img.style.cssText =
               "max-width:100%;max-height:48px;object-fit:contain;";
+            pp.innerHTML = "";
             pp.appendChild(img);
+          }
+          const cp = document.getElementById("sig-perawat");
+          if (cp) {
+            const ctx = cp.getContext("2d");
+            const img = new Image();
+            img.onload = () => ctx.drawImage(img, 0, 0, cp.width, cp.height);
+            img.src = d.canvasImagePerawat;
           }
         }
       }

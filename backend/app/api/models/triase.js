@@ -38,15 +38,15 @@ const TriaseSchema = new Schema({
     default: null,
   },
   gcsE: {
-    type: Number,
+    type: Schema.Types.Mixed,
     default: null,
   },
   gcsV: {
-    type: Number,
+    type: Schema.Types.Mixed,
     default: null,
   },
   gcsM: {
-    type: Number,
+    type: Schema.Types.Mixed,
     default: null,
   },
   triageLevel: {
@@ -62,6 +62,26 @@ const TriaseSchema = new Schema({
   symptoms: {
     type: [String],
     default: [],
+  },
+  namaDokter: {
+    type: String,
+    default: null,
+  },
+  namaPerawat: {
+    type: String,
+    default: null,
+  },
+  situasiBerbahaya: {
+    type: String,
+    default: null,
+  },
+  doaDetail: {
+    type: String,
+    default: null,
+  },
+  konsul: {
+    type: String,
+    default: null,
   },
   satusehatSynced: {
     type: Boolean,
@@ -85,6 +105,10 @@ const TriaseSchema = new Schema({
     type: String,
     default: null,
   },
-});
+  canvasImagePerawat: {
+    type: String,
+    default: null,
+  },
+}, { strict: false });
 
 module.exports = mongoose.model("Triase", TriaseSchema);
