@@ -247,9 +247,18 @@ var PrmrjComponent = (() => {
             </div>
 
             <div class="row g-2">
-              <div class="col-md-12">
-                <label class="f-label">Keterangan / Paraf</label>
-                <input type="text" class="f-input form-data-input" data-idx="${idx}" data-field="ket" value="${e.ket || ''}" placeholder="Keterangan / Paraf...">
+              <div class="col-md-5">
+                <label class="f-label">Keterangan / Catatan</label>
+                <input type="text" class="f-input form-data-input" data-idx="${idx}" data-field="ket" value="${e.ket || ''}" placeholder="Keterangan...">
+              </div>
+              <div class="col-md-7">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="f-label mb-0"><i class="bi bi-pen me-1"></i>Paraf / TTD Signature Box</label>
+                  <button type="button" class="btn btn-sm btn-outline-secondary sig-clear-prmrj-btn" data-idx="${idx}" style="font-size:10px; padding:1px 7px;"><i class="bi bi-eraser me-1"></i>Hapus TTD</button>
+                </div>
+                <div style="border:1px solid #ced4da; border-radius:6px; background:#fafafa; overflow:hidden;">
+                  <canvas id="sig-prmrj-${idx}" class="prmrj-sig-canvas" data-idx="${idx}" width="600" height="180" style="display:block; width:100%; height:120px; cursor:crosshair; touch-action:none;"></canvas>
+                </div>
               </div>
             </div>
           </div>`;
@@ -273,7 +282,6 @@ var PrmrjComponent = (() => {
 
       <div class="accordion mb-3" id="accordionPrmrj">
 
-        <!-- Section 1 -->
         <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_prmrj_1">
             <button class="accordion-button py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_prmrj_1" aria-expanded="true" aria-controls="collapse_prmrj_1">
@@ -323,7 +331,86 @@ var PrmrjComponent = (() => {
 
       bindSuratPrintButton(root);
 
-      // Event listeners for inputs
+      root.querySelectorAll(".prmrj-sig-canvas").forEach((canvas) => {
+        const idx = parseInt(canvas.getAttribute("data-idx"));
+        if (isNaN(idx)) return;
+        const ctx = canvas.getContext("2d");
+        if (self.formData.entries[idx] && self.formData.entries[idx].parafImg) {
+          const img = new Image();
+          img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          img.src = self.formData.entries[idx].parafImg;
+        }
+
+        let drawing = false;
+        let lastX = 0, lastY = 0;
+        const getPos = (ev) => {
+          const r = canvas.getBoundingClientRect();
+          const sx = canvas.width / r.width;
+          const sy = canvas.height / r.height;
+          if (ev.touches && ev.touches[0]) {
+            return { x: (ev.touches[0].clientX - r.left) * sx, y: (ev.touches[0].clientY - r.top) * sy };
+          }
+          return { x: (ev.clientX - r.left) * sx, y: (ev.clientY - r.top) * sy };
+        };
+
+        const saveSig = () => {
+          if (self.formData.entries[idx]) {
+            self.formData.entries[idx].parafImg = canvas.toDataURL();
+          }
+        };
+
+        const start = (ev) => {
+          drawing = true;
+          const pos = getPos(ev);
+          lastX = pos.x; lastY = pos.y;
+          if (ev.type === 'touchstart') ev.preventDefault();
+        };
+
+        const move = (ev) => {
+          if (!drawing) return;
+          const pos = getPos(ev);
+          ctx.beginPath();
+          ctx.moveTo(lastX, lastY);
+          ctx.lineTo(pos.x, pos.y);
+          ctx.strokeStyle = "#000";
+          ctx.lineWidth = 2.5;
+          ctx.lineCap = "round";
+          ctx.stroke();
+          lastX = pos.x; lastY = pos.y;
+          saveSig();
+          if (ev.type === 'touchmove') ev.preventDefault();
+        };
+
+        const stop = () => {
+          if (drawing) {
+            drawing = false;
+            saveSig();
+          }
+        };
+
+        canvas.addEventListener("mousedown", start);
+        canvas.addEventListener("mousemove", move);
+        canvas.addEventListener("mouseup", stop);
+        canvas.addEventListener("mouseleave", stop);
+        canvas.addEventListener("touchstart", start, { passive: false });
+        canvas.addEventListener("touchmove", move, { passive: false });
+        canvas.addEventListener("touchend", stop);
+      });
+
+      root.querySelectorAll(".sig-clear-prmrj-btn").forEach((btn) => {
+        btn.onclick = () => {
+          const idx = parseInt(btn.getAttribute("data-idx"));
+          if (!isNaN(idx) && self.formData.entries[idx]) {
+            self.formData.entries[idx].parafImg = null;
+            const canvas = root.querySelector("#sig-prmrj-" + idx);
+            if (canvas) {
+              const ctx = canvas.getContext("2d");
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+          }
+        };
+      });
+
       root.addEventListener("input", (ev) => {
         const target = ev.target;
         if (target.classList.contains("form-data-input")) {
@@ -335,7 +422,6 @@ var PrmrjComponent = (() => {
         }
       });
 
-      // Event listener for add row
       const btnAdd = root.querySelector("#btn-add-prmrj");
       if (btnAdd) {
         btnAdd.onclick = () => {
@@ -349,13 +435,13 @@ var PrmrjComponent = (() => {
             uraianKlinis: "",
             diagnosis: "",
             rencanaPenting: "",
-            ket: ""
+            ket: "",
+            parafImg: null
           });
           self.renderView();
         };
       }
 
-      // Event listener for remove row
       root.querySelectorAll(".btn-remove-entry").forEach((btn) => {
         btn.onclick = (e) => {
           const idx = parseInt(btn.getAttribute("data-idx"));
@@ -366,7 +452,6 @@ var PrmrjComponent = (() => {
         };
       });
 
-      // Event listener for save button
       const btnSave = root.querySelector("#btn-save-prmrj");
       if (btnSave) {
         btnSave.onclick = () => {
@@ -393,6 +478,9 @@ var PrmrjComponent = (() => {
       const entries = this.formData.entries || [];
       entries.forEach((e, idx) => {
         const tglJam = (e.tglDate || e.tglTime) ? `${e.tglDate || ''}<br>${e.tglTime || ''}` : '-';
+        const parafImgHtml = e.parafImg ? `<img src="${e.parafImg}" style="max-height:45px; max-width:95%; object-fit:contain;"><br>` : '';
+        const ketText = e.ket || '';
+        const ketHtml = (parafImgHtml || ketText) ? `${parafImgHtml}${ketText}` : '-';
         rowsHtml += `
         <tr>
             <td style="text-align:center; padding:6px 4px;">${idx + 1}</td>
@@ -401,11 +489,10 @@ var PrmrjComponent = (() => {
             <td style="white-space:pre-wrap; padding:6px 6px;">${e.uraianKlinis || '-'}</td>
             <td style="white-space:pre-wrap; padding:6px 6px;">${e.diagnosis || '-'}</td>
             <td style="white-space:pre-wrap; padding:6px 6px;">${e.rencanaPenting || '-'}</td>
-            <td style="text-align:center; padding:6px 4px;">${e.ket || '-'}</td>
+            <td style="text-align:center; padding:6px 4px;">${ketHtml}</td>
         </tr>`;
       });
 
-      // Expanding filler row to stretch table 100% to bottom of Folio/F4 page
       rowsHtml += `
       <tr style="height:100%;">
           <td></td>
@@ -429,12 +516,12 @@ var PrmrjComponent = (() => {
               <table class="prmrj-table" style="border:none; border-top:1px solid black; flex:1;">
                 <colgroup>
                     <col style="width:5%">
-                    <col style="width:12%">
-                    <col style="width:15%">
-                    <col style="width:28%">
-                    <col style="width:18%">
+                    <col style="width:11%">
+                    <col style="width:14%">
+                    <col style="width:25%">
                     <col style="width:17%">
-                    <col style="width:5%">
+                    <col style="width:16%">
+                    <col style="width:12%">
                 </colgroup>
                 <thead>
                     <tr>
@@ -444,7 +531,7 @@ var PrmrjComponent = (() => {
                         <th>URAIAN KLINIS PENTING</th>
                         <th>DIAGNOSIS</th>
                         <th>RENCANA PENTING</th>
-                        <th style="border-right:none;">KET</th>
+                        <th style="border-right:none;">PARAF / KET</th>
                     </tr>
                 </thead>
                 <tbody>

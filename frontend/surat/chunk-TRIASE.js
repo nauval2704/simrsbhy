@@ -290,7 +290,6 @@ var TriaseComponent = (() => {
 
       <div class="accordion mb-3" id="accordionTriase">
 
-        <!-- Section 1 -->
         <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_t_1">
             <button class="accordion-button py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_1" aria-expanded="true" aria-controls="collapse_t_1">
@@ -355,7 +354,6 @@ var TriaseComponent = (() => {
           </div>
         </div>
 
-        <!-- Section 2: Level 1 Resusitasi -->
         <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_t_2">
             <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_2" aria-expanded="false" aria-controls="collapse_t_2">
@@ -410,7 +408,6 @@ var TriaseComponent = (() => {
           </div>
         </div>
 
-        <!-- Section 3: Level 2 Emergensi -->
         <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_t_3">
             <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_3" aria-expanded="false" aria-controls="collapse_t_3">
@@ -423,35 +420,34 @@ var TriaseComponent = (() => {
               <div class="row g-2">
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">AIRWAY</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Bebas" id="l3_s1"><label class="form-check-label small" for="l3_s1">Bebas</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Bebas" id="l3_s1"><label class="form-check-label small" for="l3_s1">Bebas</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">BREATHING</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Spontan" id="l3_s2"><label class="form-check-label small" for="l3_s2">Spontan</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Normal" id="l3_s3"><label class="form-check-label small" for="l3_s3">Normal</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Takipnue" id="l3_s4"><label class="form-check-label small" for="l3_s4">Takipnue</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Spontan" id="l3_s2"><label class="form-check-label small" for="l3_s2">Spontan</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Normal" id="l3_s3"><label class="form-check-label small" for="l3_s3">Normal</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Takipnue" id="l3_s4"><label class="form-check-label small" for="l3_s4">Takipnue</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">CIRCULATION</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Nadi Teraba Berat" id="l3_s5"><label class="form-check-label small" for="l3_s5">Nadi Teraba Berat</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Nadi Teraba Lemah" id="l3_s6"><label class="form-check-label small" for="l3_s6">Nadi Teraba Lemah</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Akral Hangat" id="l3_s7"><label class="form-check-label small" for="l3_s7">Akral Hangat</label></div>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="Turgor Sedang" id="l3_s8"><label class="form-check-label small" for="l3_s8">Turgor Sedang</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Nadi Teraba Berat" id="l3_s5"><label class="form-check-label small" for="l3_s5">Nadi Teraba Berat</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Nadi Teraba Lemah" id="l3_s6"><label class="form-check-label small" for="l3_s6">Nadi Teraba Lemah</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Akral Hangat" id="l3_s7"><label class="form-check-label small" for="l3_s7">Akral Hangat</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_Turgor Sedang" id="l3_s8"><label class="form-check-label small" for="l3_s8">Turgor Sedang</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">DISABILITY</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="GCS 15" id="l3_s9"><label class="form-check-label small" for="l3_s9">GCS 15</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_GCS 15" id="l3_s9"><label class="form-check-label small" for="l3_s9">GCS 15</label></div>
                 </div>
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">PREDIKSI PENUNJANG</p>
-                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="≥ 2" id="l3_s10"><label class="form-check-label small" for="l3_s10">≥ 2</label></div>
+                  <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L2_≥ 2" id="l3_s10"><label class="form-check-label small" for="l3_s10">≥ 2</label></div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Section 4: Level 3 Urgent -->
         <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_t_4">
             <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_4" aria-expanded="false" aria-controls="collapse_t_4">
@@ -493,7 +489,6 @@ var TriaseComponent = (() => {
           </div>
         </div>
 
-        <!-- Section 5: Level 4 Non Urgent -->
         <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_t_5">
             <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_5" aria-expanded="false" aria-controls="collapse_t_5">
@@ -535,7 +530,6 @@ var TriaseComponent = (() => {
           </div>
         </div>
 
-        <!-- Section 6: Level 5 False Emergency (DOA ONLY) -->
         <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_t_6">
             <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_6" aria-expanded="false" aria-controls="collapse_t_6">
@@ -558,7 +552,6 @@ var TriaseComponent = (() => {
           </div>
         </div>
 
-        <!-- Section 7 -->
         <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_t_7">
             <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_7" aria-expanded="false" aria-controls="collapse_t_7">
@@ -794,11 +787,11 @@ const printTab = root.querySelector('#triase-print-tab');
                     <div class="t-col t-f1">AIRWAY</div><div class="t-col t-f1">BREATHING</div><div class="t-col t-f1">CIRCULATION</div><div class="t-col t-f1">DISABILITY</div><div class="t-col t-f1">PREDIKSI PENUNJANG</div>
                   </div>
                   <div class="t-row" style="flex-shrink:0;">
-                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="Bebas"></span>Bebas</li></ul></div>
-                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="Spontan"></span>Spontan</li><li><span class="t-sq p-symptom" data-val="Normal"></span>Normal</li><li><span class="t-sq p-symptom" data-val="Takipnue"></span>Takipnue</li></ul></div>
-                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="Nadi Teraba Berat"></span>Nadi Teraba Berat</li><li><span class="t-sq p-symptom" data-val="Nadi Teraba Lemah"></span>Nadi Teraba Lemah</li><li><span class="t-sq p-symptom" data-val="Akral Hangat"></span>Akral Hangat</li><li><span class="t-sq p-symptom" data-val="Turgor Sedang"></span>Turgor Sedang</li></ul></div>
-                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="GCS 15"></span>GCS 15</li></ul></div>
-                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="≥ 2"></span>≥ 2</li></ul></div>
+                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L2_Bebas"></span>Bebas</li></ul></div>
+                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L2_Spontan"></span>Spontan</li><li><span class="t-sq p-symptom" data-val="L2_Normal"></span>Normal</li><li><span class="t-sq p-symptom" data-val="L2_Takipnue"></span>Takipnue</li></ul></div>
+                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L2_Nadi Teraba Berat"></span>Nadi Teraba Berat</li><li><span class="t-sq p-symptom" data-val="L2_Nadi Teraba Lemah"></span>Nadi Teraba Lemah</li><li><span class="t-sq p-symptom" data-val="L2_Akral Hangat"></span>Akral Hangat</li><li><span class="t-sq p-symptom" data-val="L2_Turgor Sedang"></span>Turgor Sedang</li></ul></div>
+                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L2_GCS 15"></span>GCS 15</li></ul></div>
+                    <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L2_≥ 2"></span>≥ 2</li></ul></div>
                   </div>
 
                   <div class="t-level t-yellow">LEVEL 3 : URGENT (YELLOW ZONE)</div>
@@ -922,10 +915,7 @@ const syncToPreview = () => {
         ).map((cb) => cb.value);
         document.querySelectorAll(".p-symptom").forEach((el) => {
           const dataVal = el.getAttribute("data-val");
-          const rawVal = dataVal ? dataVal.replace(/^L[1-5]_/, "") : "";
-          el.innerHTML = (checked.includes(dataVal) || checked.includes(rawVal))
-            ? "✓"
-            : "";
+          el.innerHTML = (dataVal && checked.includes(dataVal)) ? "✓" : "";
         });
         const sigDokterEl = document.getElementById("sig-dokter");
         const sigPerawatEl = document.getElementById("sig-perawat");
