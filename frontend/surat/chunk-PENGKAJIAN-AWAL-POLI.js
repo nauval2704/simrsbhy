@@ -1467,6 +1467,7 @@ var PengkajianAwalPoliComponent = (() => {
       if (this.draftData) {
         this.populateDraft(this.draftData);
       }
+      this.syncToPreview();
     }
 
     static {

@@ -131,8 +131,8 @@ export function getStandardGridCSS() {
   html, body, app-root, app-pasien-details, .content-wrapper, .container-fluid, .container, .main-content, .card:has(.surat-document), .card:has(.surat-document-landscape), .card:has(.surat-page), .card:has(.surat-page-landscape), .card-body:has(.surat-document), .card-body:has(.surat-document-landscape), .card-body:has(.surat-page), .card-body:has(.surat-page-landscape), .tab-content:has(.surat-document), .tab-content:has(.surat-page), .tab-pane:has(.surat-document), .tab-pane:has(.surat-document-landscape), .tab-pane:has(.surat-page), .tab-pane:has(.surat-page-landscape), .row, [class*="col-"]:not(.simrs-sidebar-col) { width: 100% !important; max-width: 100% !important; height: auto !important; min-height: 0 !important; max-height: none !important; overflow: visible !important; position: static !important; padding: 0 !important; margin: 0 !important; float: none !important; display: block !important; box-sizing: border-box !important; }
   .surat-print-bg { background: transparent !important; padding: 0 !important; margin: 0 !important; width: 100% !important; display: block !important; box-sizing: border-box !important; }
   .surat-document, .surat-page {box-sizing:border-box !important;width:215.9mm !important;max-width:215.9mm !important;padding: 6mm !important;overflow:hidden !important;page-break-inside:avoid !important;break-inside:avoid !important;height:330.2mm !important;box-shadow:none !important;margin:0 auto !important;page-break-after:always;break-after:page;}
-  .surat-document-landscape, .surat-page-landscape {box-sizing:border-box !important;width:330.2mm !important;max-width:330.2mm !important;padding: 6mm !important;overflow:hidden !important;page-break-inside:avoid !important;break-inside:avoid !important;height:215.9mm !important;box-shadow:none !important;margin:0 auto !important;page-break-after:always;break-after:page;page:surat-landscape;}
-  .surat-document:last-child, .surat-page:last-child, .surat-document-landscape:last-child, .surat-page-landscape:last-child {page-break-after:auto;}
+  .surat-document-landscape, .surat-page-landscape {box-sizing:border-box !important;width:330.2mm !important;max-width:330.2mm !important;padding: 5mm !important;overflow:hidden !important;page-break-inside:avoid !important;break-inside:avoid !important;height:214mm !important;max-height:214mm !important;box-shadow:none !important;margin:0 auto !important;page-break-after:auto !important;break-after:auto !important;page:surat-landscape;}
+  .surat-document:last-child, .surat-page:last-child, .surat-document-landscape:last-child, .surat-page-landscape:last-child {page-break-after:auto !important;break-after:auto !important;}
   .pap-master-grid, table.master-grid, table.t-border, table.fpo-table, table.pap-inner-align, table { width: 100% !important; max-width: 100% !important; margin: 0 auto !important; box-sizing: border-box !important; }
 }
 `;
@@ -205,7 +205,6 @@ export function forceChromePrintStyles(isLandscape = false) {
   }
   const pageSize = isLandscape ? '330.2mm 215.9mm' : '215.9mm 330.2mm';
   const docWidth = isLandscape ? '330.2mm' : '215.9mm';
-  const docHeight = isLandscape ? '215.9mm' : '330.2mm';
 
   styleEl.innerHTML = `
     @page {
@@ -219,29 +218,37 @@ export function forceChromePrintStyles(isLandscape = false) {
       }
       html, body {
         width: ${docWidth} !important;
-        height: ${docHeight} !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        overflow: visible !important;
         margin: 0 !important;
         padding: 0 !important;
         background: #fff !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
       }
+      app-root, .content-wrapper, .container-fluid, .container, .main-content, .tab-content, .tab-pane, .surat-print-bg {
+        width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        overflow: visible !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
       .surat-document, .surat-page {
         width: 215.9mm !important;
-        height: 330.2mm !important;
         max-width: 215.9mm !important;
-        max-height: 330.2mm !important;
-        margin: 0 !important;
+        margin: 0 auto !important;
         padding: 5mm !important;
         box-shadow: none !important;
         box-sizing: border-box !important;
       }
       .surat-document-landscape, .surat-page-landscape {
         width: 330.2mm !important;
-        height: 215.9mm !important;
         max-width: 330.2mm !important;
-        max-height: 215.9mm !important;
-        margin: 0 !important;
+        margin: 0 auto !important;
         padding: 5mm !important;
         box-shadow: none !important;
         box-sizing: border-box !important;

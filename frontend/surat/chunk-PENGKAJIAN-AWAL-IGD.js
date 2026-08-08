@@ -598,30 +598,33 @@ var PengkajianAwalIgdComponent = (() => {
       });
 
       const printTab = root.querySelector("#pengkajian-print-tab");
-      if (printTab) {
-        printTab.addEventListener("click", () => {
-          root.querySelectorAll(".form-data-input").forEach((el) => {
-            const field = el.dataset.field;
-            if (!field) return;
-            if (el.type === "radio") {
-              if (el.checked) this.formData[field] = el.value;
-            } else {
-              this.formData[field] = el.value;
-            }
-          });
-          this.renderPrintLayout(noMr, nama, tglLahir, kelamin, getFontSize);
+      const updatePrint = () => {
+        root.querySelectorAll(".form-data-input").forEach((el) => {
+          const field = el.dataset.field;
+          if (!field) return;
+          if (el.type === "radio") {
+            if (el.checked) this.formData[field] = el.value;
+          } else {
+            this.formData[field] = el.value;
+          }
         });
+        this.renderPrintLayout(noMr, nama, tglLahir, kelamin, getFontSize);
+      };
+      if (printTab) {
+        printTab.addEventListener("click", updatePrint);
+        printTab.addEventListener("shown.bs.tab", updatePrint);
       }
+      updatePrint();
     }
 
     renderPrintLayout(noMr, nama, tglLahir, kelamin, getFontSize) {
       const printContainer = document.getElementById("pengkajian-print-container");
       if (!printContainer) return;
-        
+
       const fd = this.formData;
       const getVal = (field) => fd[field] || "";
       const cb = (field, val) => (fd[field] === val) ? 'cb' : '';
-        
+
       const giziATotal = (parseInt(fd.giziA1) || 0) + (parseInt(fd.giziA2) || 0) + (parseInt(fd.giziA3) || 0) + (parseInt(fd.giziA4) || 0);
       const giziDTotal = (parseInt(fd.giziD1) || 0) + (parseInt(fd.giziD2) || 0);
 
@@ -938,7 +941,7 @@ var PengkajianAwalIgdComponent = (() => {
           </div>
           <div class="t-row" style="flex-shrink:0; height:160px; border-bottom:none; position:relative;">
             <div style="position:absolute; right:15px; top:8px; font-size:11px;">
-              Tgl. ${getVal('outTgl') || '........ me............'} Pukul: ${getVal('outPukul') || '...............'}
+              Tgl. ${getVal('outTgl') || '....................'} Pukul: ${getVal('outPukul') || '...............'}
             </div>
             <table class="inner-align" style="margin-top:25px; text-align:center; width:100%;">
               <tr>
@@ -979,7 +982,7 @@ var PengkajianAwalIgdComponent = (() => {
       ], 'RM04/Rev02/RSBHY/2022');
     }
   }
-  
+
   t.ɵfac = function (s) {
     return new (s || t)();
   };

@@ -384,11 +384,13 @@ export var GeneralConsentComponent = (() => {
       this.initCanvas("sig-gc-pasien", "sigPasien");
 
       const printTab = root.querySelector("#gc-print-tab");
+      const updatePrint = () => {
+        this.syncFromDOM();
+        this.renderPrintLayout(noMr, nama, tglLahir, kelamin);
+      };
       if (printTab) {
-        printTab.addEventListener("click", () => {
-          this.syncFromDOM();
-          this.renderPrintLayout(noMr, nama, tglLahir, kelamin);
-        });
+        printTab.addEventListener("click", updatePrint);
+        printTab.addEventListener("shown.bs.tab", updatePrint);
       }
 
       this.renderPrintLayout(noMr, nama, tglLahir, kelamin);

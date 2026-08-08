@@ -321,18 +321,18 @@
 }
 
 @page {
-  size: 215.9mm 330.2mm !important;
-  margin: 0mm !important;
+  size: 215.9mm 330.2mm;
+  margin: 0mm;
 }
 
 @media print {
   @page {
-    size: 215.9mm 330.2mm !important;
-    margin: 0mm !important;
+    size: 215.9mm 330.2mm;
+    margin: 0mm;
   }
   @page surat-landscape {
-    size: 330.2mm 215.9mm !important;
-    margin: 0mm !important;
+    size: 330.2mm 215.9mm;
+    margin: 0mm;
   }
 
   app-header,
@@ -371,10 +371,10 @@
     left: -9999px !important;
   }
 
-  .tab-pane:not(:has(.surat-document)):not(:has(.surat-document-landscape)),
-  .card:not(:has(.surat-document)):not(:has(.surat-document-landscape)),
-  .alert:not(:has(.surat-document)):not(:has(.surat-document-landscape)),
-  .tab-content > *:not(:has(.surat-document)):not(:has(.surat-document-landscape)),
+  .tab-pane:not(:has(.surat-document)):not(:has(.surat-document-landscape)):not(:has(.surat-page)):not(:has(.surat-page-landscape)),
+  .card:not(:has(.surat-document)):not(:has(.surat-document-landscape)):not(:has(.surat-page)):not(:has(.surat-page-landscape)),
+  .alert:not(:has(.surat-document)):not(:has(.surat-document-landscape)):not(:has(.surat-page)):not(:has(.surat-page-landscape)),
+  .tab-content > *:not(:has(.surat-document)):not(:has(.surat-document-landscape)):not(:has(.surat-page)):not(:has(.surat-page-landscape)),
   .f-group, .form-group, .form-control, .form-select {
     display: none !important;
   }
@@ -423,19 +423,19 @@
   }
   .surat-document-landscape, .surat-page-landscape {
     width: 330.2mm !important;
-    height: 215.9mm !important;
+    height: 214mm !important;
     max-width: 330.2mm !important;
-    max-height: 215.9mm !important;
+    max-height: 214mm !important;
     box-sizing: border-box !important;
-    padding: 6mm !important;
+    padding: 5mm !important;
     position: relative !important;
     box-shadow: none !important;
     margin: 0 auto !important;
     overflow: hidden !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
-    page-break-after: always !important;
-    break-after: page !important;
+    page-break-after: auto !important;
+    break-after: auto !important;
     page: surat-landscape !important;
   }
   .surat-document:last-child, .surat-page:last-child,

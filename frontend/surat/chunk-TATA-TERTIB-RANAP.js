@@ -240,11 +240,13 @@ export var SimrsTataTertibRanap = (() => {
       this.initCanvas("sig-ttb-pasien", "ttdPasien");
 
       const printTab = root.querySelector("#ttb-print-tab");
+      const updatePrint = () => {
+        this.syncFromDOM();
+        this.renderPrintLayout(noMr, nama, tglLahir, kelamin);
+      };
       if (printTab) {
-        printTab.addEventListener("click", () => {
-          this.syncFromDOM();
-          this.renderPrintLayout(noMr, nama, tglLahir, kelamin);
-        });
+        printTab.addEventListener("click", updatePrint);
+        printTab.addEventListener("shown.bs.tab", updatePrint);
       }
 
       this.renderPrintLayout(noMr, nama, tglLahir, kelamin);

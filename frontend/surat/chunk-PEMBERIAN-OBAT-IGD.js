@@ -380,7 +380,7 @@ var PemberianObatIgdComponent = (() => {
 .fpo-c-nama-obat{width:15% !important;}
 .fpo-c-time-slot{width:2.1% !important;font-size:8px !important;}
 .fpo-med-row{break-inside:avoid;page-break-inside:avoid;}
-.fpo-med-row td{height:42px;}`,
+.fpo-med-row td{height:35px;}`,
         inputContent,
       });
       bindSuratPrintButton(root);
@@ -451,7 +451,7 @@ var PemberianObatIgdComponent = (() => {
 
       let printRowsHtml = "";
       const entries = fd.entries || [];
-      for (let i = 0; i < Math.max(13, entries.length); i++) {
+      for (let i = 0; i < Math.max(10, entries.length); i++) {
         const ent = entries[i] || null;
         let obatText = "";
         if (ent) {
@@ -486,8 +486,7 @@ var PemberianObatIgdComponent = (() => {
         `;
       }
 
-      printContainer.innerHTML = `
-      <div class="surat-document-landscape" style="box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+      printContainer.innerHTML = `<div class="surat-document-landscape" style="box-shadow: 0 0 10px rgba(0,0,0,0.1);">
           <div class="t-border" style="height:100%;">
             <div class="t-row" style="height:80px;border-bottom:2px solid black;flex-shrink:0;">
               <div class="t-col" style="width:100px;display:flex;align-items:center;justify-content:center;">
@@ -552,8 +551,7 @@ var PemberianObatIgdComponent = (() => {
                 </tbody>
             </table>
           </div>
-      </div>
-        `;
+      </div>`.trim();
     }
   }
 
