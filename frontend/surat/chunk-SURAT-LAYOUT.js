@@ -127,8 +127,8 @@ export function getStandardGridCSS() {
 @media print{
   body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   app-header, app-footer, app-sidebar, app-administrator-sidebar, simrs-patient-sidebar, .simrs-sidebar-col, .sidebar, .main-sidebar, #sidebar, #sidebar-wrapper, aside, header, footer, nav, .navbar, .surat-toolbar, .pap-tabs, .cppt-tabs, .tr-tabs, .rp-tabs, .fpo-tabs, .nav-tabs, .no-print, .d-print-none, .modal { display: none !important; visibility: hidden !important; height: 0 !important; width: 0 !important; opacity: 0 !important; overflow: hidden !important; position: absolute !important; left: -9999px !important; }
-  .tab-pane:not(:has(.surat-document)):not(:has(.surat-document-landscape)), .card:not(:has(.surat-document)):not(:has(.surat-document-landscape)), .alert:not(:has(.surat-document)):not(:has(.surat-document-landscape)), .tab-content > *:not(:has(.surat-document)):not(:has(.surat-document-landscape)), .f-group, .form-group, .form-control, .form-select { display: none !important; }
-  html, body, app-root, app-pasien-details, .content-wrapper, .container-fluid, .container, .main-content, .card:has(.surat-document), .card:has(.surat-document-landscape), .card-body:has(.surat-document), .card-body:has(.surat-document-landscape), .tab-content:has(.surat-document), .tab-pane:has(.surat-document), .tab-pane:has(.surat-document-landscape), .row, [class*="col-"]:not(.simrs-sidebar-col) { width: 100% !important; max-width: 100% !important; height: auto !important; min-height: 0 !important; max-height: none !important; overflow: visible !important; position: static !important; padding: 0 !important; margin: 0 !important; float: none !important; display: block !important; box-sizing: border-box !important; }
+  .tab-pane:not(:has(.surat-document)):not(:has(.surat-document-landscape)):not(:has(.surat-page)):not(:has(.surat-page-landscape)), .card:not(:has(.surat-document)):not(:has(.surat-document-landscape)):not(:has(.surat-page)):not(:has(.surat-page-landscape)), .alert:not(:has(.surat-document)):not(:has(.surat-document-landscape)):not(:has(.surat-page)):not(:has(.surat-page-landscape)), .tab-content > *:not(:has(.surat-document)):not(:has(.surat-document-landscape)):not(:has(.surat-page)):not(:has(.surat-page-landscape)), .f-group, .form-group, .form-control, .form-select { display: none !important; }
+  html, body, app-root, app-pasien-details, .content-wrapper, .container-fluid, .container, .main-content, .card:has(.surat-document), .card:has(.surat-document-landscape), .card:has(.surat-page), .card:has(.surat-page-landscape), .card-body:has(.surat-document), .card-body:has(.surat-document-landscape), .card-body:has(.surat-page), .card-body:has(.surat-page-landscape), .tab-content:has(.surat-document), .tab-content:has(.surat-page), .tab-pane:has(.surat-document), .tab-pane:has(.surat-document-landscape), .tab-pane:has(.surat-page), .tab-pane:has(.surat-page-landscape), .row, [class*="col-"]:not(.simrs-sidebar-col) { width: 100% !important; max-width: 100% !important; height: auto !important; min-height: 0 !important; max-height: none !important; overflow: visible !important; position: static !important; padding: 0 !important; margin: 0 !important; float: none !important; display: block !important; box-sizing: border-box !important; }
   .surat-print-bg { background: transparent !important; padding: 0 !important; margin: 0 !important; width: 100% !important; display: block !important; box-sizing: border-box !important; }
   .surat-document, .surat-page {box-sizing:border-box !important;width:215.9mm !important;max-width:215.9mm !important;padding: 6mm !important;overflow:hidden !important;page-break-inside:avoid !important;break-inside:avoid !important;height:330.2mm !important;box-shadow:none !important;margin:0 auto !important;page-break-after:always;break-after:page;}
   .surat-document-landscape, .surat-page-landscape {box-sizing:border-box !important;width:330.2mm !important;max-width:330.2mm !important;padding: 6mm !important;overflow:hidden !important;page-break-inside:avoid !important;break-inside:avoid !important;height:215.9mm !important;box-shadow:none !important;margin:0 auto !important;page-break-after:always;break-after:page;page:surat-landscape;}
@@ -248,6 +248,14 @@ export function forceChromePrintStyles(isLandscape = false) {
       }
     }
   `;
+}
+
+if (typeof window !== 'undefined' && !window._suratBeforePrintBound) {
+  window._suratBeforePrintBound = true;
+  window.addEventListener('beforeprint', () => {
+    const isLandscape = !!document.querySelector('.surat-document-landscape, .surat-page-landscape');
+    forceChromePrintStyles(isLandscape);
+  });
 }
 
 export function bindSuratPrintButton(root) {

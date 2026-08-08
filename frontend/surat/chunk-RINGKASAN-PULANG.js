@@ -478,32 +478,35 @@ var RingkasanPulangComponent = (() => {
       });
 
       const printTab = root.querySelector("#rp-print-tab");
-      if (printTab) {
-          printTab.addEventListener("click", () => {
-              root.querySelectorAll(".input-field").forEach(el => {
-                  if (el.dataset.field) this.formData[el.dataset.field] = el.value;
-              });
-              root.querySelectorAll(".input-nested").forEach(el => {
+      const updatePrint = () => {
+          root.querySelectorAll(".input-field").forEach(el => {
+              if (el.dataset.field) this.formData[el.dataset.field] = el.value;
+          });
+          root.querySelectorAll(".input-nested").forEach(el => {
+              const parent = el.dataset.parent;
+              const field = el.dataset.field;
+              if (parent && field) {
+                  if (!this.formData[parent]) this.formData[parent] = {};
+                  this.formData[parent][field] = el.value;
+              }
+          });
+          root.querySelectorAll("input[type='radio']").forEach(el => {
+              if (el.checked) {
                   const parent = el.dataset.parent;
                   const field = el.dataset.field;
                   if (parent && field) {
                       if (!this.formData[parent]) this.formData[parent] = {};
                       this.formData[parent][field] = el.value;
                   }
-              });
-              root.querySelectorAll("input[type='radio']").forEach(el => {
-                  if (el.checked) {
-                      const parent = el.dataset.parent;
-                      const field = el.dataset.field;
-                      if (parent && field) {
-                          if (!this.formData[parent]) this.formData[parent] = {};
-                          this.formData[parent][field] = el.value;
-                      }
-                  }
-              });
-              this.renderPrintLayout(noMr, nama, tglLahir, kelamin);
+              }
           });
+          this.renderPrintLayout(noMr, nama, tglLahir, kelamin);
+      };
+      if (printTab) {
+          printTab.addEventListener("click", updatePrint);
+          printTab.addEventListener("shown.bs.tab", updatePrint);
       }
+      updatePrint();
     }
 
     renderPrintLayout(noMr, nama, tglLahir, kelamin) {
@@ -511,12 +514,15 @@ var RingkasanPulangComponent = (() => {
         if (!printContainer) return;
         
         const getFontSize = (str, maxLen = 16, defaultSize = 10, minSize = 7) => { if (!str || str.length <= maxLen) return defaultSize; return Math.max(minSize, defaultSize * (maxLen / str.length)).toFixed(1); };
-        const fd = this.formData;
+        const fd = this.formData || {};
+        const tl = fd.tindakLanjut || {};
+        const atd = fd.alasanTidakDirawat || {};
+        const kk = fd.kondisiKeluar || {};
         const cb = (val, match) => (val === match) ? 'cb cb-checked' : 'cb';
         const dpjp = this.patient && this.patient.dpjp ? this.patient.dpjp : '........................................';
         
         printContainer.innerHTML = `
-    <div class="surat-page">
+    <div class="surat-document">
         <table class="master-grid">
             <colgroup>
                 <col style="width: 15%;">
@@ -593,20 +599,20 @@ var RingkasanPulangComponent = (() => {
                 <tr>
                     <td colspan="2">Tindak Lanjut</td>
                     <td colspan="4" style="line-height: 1.6;">
-                        <span class="${cb(fd.tindakLanjut.tipe, 'APS')}"></span> Pulang Atas Permintaan Sendiri/ Menolak rawat inap<br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Alasan menolak rawat inap karena ${fd.tindakLanjut.alasanAps || '.................................................'}<br>
-                        <span class="${cb(fd.tindakLanjut.tipe, 'Persetujuan')}"></span> Pulang Atas Persetujuan, pada jam ${fd.tindakLanjut.jamPersetujuan || '...........................'}<br>
-                        <span class="${cb(fd.tindakLanjut.tipe, 'Kontrol')}"></span> Kontrol Tanggal ${fd.tindakLanjut.kontrolTgl || '....................................................'} Ke ${fd.tindakLanjut.kontrolKe || '.................................................'}<br>
-                        <span class="${cb(fd.tindakLanjut.tipe, 'Rujuk')}"></span> Dirujuk ke ${fd.tindakLanjut.rujukKe || '.................................................................'}<br>
-                        <span class="${cb(fd.tindakLanjut.tipe, 'Meninggal')}"></span> Meninggal, pukul ${fd.tindakLanjut.jamMeninggal || '........................'} WIB
+                        <span class="${cb(tl.tipe, 'APS')}"></span> Pulang Atas Permintaan Sendiri/ Menolak rawat inap<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Alasan menolak rawat inap karena ${tl.alasanAps || '.................................................'}<br>
+                        <span class="${cb(tl.tipe, 'Persetujuan')}"></span> Pulang Atas Persetujuan, pada jam ${tl.jamPersetujuan || '...........................'}<br>
+                        <span class="${cb(tl.tipe, 'Kontrol')}"></span> Kontrol Tanggal ${tl.kontrolTgl || '....................................................'} Ke ${tl.kontrolKe || '.................................................'}<br>
+                        <span class="${cb(tl.tipe, 'Rujuk')}"></span> Dirujuk ke ${tl.rujukKe || '.................................................................'}<br>
+                        <span class="${cb(tl.tipe, 'Meninggal')}"></span> Meninggal, pukul ${tl.jamMeninggal || '........................'} WIB
                     </td>
                 </tr>
 
                 <tr>
                     <td colspan="2">Alasan tidak perlu dirawat</td>
                     <td colspan="4" style="line-height: 1.6;">
-                        Keadaan umum : ${fd.alasanTidakDirawat.keadaanUmum || '.......................................................'}<br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Tanda-tanda Kegawatan : <span class="${cb(fd.alasanTidakDirawat.tandaKegawatan, 'Ada')}"></span> Ada &nbsp;&nbsp; <span class="${cb(fd.alasanTidakDirawat.tandaKegawatan, 'Tidak ada')}"></span> Tidak ada<br>
+                        Keadaan umum : ${atd.keadaanUmum || '.......................................................'}<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Tanda-tanda Kegawatan : <span class="${cb(atd.tandaKegawatan, 'Ada')}"></span> Ada &nbsp;&nbsp; <span class="${cb(atd.tandaKegawatan, 'Tidak ada')}"></span> Tidak ada<br>
                     </td>
                 </tr>
 
@@ -618,25 +624,25 @@ var RingkasanPulangComponent = (() => {
                 <tr>
                     <td colspan="2" rowspan="5" style="vertical-align: top;">Kondisi saat keluar</td>
                     <td colspan="1">Keadaan umum</td>
-                    <td colspan="3">${fd.kondisiKeluar.keadaanUmum || ''}</td>
+                    <td colspan="3">${kk.keadaanUmum || ''}</td>
                 </tr>
                 <tr>
                     <td colspan="1">Kesadaran</td>
-                    <td colspan="3">${fd.kondisiKeluar.kesadaran || ''}</td>
+                    <td colspan="3">${kk.kesadaran || ''}</td>
                 </tr>
                 <tr>
                     <td colspan="1" rowspan="3" style="vertical-align: middle; font-style: italic;">Vital Sign</td>
-                    <td colspan="1">TD : ${fd.kondisiKeluar.td || ''}</td>
+                    <td colspan="1">TD : ${kk.td || ''}</td>
                     <td colspan="1" style="text-align: right;">mmHg</td>
-                    <td colspan="1">Suhu : ${fd.kondisiKeluar.suhu || ''} &deg;C</td>
+                    <td colspan="1">Suhu : ${kk.suhu || ''} &deg;C</td>
                 </tr>
                 <tr>
-                    <td colspan="1">Nadi : ${fd.kondisiKeluar.nadi || ''}</td>
+                    <td colspan="1">Nadi : ${kk.nadi || ''}</td>
                     <td colspan="1" style="text-align: right;">X/Menit</td>
-                    <td colspan="1">Nyeri : ${fd.kondisiKeluar.nyeri || 'Tidak/ Ya, skala : .............'}</td>
+                    <td colspan="1">Nyeri : ${kk.nyeri || 'Tidak/ Ya, skala : .............'}</td>
                 </tr>
                 <tr>
-                    <td colspan="1">RR : ${fd.kondisiKeluar.rr || ''}</td>
+                    <td colspan="1">RR : ${kk.rr || ''}</td>
                     <td colspan="1" style="text-align: right;">X/Menit</td>
                     <td colspan="1"></td>
                 </tr>

@@ -383,27 +383,7 @@ var PemberianObatIgdComponent = (() => {
 .fpo-med-row td{height:42px;}`,
         inputContent,
       });
-      const printBtn = root.querySelector(".surat-print-btn");
-      if (printBtn) {
-        printBtn.onclick = () => {
-          let printStyle = document.getElementById("landscape-print-page-style");
-          if (!printStyle) {
-            printStyle = document.createElement("style");
-            printStyle.id = "landscape-print-page-style";
-            document.head.appendChild(printStyle);
-          }
-          printStyle.innerHTML = "@page { size: 330.2mm 215.9mm landscape !important; margin: 0 !important; } @media print { body { width: 330.2mm !important; } .surat-document-landscape { width: 330.2mm !important; max-width: 330.2mm !important; height: 215.9mm !important; margin: 0 auto !important; padding: 5mm !important; box-shadow: none !important; } .fpo-table { width: 100% !important; table-layout: fixed !important; } .fpo-c-no { width: 3% !important; } .fpo-c-nama-obat { width: 15% !important; } .fpo-c-time-slot { width: 2.1% !important; font-size: 8px !important; } }";
-
-          setTimeout(() => {
-            window.print();
-            setTimeout(() => {
-              if (printStyle && printStyle.parentNode) {
-                printStyle.parentNode.removeChild(printStyle);
-              }
-            }, 1000);
-          }, 100);
-        };
-      }
+      bindSuratPrintButton(root);
 
       const btnSave = root.querySelector("#btn-save-obat");
       if (btnSave) btnSave.addEventListener("click", () => this.saveData());
