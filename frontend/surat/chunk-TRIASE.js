@@ -722,34 +722,97 @@ var TriaseComponent = (() => {
         ?.addEventListener("click", () => {
           self.handleSave();
         });
-const printTab = root.querySelector('#triase-print-tab');
+
+      const defaultDpjp = self.patient?.dokterDpjp || self.patient?.dpjp || self.patient?.namaDokter || self.patient?.dokter || "";
+
+      const syncToPreview = () => {
+        const getVal = (id) => document.getElementById(id)?.value || "";
+        const setText = (id, text) => {
+          const el = document.getElementById(id);
+          if (el) el.innerText = text;
+        };
+        setText("p-td", getVal("f-td"));
+        setText("p-suhu", getVal("f-suhu"));
+        setText("p-hr", getVal("f-hr"));
+        setText("p-rr", getVal("f-rr"));
+        setText("p-spo2", getVal("f-spo2"));
+        setText("p-gcsE", getVal("f-gcsE"));
+        setText("p-gcsV", getVal("f-gcsV"));
+        setText("p-gcsM", getVal("f-gcsM"));
+        setText("p-namaDokter", getVal("f-namaDokter") || defaultDpjp || ".....................................");
+        setText("p-namaPerawat", getVal("f-namaPerawat") || ".....................................");
+        setText("p-situasiBerbahaya", getVal("f-situasiBerbahaya"));
+        setText("p-doaDetail", getVal("f-doaDetail"));
+        setText("p-konsul", getVal("f-konsul") || ".....................................");
+        ["red", "yellow", "green", "black"].forEach((c) => {
+          const el = document.querySelector(".p-triageColor-" + c);
+          if (el) el.innerHTML = getVal("f-triageColor") === c ? "\u2713" : "";
+        });
+        const checked = Array.from(
+          document.querySelectorAll(".f-symptom:checked"),
+        ).map((cb) => cb.value);
+        document.querySelectorAll(".p-symptom").forEach((el) => {
+          const dataVal = el.getAttribute("data-val");
+          el.innerHTML = (dataVal && checked.includes(dataVal)) ? "\u2713" : "";
+        });
+        const sigDokterEl = document.getElementById("sig-dokter");
+        const sigPerawatEl = document.getElementById("sig-perawat");
+        const previewDokter = document.getElementById("p-sig-dokter");
+        const previewPerawat = document.getElementById("p-sig-perawat");
+        if (sigDokterEl && previewDokter) {
+          try {
+            const dataUrl = sigDokterEl.toDataURL();
+            if (dataUrl && dataUrl.length > 100) {
+              const img = document.createElement("img");
+              img.src = dataUrl;
+              img.style.cssText = "max-width:100%;max-height:48px;object-fit:contain;";
+              previewDokter.innerHTML = "";
+              previewDokter.appendChild(img);
+            }
+          } catch(e) {}
+        }
+        if (sigPerawatEl && previewPerawat) {
+          try {
+            const dataUrl = sigPerawatEl.toDataURL();
+            if (dataUrl && dataUrl.length > 100) {
+              const img = document.createElement("img");
+              img.src = dataUrl;
+              img.style.cssText = "max-width:100%;max-height:48px;object-fit:contain;";
+              previewPerawat.innerHTML = "";
+              previewPerawat.appendChild(img);
+            }
+          } catch(e) {}
+        }
+      };
+
+      const printTab = root.querySelector('#triase-print-tab');
       if (printTab) {
-          printTab.addEventListener('click', () => {
-              const printContainer = document.getElementById('triase-print-container');
-              if (!printContainer) return;
+        printTab.addEventListener('click', () => {
+          const printContainer = document.getElementById('triase-print-container');
+          if (!printContainer) return;
 
-              const bodyHtml = `
-                <div class="t-border" style="flex: 1; border: 2px solid black; border-top: none; display: flex; flex-direction: column; font-family: 'Times New Roman', Times, serif; background: white;">
+          const bodyHtml = `
+            <div class="t-border" style="flex: 1; border: 2px solid black; border-top: none; display: flex; flex-direction: column; font-family: 'Times New Roman', Times, serif; background: white;">
 
-                  <div class="t-row" style="font-weight:bold;flex-shrink:0;">
-                    <div class="t-col" style="width:45%;">
-                      <div>LABEL TRIASE (pilih salah satu hasil triase (√))</div>
-                      <div style="display:flex;gap:12px;margin-top:4px;align-items:center;">
-                        <span class="t-sq p-triageColor-red"></span><span class="t-cbox t-red"></span>
-                        <span class="t-sq p-triageColor-yellow"></span><span class="t-cbox t-yellow"></span>
-                        <span class="t-sq p-triageColor-green"></span><span class="t-cbox t-green"></span>
-                        <span class="t-sq p-triageColor-black"></span><span class="t-cbox t-blk"></span>
-                      </div>
-                      <div style="margin-top:4px;">Pukul pemeriksaan : &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; WIB</div>
-                    </div>
-                    <div class="t-col" style="width:55%;display:flex;align-items:center;">
-                      <div class="t-vgrid" style="width:100%;">
-                        <div>TD : <span class="p-val" id="p-td"></span></div><div>Suhu : <span class="p-val" id="p-suhu"></span></div><div>GCS : E<span class="p-val" id="p-gcsE"></span> V<span class="p-val" id="p-gcsV"></span> M<span class="p-val" id="p-gcsM"></span></div>
-                        <div>HR : <span class="p-val" id="p-hr"></span></div><div>SPO2 : <span class="p-val" id="p-spo2"></span></div><div></div>
-                        <div>RR : <span class="p-val" id="p-rr"></span></div><div></div><div></div>
-                      </div>
-                    </div>
+              <div class="t-row" style="font-weight:bold;flex-shrink:0;">
+                <div class="t-col" style="width:45%;">
+                  <div>LABEL TRIASE (pilih salah satu hasil triase (√))</div>
+                  <div style="display:flex;gap:12px;margin-top:4px;align-items:center;">
+                    <span class="t-sq p-triageColor-red"></span><span class="t-cbox t-red"></span>
+                    <span class="t-sq p-triageColor-yellow"></span><span class="t-cbox t-yellow"></span>
+                    <span class="t-sq p-triageColor-green"></span><span class="t-cbox t-green"></span>
+                    <span class="t-sq p-triageColor-black"></span><span class="t-cbox t-blk"></span>
                   </div>
+                  <div style="margin-top:4px;">Pukul pemeriksaan : &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; WIB</div>
+                </div>
+                <div class="t-col" style="width:55%;display:flex;align-items:center;">
+                  <div class="t-vgrid" style="width:100%;">
+                    <div>TD : <span class="p-val" id="p-td"></span></div><div>Suhu : <span class="p-val" id="p-suhu"></span></div><div>GCS : E<span class="p-val" id="p-gcsE"></span> V<span class="p-val" id="p-gcsV"></span> M<span class="p-val" id="p-gcsM"></span></div>
+                    <div>HR : <span class="p-val" id="p-hr"></span></div><div>SPO2 : <span class="p-val" id="p-spo2"></span></div><div></div>
+                    <div>RR : <span class="p-val" id="p-rr"></span></div><div></div><div></div>
+                  </div>
+                </div>
+              </div>
 
                   <div class="t-row" style="font-weight:bold;text-align:center;flex-shrink:0;">
                     <div class="t-col t-f1">AIRWAY</div><div class="t-col t-f1">BREATHING</div><div class="t-col t-f1">CIRCULATION</div><div class="t-col t-f1">DISABILITY</div><div class="t-col t-f1">PREDIKSI PENUNJANG</div>
@@ -834,8 +897,7 @@ const printTab = root.querySelector('#triase-print-tab');
                     </div>
                   </div>
 
-                  <div class="t-row" style="flex-shrink:0;">
-                    <!-- Left Column: Konsul & Ruang -->
+                <div class="t-row" style="flex-shrink:0;">
                     <div class="t-col" style="width:38%; padding:6px; font-size:11px;">
                       <div style="font-weight:bold; margin-bottom:2px;">Konsul</div>
                       <div style="margin-bottom:8px;">( <span id="p-konsul" style="display:inline-block; min-width:180px;">.............................................</span> )</div>
@@ -845,14 +907,9 @@ const printTab = root.querySelector('#triase-print-tab');
                         <div><span class="t-sq p-symptom" data-val="Ruang Observasi"></span> Ruang Observasi</div>
                       </div>
                     </div>
-
-                    <!-- Right Column: Petugas Triase (Dokter & Perawat) -->
                     <div class="t-col" style="width:62%; display:flex; flex-direction:column; padding:0; border-right:none;">
-                      <div style="text-align:right; font-weight:bold; padding:4px 8px; font-size:11px; border-bottom:1px solid black;">
-                        Petugas Triase
-                      </div>
+                      <div style="text-align:right; font-weight:bold; padding:4px 8px; font-size:11px; border-bottom:1px solid black;">Petugas Triase</div>
                       <div style="display:flex; flex:1;">
-                        <!-- TTD Dokter -->
                         <div style="width:50%; border-right:1px solid black; padding:6px; text-align:center; display:flex; flex-direction:column; justify-content:space-between;">
                           <div style="font-weight:bold; font-size:11px;">TTD Dokter</div>
                           <div id="p-sig-dokter" style="height:55px; display:flex; align-items:center; justify-content:center;"></div>
@@ -861,7 +918,6 @@ const printTab = root.querySelector('#triase-print-tab');
                             <div style="font-size:9px; color:#555; margin-top:2px;">Nama Jelas dan Gelar</div>
                           </div>
                         </div>
-                        <!-- TTD Perawat -->
                         <div style="width:50%; padding:6px; text-align:center; display:flex; flex-direction:column; justify-content:space-between;">
                           <div style="font-weight:bold; font-size:11px;">TTD Perawat</div>
                           <div id="p-sig-perawat" style="height:55px; display:flex; align-items:center; justify-content:center;"></div>
@@ -876,76 +932,18 @@ const printTab = root.querySelector('#triase-print-tab');
                 </div>
               `;
 
-              printContainer.innerHTML = createAutoPageSurat({
-                  headerHtml: hospitalHeaderDiv(noMr, nama, tglLahir, kelamin, getFontSize, 'FORMULIR TRIASE GAWAT DARURAT'),
-                  bodyHtml: bodyHtml,
-                  footerHtml: '',
-                  footerLabelCode: 'RM03/Rev02/RSBHY/2022'
-              });
-              syncToPreview();
-            });
-          }
+          printContainer.innerHTML = createAutoPageSurat({
+            headerHtml: hospitalHeaderDiv(noMr, nama, tglLahir, kelamin, getFontSize, 'FORMULIR TRIASE GAWAT DARURAT'),
+            bodyHtml: bodyHtml,
+            footerHtml: '',
+            footerLabelCode: 'RM03/Rev02/RSBHY/2022'
+          });
+          syncToPreview();
+        });
+      }
 
-const syncToPreview = () => {
-        const getVal = (id) => document.getElementById(id)?.value || "";
-        const setText = (id, text) => {
-          const el = document.getElementById(id);
-          if (el) el.innerText = text;
-        };
-        setText("p-td", getVal("f-td"));
-        setText("p-suhu", getVal("f-suhu"));
-        setText("p-hr", getVal("f-hr"));
-        setText("p-rr", getVal("f-rr"));
-        setText("p-spo2", getVal("f-spo2"));
-        setText("p-gcsE", getVal("f-gcsE"));
-        setText("p-gcsV", getVal("f-gcsV"));
-        setText("p-gcsM", getVal("f-gcsM"));
-        const defaultDpjp = self.patient?.dokterDpjp || self.patient?.dpjp || self.patient?.namaDokter || self.patient?.dokter || "";
-        setText("p-namaDokter", getVal("f-namaDokter") || defaultDpjp || ".....................................");
-        setText("p-namaPerawat", getVal("f-namaPerawat") || ".....................................");
-        setText("p-situasiBerbahaya", getVal("f-situasiBerbahaya"));
-        setText("p-doaDetail", getVal("f-doaDetail"));
-        setText("p-konsul", getVal("f-konsul") || ".....................................");
-        ["red", "yellow", "green", "black"].forEach((c) => {
-          const el = document.querySelector(".p-triageColor-" + c);
-          if (el) el.innerHTML = getVal("f-triageColor") === c ? "✓" : "";
-        });
-        const checked = Array.from(
-          document.querySelectorAll(".f-symptom:checked"),
-        ).map((cb) => cb.value);
-        document.querySelectorAll(".p-symptom").forEach((el) => {
-          const dataVal = el.getAttribute("data-val");
-          el.innerHTML = (dataVal && checked.includes(dataVal)) ? "✓" : "";
-        });
-        const sigDokterEl = document.getElementById("sig-dokter");
-        const sigPerawatEl = document.getElementById("sig-perawat");
-        const previewDokter = document.getElementById("p-sig-dokter");
-        const previewPerawat = document.getElementById("p-sig-perawat");
-        if (sigDokterEl && previewDokter) {
-          try {
-            const dataUrl = sigDokterEl.toDataURL();
-            if (dataUrl && dataUrl.length > 100) {
-              const img = document.createElement("img");
-              img.src = dataUrl;
-              img.style.cssText = "max-width:100%;max-height:48px;object-fit:contain;";
-              previewDokter.innerHTML = "";
-              previewDokter.appendChild(img);
-            }
-          } catch(e) {}
-        }
-        if (sigPerawatEl && previewPerawat) {
-          try {
-            const dataUrl = sigPerawatEl.toDataURL();
-            if (dataUrl && dataUrl.length > 100) {
-              const img = document.createElement("img");
-              img.src = dataUrl;
-              img.style.cssText = "max-width:100%;max-height:48px;object-fit:contain;";
-              previewPerawat.innerHTML = "";
-              previewPerawat.appendChild(img);
-            }
-          } catch(e) {}
-        }
-      };
+
+
 
       document
         .querySelectorAll("#triase-input input, #triase-input select, #triase-input textarea")

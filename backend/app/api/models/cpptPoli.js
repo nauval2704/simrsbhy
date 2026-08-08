@@ -8,6 +8,6 @@ const CpptPoliSchema = new Schema({
   tglInput: { type: String, default: null },
   user: { type: String, default: null },
   poliNama: { type: String, default: null },
-});
+}, { strict: false });
 
 module.exports = mongoose.model("CpptPoli", CpptPoliSchema);

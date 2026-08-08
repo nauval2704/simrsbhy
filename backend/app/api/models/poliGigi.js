@@ -21,6 +21,6 @@ const PoliGigiSchema = new Schema({
     trim: true,
     default: null,
   },
-});
+}, { strict: false });
 
 module.exports = mongoose.model("PoliGigi", PoliGigiSchema);
