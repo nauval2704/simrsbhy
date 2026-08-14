@@ -178,7 +178,29 @@ module.exports = {
     const password = ConsId + SecretKey + tmStamp;
     var signa = crypto.createHmac("sha256", SecretKey).update(data).digest();
     var encodedSigna = Buffer.from(signa).toString("base64");
-    const today = moment(new Date(), "YYYYMMDD");
+
+    // Local Nakes model for fallback when BPJS is unavailable
+    const Nakes = require("../../models/nakes");
+    const Users = require("../../models/users");
+
+    async function getLocalDokterList() {
+      try {
+        const allNakes = await Nakes.find({}).lean();
+        const linkedUsers = await Users.find({ nakesId: { $ne: null } })
+          .select({ nakesId: 1, kodedpjp: 1, nama: 1 })
+          .lean();
+        const nakesIdToKodedpjp = {};
+        linkedUsers.forEach(u => {
+          if (u.nakesId) nakesIdToKodedpjp[u.nakesId] = u.kodedpjp || null;
+        });
+        return allNakes.map(n => ({
+          kode: nakesIdToKodedpjp[String(n._id)] || String(n._id),
+          nama: n.nama,
+        }));
+      } catch (e) {
+        return [];
+      }
+    }
 
     function decryptResponse(string, key) {
       var key_hash = crypto.createHash("sha256").update(key).digest();
@@ -191,14 +213,13 @@ module.exports = {
     }
 
     try {
+      const kodeSpesialis = req.params.kode || "";
+      const targetUrl = kodeSpesialis
+        ? BaseUrl + "referensi/dokter/pelayanan/" + req.params.jenis + "/tglPelayanan/" + req.params.tgl + "/Spesialis/" + kodeSpesialis
+        : BaseUrl + "referensi/dokter/pelayanan/" + req.params.jenis + "/tglPelayanan/" + req.params.tgl;
+
       const getList = await axios.get(
-        BaseUrl +
-        "referensi/dokter/pelayanan/" +
-        req.params.jenis +
-        "/tglPelayanan/" +
-        req.params.tgl +
-        "/Spesialis/" +
-        req.params.kode,
+        targetUrl,
         {
           headers: {
             "x-cons-id": ConsId,
@@ -210,23 +231,24 @@ module.exports = {
       );
 
       if (getList.data.metaData.code !== "200") {
-        res.json({
-          response: getList.data.metaData.message,
-        });
+        // BPJS non-200: fall back to local Nakes list
+        const localList = await getLocalDokterList();
+        return res.json({ list: localList });
       } else {
         const response = await JSON.parse(
           decryptResponse(getList.data.response, password)
         );
-
+        // Merge BPJS list with any local doctors not in BPJS list
+        if (!response || !Array.isArray(response.list)) {
+          const localList = await getLocalDokterList();
+          return res.json({ list: localList });
+        }
         res.json(response);
       }
     } catch (err) {
-      res.json({
-        metadata: {
-          message: "Jadwal Tidak Ditemukan",
-          code: 201,
-        },
-      });
+      // BPJS unreachable or error: fall back to local Nakes list
+      const localList = await getLocalDokterList();
+      return res.json({ list: localList });
     }
   },
   vclaimApiFingerPrint: async (req, res) => {

@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const simrsBaController = require("../app/api/controllers/simrsba");
+const { authenticateToken, authorizeRoles } = require("../app/api/middleware/auth");
 
 router.post("/checkpasien", simrsBaController.checkpasien);
 router.post("/aksesuser", simrsBaController.hakUser);
@@ -42,16 +43,17 @@ router.get("/caridokter/:term", simrsBaController.cariDokter);
 router.get("/pasienbaru", simrsBaController.pasienBaru);
 router.get("/caripasien/norm/:term", simrsBaController.cariPasienNorm);
 router.get("/cariruang/:term", simrsBaController.cariRuang);
-router.get("/caripasienpoli", simrsBaController.cariPasienPoli);
-router.get("/caripasienpoli/:norm", simrsBaController.cariPasienPoliNorm);
+router.get("/caripasienpoli", authenticateToken, simrsBaController.cariPasienPoli);
+router.get("/caripasienpoli/:norm", authenticateToken, simrsBaController.cariPasienPoliNorm);
 router.get(
   "/caripasienpolinocheckin/:noCheckin",
+  authenticateToken,
   simrsBaController.caripasienpolinocheckin
 );
 
 router.get("/checknosep/:nosep", simrsBaController.checknosep);
-router.get("/caripasieninap", simrsBaController.cariPasienInap);
-router.get("/caripasieninap/:norm", simrsBaController.cariPasienInapNorm);
+router.get("/caripasieninap", authenticateToken, simrsBaController.cariPasienInap);
+router.get("/caripasieninap/:norm", authenticateToken, simrsBaController.cariPasienInapNorm);
 router.get("/caridatakunjungan/:nosep", simrsBaController.cariDataKunjungan);
 router.get(
   "/caridatakunjungannosep/:nosep",
@@ -59,18 +61,22 @@ router.get(
 );
 router.get(
   "/caripasieninapnocheckin/:noCheckin",
+  authenticateToken,
   simrsBaController.caripasieninapnocheckin
 );
 router.get(
   "/caripasien/pelayanan/:pelayanan",
+  authenticateToken,
   simrsBaController.cariPasienPelayanan
 );
 router.get(
   "/caripasien/pelayanan/:pelayanan/norm/:norm",
+  authenticateToken,
   simrsBaController.cariPasienPelayananNorm
 );
 router.get(
   "/caripasien/pelayanan/:pelayanan/nocheckin/:noCheckin",
+  authenticateToken,
   simrsBaController.cariPasienPelayananNoCheckin
 );
 router.post("/saveSep", simrsBaController.saveSep);
@@ -137,6 +143,7 @@ router.get("/cariuser", simrsBaController.cariUser);
 router.get("/getriwayat/:norm", simrsBaController.getRiwayat);
 router.get(
   "/laporan/igd/:start/:end/:keterangan",
+  authenticateToken,
   simrsBaController.getLaporanIgd
 );
 router.get(
@@ -200,13 +207,20 @@ router.get("/pengkajian-awal-poli/:noCheckin", simrsBaController.getPengkajianAw
 router.post("/pengkajian-awal-igd", simrsBaController.savePengkajianAwalIgd);
 router.get("/pengkajian-awal-igd/:noCheckin", simrsBaController.getPengkajianAwalIgd);
 
+router.post("/lab/save", simrsBaController.saveLab);
+router.post("/rad/save", simrsBaController.saveRad);
+
 router.post("/general-consent", simrsBaController.saveGeneralConsent);
 router.get("/general-consent/:noCheckin", simrsBaController.getGeneralConsent);
 
 router.post("/tata-tertib-ranap", simrsBaController.saveTataTertibRanap);
 router.get("/tata-tertib-ranap/:noCheckin", simrsBaController.getTataTertibRanap);
 
-router.post("/lab/save", simrsBaController.saveLab);
-router.post("/rad/save", simrsBaController.saveRad);
+// SDM Nakes User Management Routes (Protected with JWT & RBAC: ROLE_SDM & ROLE_ADMIN)
+router.post("/createnakesuser", authenticateToken, authorizeRoles("ROLE_SDM"), simrsBaController.createNakesUser);
+router.get("/listnakesuser", authenticateToken, authorizeRoles("ROLE_SDM"), simrsBaController.listNakesUser);
+router.get("/unlinkedusers", authenticateToken, authorizeRoles("ROLE_SDM"), simrsBaController.listUnlinkedUsers);
+router.post("/updatenakesuser", authenticateToken, authorizeRoles("ROLE_SDM"), simrsBaController.updateNakesUser);
+router.post("/deletenakesuser", authenticateToken, authorizeRoles("ROLE_SDM"), simrsBaController.deleteNakesUser);
 
 module.exports = router;

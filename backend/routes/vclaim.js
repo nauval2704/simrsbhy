@@ -8,6 +8,7 @@ router.get(
   simrsController.vclaimApiPoliRujukan
 );
 router.get("/api/faskes/:nama/:jenis", simrsController.vclaimApiFaskes);
+router.get("/api/dpjp/:jenis/:tgl", simrsController.vclaimApiDpjp);
 router.get("/api/dpjp/:jenis/:tgl/:kode", simrsController.vclaimApiDpjp);
 router.get(
   "/api/fingerprint/:noKartu/tgl/:tgl",

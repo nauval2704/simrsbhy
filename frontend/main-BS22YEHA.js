@@ -75538,6 +75538,8 @@ var uk = (() => {
   return t;
 })();
 var zM = () => ["hak-akses"],
+  yM_nk = () => ["nakes"],
+  Mk_sdm = () => ({ exact: true }),
   hk = (() => {
     class t {
       static {
@@ -75549,8 +75551,8 @@ var zM = () => ["hak-akses"],
         this.ɵcmp = R({
           type: t,
           selectors: [["app-sdm"]],
-          decls: 11,
-          vars: 2,
+          decls: 14,
+          vars: 8,
           consts: [
             [1, "container-fluid"],
             [1, "row"],
@@ -75565,9 +75567,11 @@ var zM = () => ["hak-akses"],
               "list-group-item-action",
               3,
               "routerLink",
+              "routerLinkActiveOptions",
             ],
             [1, "ml-3"],
             [1, "col-lg-9", "my-2"],
+            { exact: true },
           ],
           template: function (a, o) {
             (a & 1 &&
@@ -75580,11 +75584,14 @@ var zM = () => ["hak-akses"],
               n(),
               i(6, "a", 5)(7, "span", 6),
               r(8, "Hak Akses"),
+              n()(),
+              i(9, "a", 5)(10, "span", 6),
+              r(11, "Data Nakes & Akun"),
               n()()()(),
-              i(9, "div", 7),
-              c(10, "router-outlet"),
+              i(12, "div", 7),
+              c(13, "router-outlet"),
               n()()()),
-              a & 2 && (l(6), m("routerLink", Me(1, zM))));
+              a & 2 && (l(6), m("routerLink", Me(1, zM)), m("routerLinkActiveOptions", Me(3, Mk_sdm)), l(3), m("routerLink", Me(5, yM_nk)), m("routerLinkActiveOptions", Me(7, Mk_sdm))));
           },
           dependencies: [xi, ni, Xt],
           encapsulation: 2,
@@ -75593,6 +75600,7 @@ var zM = () => ["hak-akses"],
     }
     return t;
   })();
+
 var Sye = new Lr(),
   gk = (() => {
     class t {
@@ -137247,6 +137255,11 @@ var rb = [
       {
         path: "hak-akses",
         component: fk,
+      },
+      {
+        path: "nakes",
+        loadComponent: () =>
+          import("./chunk-SDM-NAKES.js").then((t) => t.SdmNakesComponent),
       },
     ],
   },

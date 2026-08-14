@@ -23,9 +23,25 @@ const UserSchema = new Schema({
         trim: true,
         required: true
     },
-    token: {
+    email: {
         type: String,
-        default: ''
+        trim: true,
+        default: null,
+    },
+    kodedpjp: {
+        type: String,
+        trim: true,
+        default: null,
+    },
+    nakesId: {
+        type: String,
+        trim: true,
+        default: null,
+    },
+    nik: {
+        type: String,
+        trim: true,
+        default: null,
     },
     createdAt: {
         type: String,

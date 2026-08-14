@@ -138,6 +138,14 @@ app.get("/", function (req, res) {
   });
 });
 
+app.get("/dashboard", function (req, res) {
+  res.json({
+    status: "success",
+    message: "SIMRS Dashboard Endpoint",
+    data: null,
+  });
+});
+
 // public route
 app.use("/mansis", mansis);
 app.use("/users", users);

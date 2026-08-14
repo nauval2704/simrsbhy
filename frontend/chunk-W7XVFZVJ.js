@@ -1,11 +1,11 @@
 var a = {
   production: !0,
   // production
-  apiUrl: "http://36.66.36.106:1822",
+  // apiUrl: "http://36.66.36.106:1822",
   // apiUrl: "https://rsbhyaceh.com:1821",
   // antreanUrl: "https://rsbhyaceh.com:8889"
   // dev
-  // apiUrl: "http://localhost:1822",
+  apiUrl: "http://localhost:1822",
   antreanUrl: "http://localhost:8889",
 };
 export { a };

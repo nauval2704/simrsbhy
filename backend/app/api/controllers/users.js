@@ -82,8 +82,18 @@ module.exports = {
   },
   authenticate: async (req, res) => {
     try {
+      const input = (req.body.username || '').trim();
+      const safeInput = input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const handle = input.includes('@') ? input.split('@')[0] : input;
+      const safeHandle = handle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
       const user = await userModel.findOne({
-        username: req.body.username,
+        $or: [
+          { username: input },
+          { username: handle },
+          { email: input },
+          { email: { $regex: new RegExp("^" + safeInput + "@", "i") } }
+        ]
       });
 
       if (!user) {
@@ -96,18 +106,21 @@ module.exports = {
       }
 
      if (bcrypt.compareSync(req.body.password, user.password)) {
-        let id = user._id
+        let id = user._id;
         const token = jwt.sign(
           {
-            id
+            id: user._id,
+            username: user.username,
+            role: user.role || "ROLE_USER",
+            nama: user.nama || ""
           },
           req.app.get("secretKey"),
           {
             expiresIn: 60 * 60 * 12,
           }
         );
-        user.token =token;
-        user.save()
+        user.token = token;
+        user.save();
         return res.status(200).send({
           nama: user.nama,
           username:user.username,

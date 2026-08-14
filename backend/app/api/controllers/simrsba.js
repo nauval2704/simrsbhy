@@ -18,6 +18,30 @@ const EdukasiPoli = require("../models/edukasiPoli");
 const CpptIgd = require("../models/cpptIgd");
 const CpptPoli = require("../models/cpptPoli");
 const RingkasanPulang = require("../models/ringkasanPulang");
+
+function getDoctorDpjpMatch(req) {
+  if (req.user && req.user.role !== 'ROLE_ADMIN' && ['ROLE_POLI', 'ROLE_IGD', 'ROLE_INAP'].includes(req.user.role)) {
+    const rawName = (req.user.nama || '').trim();
+    const cleanName = rawName.replace(/^(dr\.|drg\.|Dr\.|Drg\.|dr|drg)\s*/gi, '').trim();
+
+    const searchNames = [];
+    if (rawName) searchNames.push(rawName);
+    if (cleanName && cleanName !== rawName) searchNames.push(cleanName);
+
+    if (searchNames.length > 0) {
+      const orConditions = [];
+      searchNames.forEach(n => {
+        const safe = n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        orConditions.push({ dpjp: { $regex: new RegExp("^" + safe + "$", "i") } });
+        orConditions.push({ dpjp: { $regex: new RegExp("^dr\\.?\\s*" + safe + "$", "i") } });
+      });
+      return { $or: orConditions };
+    } else {
+      return { dpjp: "__NO_DOCTOR_MATCH__" };
+    }
+  }
+  return null;
+}
 const PemberianObatIgd = require("../models/pemberianObatIgd");
 const PengkajianAwalPoli = require("../models/pengkajianAwalPoli");
 const PengkajianAwalIgd = require("../models/pengkajianAwalIgd");
@@ -508,8 +532,10 @@ module.exports = {
     var pelayanan = req.params.pelayanan;
     const dateSkrg = moment().format("YYYY-MM-DD");
     try {
+      const dpjpMatch = getDoctorDpjpMatch(req);
+
       if (pelayanan === 'YANMEDDOKPOL') {
-        const cariNorm = await Checkin.aggregate([
+        const pipelineDokpol = [
           {
             $match: {
               $or: [
@@ -518,10 +544,13 @@ module.exports = {
             },
           },
           { $sort: { status: 1, tglInput: -1 } },
-        ]);
+        ];
+        if (dpjpMatch) pipelineDokpol.unshift({ $match: dpjpMatch });
+        const cariNorm = await Checkin.aggregate(pipelineDokpol);
         return res.json(cariNorm);
       }
-      const cariNorm = await Checkin.aggregate([
+
+      const pipeline = [
         {
           $match: {
             $or: [
@@ -565,7 +594,13 @@ module.exports = {
           },
         },
         { $sort: { status: 1, tglInput: -1 } },
-      ]);
+      ];
+
+      if (dpjpMatch) {
+        pipeline.unshift({ $match: dpjpMatch });
+      }
+
+      const cariNorm = await Checkin.aggregate(pipeline);
       return res.json(cariNorm);
     } catch (err) {
       res.status(400).send({
@@ -579,7 +614,7 @@ module.exports = {
   cariPasienPoli: async (req, res) => {
     const dateSkrg = moment().format("YYYY-MM-DD");
     try {
-      const cariNorm = await Checkin.aggregate([
+      const pipeline = [
         {
           $match: {
             $or: [
@@ -620,7 +655,14 @@ module.exports = {
           },
         },
         { $sort: { status: 1, tglInput: -1 } },
-      ]);
+      ];
+
+      const dpjpMatch = getDoctorDpjpMatch(req);
+      if (dpjpMatch) {
+        pipeline.unshift({ $match: dpjpMatch });
+      }
+
+      const cariNorm = await Checkin.aggregate(pipeline);
       res.json(cariNorm);
     } catch (err) {
       res.status(400).send({
@@ -634,7 +676,7 @@ module.exports = {
   cariPasienInap: async (req, res) => {
     const dateSkrg = moment().format("YYYY-MM-DD");
     try {
-      const cariNorm = await Checkin.aggregate([
+      const pipeline = [
         {
           $match: {
             $or: [
@@ -664,7 +706,14 @@ module.exports = {
           },
         },
         { $sort: { status: 1, tglInput: -1 } },
-      ]);
+      ];
+
+      const dpjpMatch = getDoctorDpjpMatch(req);
+      if (dpjpMatch) {
+        pipeline.unshift({ $match: dpjpMatch });
+      }
+
+      const cariNorm = await Checkin.aggregate(pipeline);
       res.json(cariNorm);
     } catch (err) {
       res.status(400).send({
@@ -815,7 +864,7 @@ module.exports = {
   caripasienpolinocheckin: async (req, res) => {
     var noCheckin = req.params.noCheckin;
     try {
-      const cariNorm = await Checkin.aggregate([
+      const pipeline = [
         { $match: { noCheckin: noCheckin } },
         {
           $lookup: {
@@ -834,7 +883,14 @@ module.exports = {
         },
         { $project: { user: 0 } },
         { $sort: { noCheckin: -1 } },
-      ]);
+      ];
+
+      const dpjpMatch = getDoctorDpjpMatch(req);
+      if (dpjpMatch) {
+        pipeline.unshift({ $match: dpjpMatch });
+      }
+
+      const cariNorm = await Checkin.aggregate(pipeline);
       res.json(cariNorm);
     } catch (err) {
       res.status(400).send({
@@ -848,7 +904,7 @@ module.exports = {
   caripasieninapnocheckin: async (req, res) => {
     var noCheckin = req.params.noCheckin;
     try {
-      const cariNorm = await Checkin.aggregate([
+      const pipeline = [
         { $match: { noCheckin: noCheckin } },
         {
           $lookup: {
@@ -867,7 +923,14 @@ module.exports = {
         },
         { $project: { user: 0 } },
         { $sort: { noCheckin: -1 } },
-      ]);
+      ];
+
+      const dpjpMatch = getDoctorDpjpMatch(req);
+      if (dpjpMatch) {
+        pipeline.unshift({ $match: dpjpMatch });
+      }
+
+      const cariNorm = await Checkin.aggregate(pipeline);
       res.json(cariNorm);
     } catch (err) {
       res.status(400).send({
@@ -2641,7 +2704,7 @@ module.exports = {
         res.json(cariNorm);
         return;
       }
-      const cariNorm = await Checkin.aggregate([
+      const igdPipeline = [
         {
           $match: {
             poli: "INSTALASI GAWAT DARURAT",
@@ -2808,7 +2871,12 @@ module.exports = {
           },
         },
         { $sort: { status: 1, tglInput: -1 } },
-      ]);
+      ];
+      const dpjpMatchIgd = getDoctorDpjpMatch(req);
+      if (dpjpMatchIgd) {
+        igdPipeline.unshift({ $match: dpjpMatchIgd });
+      }
+      const cariNorm = await Checkin.aggregate(igdPipeline);
       res.json(cariNorm);
     } catch (err) {
       res.status(400).send({
@@ -4096,6 +4164,329 @@ module.exports = {
       return res.status(200).send({ status: 200, message: "Ok", data: data });
     } catch (error) {
       return res.status(400).send({ status: 400, message: "Gagal mengambil data Tata Tertib Ranap", data: null });
+    }
+  },
+
+  // ==========================
+  // SDM Nakes User Management
+  // ==========================
+
+  listUnlinkedUsers: async (req, res) => {
+    try {
+      const users = await Users.find({
+        $or: [{ nakesId: null }, { nakesId: { $exists: false } }, { nakesId: "" }]
+      })
+      .select({ password: 0, token: 0 })
+      .lean();
+
+      return res.json({
+        status: "success",
+        message: "Data User unlinked berhasil dimuat.",
+        data: users,
+      });
+    } catch (err) {
+      return res.status(500).json({
+        status: "error",
+        message: "ERROR_LIST_UNLINKED_USERS",
+        error: err.message,
+        data: null,
+      });
+    }
+  },
+
+  createNakesUser: async (req, res) => {
+    const bcrypt = require("bcryptjs");
+    const { userId, nama, email, password, role, kodedpjp, kategori } = req.body;
+
+    try {
+      if (userId) {
+        const user = await Users.findById(userId);
+        if (!user) {
+          return res.status(404).json({
+            status: "error",
+            message: "User account not found.",
+            data: null,
+          });
+        }
+
+        const nakes = new Nakes({
+          nama: (nama || user.nama).trim(),
+          kategori: kategori || "DOKTER",
+          tglInput: moment().format("YYYY-MM-DD"),
+          user: user.username,
+        });
+        await nakes.save();
+
+        user.nakesId = String(nakes._id);
+        if (kodedpjp) user.kodedpjp = kodedpjp.trim();
+        if (role) user.role = role;
+        if (email) user.email = email.trim();
+        await user.save();
+
+        return res.json({
+          status: "success",
+          message: `Akun "${user.username}" berhasil di-link ke Data Nakes.`,
+          data: {
+            nakesId: nakes._id,
+            userId: user._id,
+            nama: user.nama,
+            username: user.username,
+            role: user.role,
+            kodedpjp: user.kodedpjp,
+            kategori: nakes.kategori,
+          },
+        });
+      }
+
+      if (!nama || !email || !password) {
+        return res.status(400).json({
+          status: "error",
+          message: "Nama, email, dan password wajib diisi.",
+          data: null,
+        });
+      }
+
+      const username = email.trim().toLowerCase();
+
+      const existingUser = await Users.findOne({
+        $or: [{ username }, { email: username }]
+      });
+      if (existingUser) {
+        return res.status(400).json({
+          status: "error",
+          message: "USERNAME_EXISTS",
+          data: null,
+        });
+      }
+
+      const nakes = new Nakes({
+        nama: nama.trim(),
+        kategori: kategori || "DOKTER",
+        tglInput: moment().format("YYYY-MM-DD"),
+        user: username,
+      });
+      await nakes.save();
+
+      const saltRounds = 10;
+      const hash = bcrypt.hashSync(password, saltRounds);
+      const token = "";
+      const user = new Users({
+        nama: nama.trim(),
+        username,
+        password: hash,
+        token,
+        email: email.trim(),
+        kodedpjp: kodedpjp ? kodedpjp.trim() : null,
+        nakesId: String(nakes._id),
+        role: role || "ROLE_POLI",
+      });
+
+      try {
+        await user.save();
+      } catch (userSaveErr) {
+        await Nakes.findByIdAndDelete(nakes._id);
+        throw userSaveErr;
+      }
+
+      return res.json({
+        status: "success",
+        message: "Nakes & Akun User berhasil didaftarkan.",
+        data: {
+          nakesId: nakes._id,
+          userId: user._id,
+          nama: user.nama,
+          username: user.username,
+          role: user.role,
+          kodedpjp: user.kodedpjp,
+          kategori: nakes.kategori,
+        },
+      });
+    } catch (err) {
+      return res.status(500).json({
+        status: "error",
+        message: "ERROR_CREATE_NAKES_USER",
+        error: err.message,
+        data: null,
+      });
+    }
+  },
+
+  listNakesUser: async (req, res) => {
+    try {
+      const users = await Users.find({ nakesId: { $ne: null } })
+        .select({ password: 0, token: 0 })
+        .lean();
+
+      const allNakes = await Nakes.find({}).lean();
+      const linkedNakesIds = new Set(users.map(u => String(u.nakesId)).filter(Boolean));
+
+      const linked = users.map(u => {
+        const matchNakes = allNakes.find(n => String(n._id) === String(u.nakesId));
+        return {
+          _id: u._id,
+          nama: u.nama,
+          username: u.username,
+          role: u.role,
+          email: u.email,
+          kodedpjp: u.kodedpjp,
+          kategori: matchNakes ? matchNakes.kategori : "DOKTER",
+          sub: matchNakes ? matchNakes.sub : null,
+          ket: matchNakes ? matchNakes.ket : null,
+          nakesId: u.nakesId,
+          createdAt: u.createdAt,
+        };
+      });
+
+      const unlinked = allNakes
+        .filter(n => !linkedNakesIds.has(String(n._id)))
+        .map(n => ({
+          _id: null,
+          nama: n.nama,
+          username: n.user || null,
+          role: null,
+          email: null,
+          kodedpjp: null,
+          kategori: n.kategori || "DOKTER",
+          nakesId: String(n._id),
+          createdAt: n.tglInput,
+        }));
+
+      return res.json({
+        status: "success",
+        message: "Data Nakes & User berhasil dimuat.",
+        data: [...linked, ...unlinked],
+      });
+    } catch (err) {
+      return res.status(500).json({
+        status: "error",
+        message: "ERROR_LIST_NAKES_USER",
+        error: err.message,
+        data: null,
+      });
+    }
+  },
+
+  deleteNakesUser: async (req, res) => {
+    const { username, nakesId, nama } = req.body;
+    if (!username && !nakesId) {
+      return res.status(400).json({
+        status: "error",
+        message: "Username atau nakesId wajib diisi.",
+        data: null,
+      });
+    }
+    try {
+      let targetNakesId = nakesId || null;
+
+      if (username) {
+        const user = await Users.findOne({ username });
+        if (user) {
+          if (user.nakesId) {
+            targetNakesId = user.nakesId;
+          }
+          await Users.deleteOne({ username });
+        }
+      }
+
+      if (targetNakesId) {
+        await Nakes.findByIdAndDelete(targetNakesId);
+      }
+
+      return res.json({
+        status: "success",
+        message: `Nakes & Akun "${nama || username || nakesId}" berhasil dihapus.`,
+        data: null,
+      });
+    } catch (err) {
+      return res.status(500).json({
+        status: "error",
+        message: "ERROR_DELETE_NAKES_USER",
+        error: err.message,
+        data: null,
+      });
+    }
+  },
+
+  updateNakesUser: async (req, res) => {
+    const { userId, nakesId, username, nama, email, password, role, kodedpjp, kategori } = req.body;
+    const bcrypt = require("bcryptjs");
+
+    try {
+      let user = null;
+      if (userId) {
+        user = await Users.findById(userId);
+      } else if (username) {
+        user = await Users.findOne({ username });
+      } else if (nakesId) {
+        user = await Users.findOne({ nakesId: String(nakesId) });
+      }
+
+      const nakes = nakesId ? await Nakes.findById(nakesId) : (username ? await Nakes.findOne({ user: username }) : null);
+
+      if (!user && (nakes || nama)) {
+        const derivedUsername = (email && email.trim().toLowerCase()) || username || (nama ? nama.toLowerCase().replace(/[^a-z0-9]/g, '') : 'user');
+        const pwd = (password && password.trim().length > 0) ? password.trim() : '123456';
+        const hash = bcrypt.hashSync(pwd, 10);
+
+        user = new Users({
+          nama: (nama || (nakes ? nakes.nama : '')).trim(),
+          username: derivedUsername,
+          password: hash,
+          email: email ? email.trim() : derivedUsername,
+          kodedpjp: kodedpjp ? kodedpjp.trim() : null,
+          nakesId: nakes ? String(nakes._id) : (nakesId ? String(nakesId) : null),
+          role: role || "ROLE_POLI",
+        });
+        await user.save();
+
+        if (nakes) {
+          nakes.user = derivedUsername;
+          nakes.nama = (nama || nakes.nama).trim();
+          if (kategori) nakes.kategori = kategori;
+          await nakes.save();
+        }
+      } else {
+        if (user) {
+          if (nama) user.nama = nama.trim();
+          if (email) {
+            user.email = email.trim();
+            user.username = email.trim().toLowerCase();
+          }
+          if (role) user.role = role;
+          if (kodedpjp !== undefined) user.kodedpjp = kodedpjp ? kodedpjp.trim() : null;
+
+          if (password && password.trim().length > 0) {
+            const saltRounds = 10;
+            user.password = bcrypt.hashSync(password.trim(), saltRounds);
+          }
+
+          if (nakesId && !user.nakesId) {
+            user.nakesId = String(nakesId);
+          }
+
+          await user.save();
+        }
+
+        if (nakes) {
+          if (nama) nakes.nama = nama.trim();
+          if (kategori) nakes.kategori = kategori;
+          if (user && user.username) nakes.user = user.username;
+          await nakes.save();
+        }
+      }
+
+      return res.json({
+        status: "success",
+        message: "Data Nakes & User berhasil diperbarui.",
+        data: null,
+      });
+    } catch (err) {
+      return res.status(500).json({
+        status: "error",
+        message: "ERROR_UPDATE_NAKES_USER",
+        error: err.message,
+        data: null,
+      });
     }
   },
 };

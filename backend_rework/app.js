@@ -107,6 +107,14 @@ app.get("/", function (req, res) {
   });
 });
 
+app.get("/dashboard", function (req, res) {
+  res.json({
+    status: "success",
+    message: "SIMRS Dashboard Endpoint",
+    data: null,
+  });
+});
+
 app.get("/favicon.ico", function (req, res) {
   res.sendStatus(204);
 });
@@ -150,6 +158,7 @@ app.use("/icare", icare);
 
 // Private routes (Butuh JWT Auth)
 app.use("/simrsba", simrsba);
+app.use("/nakes", simrsba);
 app.use("/gudang", validateUser, gudang);
 app.use("/farmasi", validateUser, farmasi);
 app.use("/apotek", validateUser, apotek);

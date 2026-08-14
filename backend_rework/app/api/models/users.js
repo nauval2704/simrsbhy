@@ -27,6 +27,26 @@ const UserSchema = new Schema({
         type: String,
         default: ''
     },
+    email: {
+        type: String,
+        trim: true,
+        default: null,
+    },
+    kodedpjp: {
+        type: String,
+        trim: true,
+        default: null,
+    },
+    nakesId: {
+        type: String,
+        trim: true,
+        default: null,
+    },
+    nik: {
+        type: String,
+        trim: true,
+        default: null,
+    },
     createdAt: {
         type: String,
         default: () => moment().format("YYYY-MM-DD HH:mm:ss"),
