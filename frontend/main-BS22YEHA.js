@@ -2160,7 +2160,6 @@ function wC(t, s) {
       m(
         "ngIf",
         e.isAdmin ||
-          e.isIgd ||
           e.isReg ||
           e.isApotek ||
           e.isLab ||
@@ -2392,9 +2391,9 @@ function DC(t, s) {
       l(),
       m("ngIf", e.isAdmin || e.isKeuangan),
       l(),
-      m("ngIf", e.isAdmin || e.isLab || e.isIgd),
+      m("ngIf", e.isAdmin || e.isLab),
       l(),
-      m("ngIf", e.isAdmin || e.isRadiologi || e.isIgd),
+      m("ngIf", e.isAdmin || e.isRadiologi),
       l(),
       Ye("collapse", e.collapsed),
       l(6),
