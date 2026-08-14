@@ -6,6 +6,27 @@ import {
   Ec as p,
 } from "./chunk-UYVTZL26.js";
 
+const getHeaders = (extra = {}) => {
+  let token = '';
+  try {
+    const rawAccess = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+    if (rawAccess) {
+      try { token = JSON.parse(rawAccess); } catch (e) { token = rawAccess; }
+    }
+    if (!token) {
+      const rawUser = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
+      if (rawUser) {
+        const parsed = typeof rawUser === 'string' ? JSON.parse(rawUser) : rawUser;
+        token = parsed.idToken || parsed.token || parsed.id || '';
+      }
+    }
+    if (!token) {
+      token = localStorage.getItem('idToken') || localStorage.getItem('token') || sessionStorage.getItem('token') || '';
+    }
+  } catch (e) {}
+  return Object.assign({ 'Content-Type': 'application/json', 'x-token': token, 'Authorization': 'Bearer ' + token }, extra);
+};
+
 var SdmNakesComponent = (() => {
   class t {
     constructor() {
@@ -20,27 +41,9 @@ var SdmNakesComponent = (() => {
     loadData() {
       const host = document.querySelector('app-sdm-nakes');
       if (!host) return;
-      let token = '';
-      try {
-        const rawAccess = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
-        if (rawAccess) {
-          try { token = JSON.parse(rawAccess); } catch (e) { token = rawAccess; }
-        }
-        if (!token) {
-          const rawUser = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
-          if (rawUser) {
-            const parsed = typeof rawUser === 'string' ? JSON.parse(rawUser) : rawUser;
-            token = parsed.idToken || parsed.token || parsed.id || '';
-          }
-        }
-        if (!token) {
-          token = localStorage.getItem('idToken') || localStorage.getItem('token') || sessionStorage.getItem('token') || '';
-        }
-      } catch (e) {}
-
       const apiUrl = i.apiUrl || (window.location.hostname === 'localhost' ? 'http://localhost:1822' : 'http://36.66.36.106:1822');
       fetch(apiUrl + '/simrsba/listnakesuser', {
-        headers: { 'x-token': token, 'Authorization': 'Bearer ' + token }
+        headers: getHeaders()
       })
         .then(res => res.json())
         .then(data => {
@@ -353,26 +356,7 @@ var SdmNakesComponent = (() => {
           filtered.map(u => `<option value="${u._id}">[${u.username}] ${u.nama} (${u.role || 'ROLE_USER'})</option>`).join('');
       };
 
-      const getHeaders = (extra = {}) => {
-        let token = '';
-        try {
-          const rawAccess = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
-          if (rawAccess) {
-            try { token = JSON.parse(rawAccess); } catch (e) { token = rawAccess; }
-          }
-          if (!token) {
-            const rawUser = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
-            if (rawUser) {
-              const parsed = typeof rawUser === 'string' ? JSON.parse(rawUser) : rawUser;
-              token = parsed.idToken || parsed.token || parsed.id || '';
-            }
-          }
-          if (!token) {
-            token = localStorage.getItem('idToken') || localStorage.getItem('token') || sessionStorage.getItem('token') || '';
-          }
-        } catch (e) {}
-        return Object.assign({ 'Content-Type': 'application/json', 'x-token': token, 'Authorization': 'Bearer ' + token }, extra);
-      };
+
 
       const loadUnlinkedUsers = () => {
         const apiUrl = i.apiUrl || (window.location.hostname === 'localhost' ? 'http://localhost:1822' : 'http://36.66.36.106:1822');

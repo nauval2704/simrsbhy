@@ -49,9 +49,25 @@ module.exports = {
   },
   current: async (req, res) => {
     try {
-      const user = await userModel.findOne({
-        token: req.headers["x-token"],
-      });
+      const rawToken = req.headers["x-token"] || (req.headers["authorization"] ? req.headers["authorization"].replace(/^Bearer\s+/i, '') : null);
+      if (!rawToken) {
+        return res.status(400).send({
+          error: 'token is invalid',
+          status: "error",
+          message: "ERROR_TOKEN",
+          data: null,
+        });
+      }
+
+      let user = await userModel.findOne({ token: rawToken });
+      if (!user) {
+        try {
+          const decoded = jwt.verify(rawToken, req.app.get("secretKey"));
+          if (decoded && (decoded.id || decoded._id)) {
+            user = await userModel.findById(decoded.id || decoded._id);
+          }
+        } catch (jwtErr) {}
+      }
 
       if (!user) {
         return res.status(400).send({
@@ -61,6 +77,7 @@ module.exports = {
           data: null,
         });
       }
+
       res.status(200).send({
         nama: user.nama,
         username: user.username,
@@ -68,7 +85,7 @@ module.exports = {
         role: user.role,
         umjkn: 'bpjs@bpjs-kesehatan.go.id',
         pmjkn: 'br1dgingANTREAN',
-        idToken: user.token,
+        idToken: user.token || rawToken,
         expiresIn: 60 * 60 * 12,
       });
     } catch (error) {
