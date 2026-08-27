@@ -4127,9 +4127,10 @@ module.exports = {
   saveGeneralConsent: async (req, res) => {
     try {
       const payload = req.body;
+      delete payload._id;
       const saved = await GeneralConsent.findOneAndUpdate(
         { noCheckin: payload.noCheckin },
-        payload,
+        { $set: payload },
         { new: true, upsert: true }
       );
       return res.status(200).send({ status: 200, message: "General Consent berhasil disimpan", data: saved });

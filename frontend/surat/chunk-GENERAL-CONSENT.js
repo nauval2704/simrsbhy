@@ -50,12 +50,13 @@ export var GeneralConsentComponent = (() => {
         catatanPenjenguk: "",
         tglConsent: new Date().toISOString().split("T")[0],
         namaPetugas: "",
+        namaTtdPasien: "",
         sigPetugas: null,
         sigPasien: null
       };
 
-      const pathParts = window.location.pathname.split("/");
-      this.noCheckin = pathParts[pathParts.length - 1] || pathParts[5];
+      const pathParts = window.location.pathname.split("/").filter(Boolean);
+      this.noCheckin = pathParts[pathParts.length - 1] || "";
     }
 
     ngOnInit() {
@@ -73,10 +74,10 @@ export var GeneralConsentComponent = (() => {
           next: (res) => {
             if (res && res.length > 0) {
               this.patient = res[0];
+              this.fetchDraft();
             } else {
               this.fetchPatientFallback();
             }
-            this.fetchDraft();
           },
           error: () => {
             this.fetchPatientFallback();
@@ -102,10 +103,18 @@ export var GeneralConsentComponent = (() => {
       this.http.get(i.apiUrl + "/simrsba/general-consent/" + this.noCheckin).subscribe({
         next: (res) => {
           if (res && res.data) {
-            this.formData = Object.assign(this.formData, res.data);
-          } else {
-            this.initDefaults();
+            let raw = res.data.data || res.data;
+            while (raw && raw.data && typeof raw.data === "object") {
+              raw = Object.assign({}, raw.data, raw);
+              delete raw.data;
+            }
+            delete raw._id;
+            delete raw.__v;
+            delete raw.createdAt;
+            delete raw.updatedAt;
+            this.formData = Object.assign(this.formData, raw);
           }
+          this.initDefaults();
           this.loading = false;
           this.renderUI();
         },
@@ -127,6 +136,9 @@ export var GeneralConsentComponent = (() => {
       if (!this.formData.namaPetugas && this.patient) {
         this.formData.namaPetugas = this.patient.namaDokter || this.patient.dpjp || "";
       }
+      if (!this.formData.namaTtdPasien) {
+        this.formData.namaTtdPasien = this.formData.namaWali || (this.patient ? this.patient.nama : "") || "";
+      }
     }
 
     handleSave() {
@@ -139,12 +151,17 @@ export var GeneralConsentComponent = (() => {
 
       this.syncFromDOM();
 
+      const formCopy = Object.assign({}, this.formData);
+      delete formCopy.data;
+      delete formCopy._id;
+      delete formCopy.__v;
+
       const payload = {
         noCheckin: this.noCheckin,
         noMr: this.patient?.noMr || this.patient?.norm || "",
         user: "Petugas",
         tglInput: new Date().toLocaleString(),
-        data: this.formData
+        data: formCopy
       };
 
       this.http.post(i.apiUrl + "/simrsba/general-consent", payload).subscribe({
@@ -197,6 +214,7 @@ export var GeneralConsentComponent = (() => {
       this.formData.catatanPenjenguk = getValue("gc-catatanPenjenguk");
       this.formData.tglConsent = getValue("gc-tglConsent");
       this.formData.namaPetugas = getValue("gc-namaPetugas");
+      this.formData.namaTtdPasien = getValue("gc-namaTtdPasien") || this.formData.namaWali;
     }
 
     renderUI() {
@@ -347,7 +365,7 @@ export var GeneralConsentComponent = (() => {
                   <div class="col-md-6">
                     <div class="border rounded p-2 bg-light">
                       <label class="f-label mb-1">Pasien / Penanggung Jawab</label>
-                      <input type="text" class="f-input mb-2" value="${d.namaWali || ''}" disabled style="background:#e9ecef;">
+                      <input type="text" id="gc-namaTtdPasien" class="f-input mb-2" value="${d.namaTtdPasien || d.namaWali || ''}" placeholder="Nama Pasien / Penanggung Jawab...">
                       <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="small fw-bold">TTD Pasien / Wali:</span>
                         <button type="button" class="btn btn-sm btn-outline-secondary sig-clear-btn" data-target="sig-gc-pasien" style="font-size:10px;padding:1px 6px;">Hapus</button>
@@ -380,8 +398,26 @@ export var GeneralConsentComponent = (() => {
 
       root.querySelector("#btn-save-general-consent")?.addEventListener("click", () => this.handleSave());
 
+      root.querySelector("#gc-namaWali")?.addEventListener("input", (e) => {
+        const ttdInput = root.querySelector("#gc-namaTtdPasien");
+        if (ttdInput && !ttdInput.dataset.manual) {
+          ttdInput.value = e.target.value;
+        }
+      });
+      root.querySelector("#gc-namaTtdPasien")?.addEventListener("input", (e) => {
+        e.target.dataset.manual = "true";
+      });
+
       this.initCanvas("sig-gc-petugas", "sigPetugas");
       this.initCanvas("sig-gc-pasien", "sigPasien");
+
+      const accCollapse4 = root.querySelector("#collapse_gc_4");
+      if (accCollapse4) {
+        accCollapse4.addEventListener("shown.bs.collapse", () => {
+          this.initCanvas("sig-gc-petugas", "sigPetugas");
+          this.initCanvas("sig-gc-pasien", "sigPasien");
+        });
+      }
 
       const printTab = root.querySelector("#gc-print-tab");
       const updatePrint = () => {
@@ -660,7 +696,7 @@ export var GeneralConsentComponent = (() => {
                       <div style="height:60px;display:flex;align-items:center;justify-content:center;">
                         ${d.sigPasien ? `<img src="${d.sigPasien}" style="max-height:55px;">` : '<br><br>'}
                       </div>
-                      <div>( <strong>${d.namaWali || '........................................'}</strong> )</div>
+                      <div>( <strong>${d.namaTtdPasien || d.namaWali || '........................................'}</strong> )</div>
                     </td>
                   </tr>
                 </table>

@@ -9,7 +9,7 @@ const GeneralConsentSchema = new Schema(
     tglInput: { type: String, default: "" },
     data: { type: Object, default: {} }
   },
-  { timestamps: true }
+  { timestamps: true, strict: false }
 );
 
 module.exports = mongoose.model("GeneralConsent", GeneralConsentSchema);
