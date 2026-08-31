@@ -50,7 +50,10 @@ const GeneralConsent = require("../models/generalConsent");
 const TataTertibRanap = require("../models/tataTertibRanap");
 const path = require("path");
 const fs = require("fs");
-const sharp = require("sharp");
+let sharp = null;
+try {
+  sharp = require("sharp");
+} catch (e) {}
 var mongoose = require("mongoose");
 const { ObjectId } = mongoose.Types.ObjectId;
 
@@ -4170,11 +4173,19 @@ module.exports = {
       if (mime.startsWith("image/")) {
         fileName = `${basePrefix}.jpg`;
         filePath = path.join(uploadDir, fileName);
-        await sharp(req.file.buffer)
-          .rotate()
-          .resize({ width: 1280, height: 1280, fit: "inside", withoutEnlargement: true })
-          .jpeg({ quality: 80, progressive: true })
-          .toFile(filePath);
+        if (sharp) {
+          try {
+            await sharp(req.file.buffer)
+              .rotate()
+              .resize({ width: 1280, height: 1280, fit: "inside", withoutEnlargement: true })
+              .jpeg({ quality: 80, progressive: true })
+              .toFile(filePath);
+          } catch (sharpErr) {
+            fs.writeFileSync(filePath, req.file.buffer);
+          }
+        } else {
+          fs.writeFileSync(filePath, req.file.buffer);
+        }
       } else if (mime === "application/pdf") {
         fileName = `${basePrefix}.pdf`;
         filePath = path.join(uploadDir, fileName);

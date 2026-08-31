@@ -1,10 +1,16 @@
 const express = require("express");
 const router = express.Router();
-const multer = require("multer");
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 15 * 1024 * 1024 }
-});
+let multer = null;
+let upload = {
+  single: () => (req, res, next) => next()
+};
+try {
+  multer = require("multer");
+  upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 15 * 1024 * 1024 }
+  });
+} catch (e) {}
 const simrsBaController = require("../app/api/controllers/simrsba");
 const { authenticateToken, authorizeRoles } = require("../app/api/middleware/auth");
 
