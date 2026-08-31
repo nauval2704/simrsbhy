@@ -4154,9 +4154,30 @@ module.exports = {
   },
   uploadKtpGeneralConsent: async (req, res) => {
     try {
-      if (!req.file) {
+      let fileBuffer = null;
+      let mime = "";
+
+      if (req.file) {
+        fileBuffer = req.file.buffer;
+        mime = req.file.mimetype || "image/jpeg";
+      } else if (req.body.fileKtp || req.body.file || req.body.image) {
+        const raw = req.body.fileKtp || req.body.file || req.body.image;
+        if (typeof raw === "string" && raw.startsWith("data:")) {
+          const matches = raw.match(/^data:([A-Za-z0-9\-\+\/\.]+);base64,(.+)$/);
+          if (matches) {
+            mime = matches[1];
+            fileBuffer = Buffer.from(matches[2], "base64");
+          }
+        } else if (typeof raw === "string") {
+          fileBuffer = Buffer.from(raw, "base64");
+          mime = "image/jpeg";
+        }
+      }
+
+      if (!fileBuffer) {
         return res.status(400).send({ status: 400, message: "File KTP tidak ditemukan", data: null });
       }
+
       const noCheckin = req.body.noCheckin || "temp";
       const noMr = (req.body.noMr || "").replace(/[^a-zA-Z0-9]/g, "");
       const tglClean = (req.body.tglCheckin || req.body.tglMasuk || "").replace(/[^0-9]/g, "");
@@ -4168,30 +4189,27 @@ module.exports = {
 
       let fileName = "";
       let filePath = "";
-      const mime = req.file.mimetype;
 
-      if (mime.startsWith("image/")) {
+      if (mime.includes("pdf") || (req.body.fileName && req.body.fileName.endsWith(".pdf"))) {
+        fileName = `${basePrefix}.pdf`;
+        filePath = path.join(uploadDir, fileName);
+        fs.writeFileSync(filePath, fileBuffer);
+      } else {
         fileName = `${basePrefix}.jpg`;
         filePath = path.join(uploadDir, fileName);
         if (sharp) {
           try {
-            await sharp(req.file.buffer)
+            await sharp(fileBuffer)
               .rotate()
               .resize({ width: 1280, height: 1280, fit: "inside", withoutEnlargement: true })
               .jpeg({ quality: 80, progressive: true })
               .toFile(filePath);
           } catch (sharpErr) {
-            fs.writeFileSync(filePath, req.file.buffer);
+            fs.writeFileSync(filePath, fileBuffer);
           }
         } else {
-          fs.writeFileSync(filePath, req.file.buffer);
+          fs.writeFileSync(filePath, fileBuffer);
         }
-      } else if (mime === "application/pdf") {
-        fileName = `${basePrefix}.pdf`;
-        filePath = path.join(uploadDir, fileName);
-        fs.writeFileSync(filePath, req.file.buffer);
-      } else {
-        return res.status(400).send({ status: 400, message: "Format file harus JPG, PNG, atau PDF", data: null });
       }
 
       const fileUrl = `/uploads/ktp/${fileName}`;

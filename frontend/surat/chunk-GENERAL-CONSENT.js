@@ -447,49 +447,56 @@ export var GeneralConsentComponent = (() => {
           const file = e.target.files?.[0];
           if (!file) return;
 
-          const formData = new FormData();
-          formData.append("fileKtp", file);
-          formData.append("noCheckin", this.noCheckin);
-          formData.append("noMr", this.patient?.noMr || this.patient?.norm || "");
-          formData.append("tglCheckin", this.patient?.tglCheckin || this.patient?.tglInput || "");
-
           if (btnUploadKtp) {
             btnUploadKtp.disabled = true;
             btnUploadKtp.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Mengunggah &amp; Mengompresi...';
           }
           if (ktpStatus) ktpStatus.textContent = "Sedang mengompresi...";
 
-          this.http.post(i.apiUrl + "/simrsba/general-consent/upload-ktp", formData).subscribe({
-            next: (res) => {
-              if (btnUploadKtp) {
-                btnUploadKtp.disabled = false;
-                btnUploadKtp.innerHTML = '<i class="bi bi-camera me-1"></i>Ganti Foto KTP';
-              }
-              if (ktpStatus) ktpStatus.textContent = "";
+          const reader = new FileReader();
+          reader.onload = () => {
+            const base64Data = reader.result;
+            const payload = {
+              fileKtp: base64Data,
+              fileName: file.name,
+              noCheckin: this.noCheckin,
+              noMr: this.patient?.noMr || this.patient?.norm || "",
+              tglCheckin: this.patient?.tglCheckin || this.patient?.tglInput || ""
+            };
 
-              if (res && res.data && res.data.url) {
-                this.formData.fileKtp = res.data.url;
-                const fullUrl = res.data.url.startsWith("http") ? res.data.url : (i.apiUrl + res.data.url);
-                if (previewContent) {
-                  if (res.data.url.endsWith(".pdf")) {
-                    previewContent.innerHTML = `<a href="${fullUrl}" target="_blank" class="btn btn-sm btn-outline-danger"><i class="bi bi-file-earmark-pdf me-1"></i>Lihat Dokumen PDF KTP</a>`;
-                  } else {
-                    previewContent.innerHTML = `<div style="position:relative;display:inline-block;cursor:pointer;"><img src="${fullUrl}" class="gc-ktp-img-preview" style="max-height:120px;max-width:200px;object-fit:contain;border:1px solid #ddd;border-radius:4px;display:block;" alt="KTP"><div style="position:absolute;inset:0;background:rgba(0,0,0,0.3);color:#fff;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s;border-radius:4px;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0"><i class="bi bi-zoom-in me-1"></i>Perbesar</div></div>`;
-                  }
+            this.http.post(i.apiUrl + "/simrsba/general-consent/upload-ktp", payload).subscribe({
+              next: (res) => {
+                if (btnUploadKtp) {
+                  btnUploadKtp.disabled = false;
+                  btnUploadKtp.innerHTML = '<i class="bi bi-camera me-1"></i>Ganti Foto KTP';
                 }
-                if (previewContainer) previewContainer.style.display = "";
-                showSuccessToast("Foto KTP berhasil diunggah");
+                if (ktpStatus) ktpStatus.textContent = "";
+
+                if (res && res.data && res.data.url) {
+                  this.formData.fileKtp = res.data.url;
+                  const fullUrl = res.data.url.startsWith("http") ? res.data.url : (i.apiUrl + res.data.url);
+                  if (previewContent) {
+                    if (res.data.url.endsWith(".pdf")) {
+                      previewContent.innerHTML = `<a href="${fullUrl}" target="_blank" class="btn btn-sm btn-outline-danger"><i class="bi bi-file-earmark-pdf me-1"></i>Lihat Dokumen PDF KTP</a>`;
+                    } else {
+                      previewContent.innerHTML = `<div style="position:relative;display:inline-block;cursor:pointer;"><img src="${fullUrl}" class="gc-ktp-img-preview" style="max-height:120px;max-width:200px;object-fit:contain;border:1px solid #ddd;border-radius:4px;display:block;" alt="KTP"><div style="position:absolute;inset:0;background:rgba(0,0,0,0.3);color:#fff;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s;border-radius:4px;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0"><i class="bi bi-zoom-in me-1"></i>Perbesar</div></div>`;
+                    }
+                  }
+                  if (previewContainer) previewContainer.style.display = "";
+                  showSuccessToast("Foto KTP berhasil diunggah");
+                }
+              },
+              error: () => {
+                if (btnUploadKtp) {
+                  btnUploadKtp.disabled = false;
+                  btnUploadKtp.innerHTML = '<i class="bi bi-camera me-1"></i>Pilih / Ambil Foto KTP';
+                }
+                if (ktpStatus) ktpStatus.textContent = "";
+                showErrorAlert("Gagal mengunggah file KTP");
               }
-            },
-            error: () => {
-              if (btnUploadKtp) {
-                btnUploadKtp.disabled = false;
-                btnUploadKtp.innerHTML = '<i class="bi bi-camera me-1"></i>Pilih / Ambil Foto KTP';
-              }
-              if (ktpStatus) ktpStatus.textContent = "";
-              showErrorAlert("Gagal mengunggah file KTP");
-            }
-          });
+            });
+          };
+          reader.readAsDataURL(file);
         });
       }
 
