@@ -373,6 +373,38 @@ var PoliGigiComponent = (() => {
     }
 
     initSigCanvases(root) {
+      function trimGigiCanvas(c) {
+        const ctx = c.getContext("2d");
+        const imgData = ctx.getImageData(0, 0, c.width, c.height);
+        const d = imgData.data;
+        let minX = c.width, minY = c.height, maxX = 0, maxY = 0;
+        let found = false;
+        for (let y = 0; y < c.height; y++) {
+          for (let x = 0; x < c.width; x++) {
+            if (d[(y * c.width + x) * 4 + 3] > 15) {
+              if (x < minX) minX = x;
+              if (x > maxX) maxX = x;
+              if (y < minY) minY = y;
+              if (y > maxY) maxY = y;
+              found = true;
+            }
+          }
+        }
+        if (!found) return null;
+        const pad = 6;
+        minX = Math.max(0, minX - pad);
+        minY = Math.max(0, minY - pad);
+        maxX = Math.min(c.width, maxX + pad);
+        maxY = Math.min(c.height, maxY + pad);
+        const w = maxX - minX;
+        const h = maxY - minY;
+        const trimmed = document.createElement("canvas");
+        trimmed.width = w;
+        trimmed.height = h;
+        trimmed.getContext("2d").drawImage(c, minX, minY, w, h, 0, 0, w, h);
+        return trimmed.toDataURL();
+      }
+
       root.querySelectorAll(".gigi-sig-canvas").forEach((canvas) => {
         const idx = parseInt(canvas.dataset.idx);
         if (isNaN(idx) || !this.formData.entries[idx]) return;
@@ -380,7 +412,11 @@ var PoliGigiComponent = (() => {
         const ent = this.formData.entries[idx];
         if (ent.ttd) {
           const img = new Image();
-          img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          img.onload = () => {
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            const trimmed = trimGigiCanvas(canvas);
+            if (trimmed) ent.ttd = trimmed;
+          };
           img.src = ent.ttd;
         }
         let drawing = false;
@@ -398,7 +434,7 @@ var PoliGigiComponent = (() => {
           const [x, y] = getPos(ev);
           ctx.beginPath();
           ctx.strokeStyle = "#000000";
-          ctx.lineWidth = 1.8;
+          ctx.lineWidth = 2.8;
           ctx.lineCap = "round";
           ctx.lineJoin = "round";
           ctx.moveTo(lastX, lastY);
@@ -409,7 +445,8 @@ var PoliGigiComponent = (() => {
         const stopDraw = () => {
           if (drawing) {
             drawing = false;
-            ent.ttd = canvas.toDataURL();
+            const trimmed = trimGigiCanvas(canvas);
+            ent.ttd = trimmed || canvas.toDataURL();
           }
         };
         canvas.addEventListener("mousedown", startDraw);
@@ -451,7 +488,7 @@ var PoliGigiComponent = (() => {
             '<td style="white-space:pre-wrap; padding: 6px 6px;">' + (e.tindakan || '-') + '</td>' +
             '<td style="text-align:center; padding: 6px 4px;">' + (e.icd10 || '-') + '</td>' +
             '<td style="text-align:center; vertical-align:bottom; padding: 6px 4px;">' +
-                (e.ttd ? '<img src="' + e.ttd + '" style="max-height:50px; max-width:90%; display:block; margin:2px auto;">' : '') +
+                (e.ttd ? '<img src="' + e.ttd + '" style="height:40px; max-width:90%; object-fit:contain; display:block; margin:2px auto;">' : '') +
                 '<div style="font-weight:bold; font-size:10px;">' + (e.parafName || '') + '</div>' +
             '</td>' +
         '</tr>';

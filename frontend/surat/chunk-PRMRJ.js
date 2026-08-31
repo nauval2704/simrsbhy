@@ -331,13 +331,49 @@ var PrmrjComponent = (() => {
 
       bindSuratPrintButton(root);
 
+      function trimPrmrjCanvas(c) {
+        const ctx = c.getContext("2d");
+        const imgData = ctx.getImageData(0, 0, c.width, c.height);
+        const d = imgData.data;
+        let minX = c.width, minY = c.height, maxX = 0, maxY = 0;
+        let found = false;
+        for (let y = 0; y < c.height; y++) {
+          for (let x = 0; x < c.width; x++) {
+            if (d[(y * c.width + x) * 4 + 3] > 15) {
+              if (x < minX) minX = x;
+              if (x > maxX) maxX = x;
+              if (y < minY) minY = y;
+              if (y > maxY) maxY = y;
+              found = true;
+            }
+          }
+        }
+        if (!found) return null;
+        const pad = 6;
+        minX = Math.max(0, minX - pad);
+        minY = Math.max(0, minY - pad);
+        maxX = Math.min(c.width, maxX + pad);
+        maxY = Math.min(c.height, maxY + pad);
+        const w = maxX - minX;
+        const h = maxY - minY;
+        const trimmed = document.createElement("canvas");
+        trimmed.width = w;
+        trimmed.height = h;
+        trimmed.getContext("2d").drawImage(c, minX, minY, w, h, 0, 0, w, h);
+        return trimmed.toDataURL();
+      }
+
       root.querySelectorAll(".prmrj-sig-canvas").forEach((canvas) => {
         const idx = parseInt(canvas.getAttribute("data-idx"));
         if (isNaN(idx)) return;
         const ctx = canvas.getContext("2d");
         if (self.formData.entries[idx] && self.formData.entries[idx].parafImg) {
           const img = new Image();
-          img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          img.onload = () => {
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            const trimmed = trimPrmrjCanvas(canvas);
+            if (trimmed) self.formData.entries[idx].parafImg = trimmed;
+          };
           img.src = self.formData.entries[idx].parafImg;
         }
 
@@ -355,7 +391,8 @@ var PrmrjComponent = (() => {
 
         const saveSig = () => {
           if (self.formData.entries[idx]) {
-            self.formData.entries[idx].parafImg = canvas.toDataURL();
+            const trimmed = trimPrmrjCanvas(canvas);
+            self.formData.entries[idx].parafImg = trimmed || canvas.toDataURL();
           }
         };
 
@@ -373,7 +410,7 @@ var PrmrjComponent = (() => {
           ctx.moveTo(lastX, lastY);
           ctx.lineTo(pos.x, pos.y);
           ctx.strokeStyle = "#000";
-          ctx.lineWidth = 2.5;
+          ctx.lineWidth = 3.0;
           ctx.lineCap = "round";
           ctx.stroke();
           lastX = pos.x; lastY = pos.y;
@@ -478,9 +515,9 @@ var PrmrjComponent = (() => {
       const entries = this.formData.entries || [];
       entries.forEach((e, idx) => {
         const tglJam = (e.tglDate || e.tglTime) ? `${e.tglDate || ''}<br>${e.tglTime || ''}` : '-';
-        const parafImgHtml = e.parafImg ? `<img src="${e.parafImg}" style="max-height:45px; max-width:95%; object-fit:contain;"><br>` : '';
+        const parafImgHtml = e.parafImg ? `<img src="${e.parafImg}" style="height:40px; max-width:95%; object-fit:contain; display:block; margin:2px auto;">` : '';
         const ketText = e.ket || '';
-        const ketHtml = (parafImgHtml || ketText) ? `${parafImgHtml}${ketText}` : '-';
+        const ketHtml = (parafImgHtml || ketText) ? `${parafImgHtml}${ketText ? `<div>${ketText}</div>` : ''}` : '-';
         rowsHtml += `
         <tr>
             <td style="text-align:center; padding:6px 4px;">${idx + 1}</td>
