@@ -269,8 +269,8 @@ var PoliGigiComponent = (() => {
                 '<label class="f-label mb-0">Paraf / TTD Signature Box</label>' +
                 '<button type="button" class="btn btn-sm btn-outline-secondary sig-clear-gigi-btn" data-idx="' + idx + '" style="font-size:10px; padding:1px 7px;"><i class="bi bi-eraser me-1"></i>Hapus TTD</button>' +
               '</div>' +
-              '<div style="border:1px solid #ced4da; border-radius:6px; background:#fafafa; overflow:hidden;">' +
-                '<canvas id="sig-gigi-' + idx + '" class="gigi-sig-canvas" data-idx="' + idx + '" width="600" height="180" style="display:block; width:100%; height:150px; cursor:crosshair; touch-action:none;"></canvas>' +
+              '<div style="border:1px solid #ced4da; border-radius:6px; background:#fafafa; overflow:hidden; max-width:380px;">' +
+                '<canvas id="sig-gigi-' + idx + '" class="gigi-sig-canvas" data-idx="' + idx + '" width="400" height="180" style="display:block; width:100%; height:130px; cursor:crosshair; touch-action:none;"></canvas>' +
               '</div>' +
             '</div>' +
           '</div>' +
@@ -434,7 +434,7 @@ var PoliGigiComponent = (() => {
           const [x, y] = getPos(ev);
           ctx.beginPath();
           ctx.strokeStyle = "#000000";
-          ctx.lineWidth = 2.8;
+          ctx.lineWidth = 5.5;
           ctx.lineCap = "round";
           ctx.lineJoin = "round";
           ctx.moveTo(lastX, lastY);
@@ -487,8 +487,8 @@ var PoliGigiComponent = (() => {
             '<td style="white-space:pre-wrap; padding: 6px 6px;">' + (e.keluhan || '-') + '</td>' +
             '<td style="white-space:pre-wrap; padding: 6px 6px;">' + (e.tindakan || '-') + '</td>' +
             '<td style="text-align:center; padding: 6px 4px;">' + (e.icd10 || '-') + '</td>' +
-            '<td style="text-align:center; vertical-align:bottom; padding: 6px 4px;">' +
-                (e.ttd ? '<img src="' + e.ttd + '" style="height:40px; max-width:90%; object-fit:contain; display:block; margin:2px auto;">' : '') +
+            '<td style="text-align:center; vertical-align:middle; padding: 4px 2px;">' +
+                (e.ttd ? '<img src="' + e.ttd + '" style="height:55px; max-height:60px; max-width:95%; object-fit:contain; display:block; margin:2px auto;">' : '') +
                 '<div style="font-weight:bold; font-size:10px;">' + (e.parafName || '') + '</div>' +
             '</td>' +
         '</tr>';
@@ -511,12 +511,12 @@ var PoliGigiComponent = (() => {
               '<table class="gigi-table" style="border:none; flex:1;">' +
                 '<colgroup>' +
                     '<col style="width:4%">' +
-                    '<col style="width:12%">' +
+                    '<col style="width:11%">' +
                     '<col style="width:10%">' +
-                    '<col style="width:30%">' +
                     '<col style="width:28%">' +
+                    '<col style="width:26%">' +
                     '<col style="width:8%">' +
-                    '<col style="width:8%">' +
+                    '<col style="width:13%">' +
                 '</colgroup>' +
                 '<thead>' +
                     '<tr>' +

@@ -256,8 +256,8 @@ var PrmrjComponent = (() => {
                   <label class="f-label mb-0"><i class="bi bi-pen me-1"></i>Paraf / TTD Signature Box</label>
                   <button type="button" class="btn btn-sm btn-outline-secondary sig-clear-prmrj-btn" data-idx="${idx}" style="font-size:10px; padding:1px 7px;"><i class="bi bi-eraser me-1"></i>Hapus TTD</button>
                 </div>
-                <div style="border:1px solid #ced4da; border-radius:6px; background:#fafafa; overflow:hidden;">
-                  <canvas id="sig-prmrj-${idx}" class="prmrj-sig-canvas" data-idx="${idx}" width="600" height="180" style="display:block; width:100%; height:120px; cursor:crosshair; touch-action:none;"></canvas>
+                <div style="border:1px solid #ced4da; border-radius:6px; background:#fafafa; overflow:hidden; max-width:380px;">
+                  <canvas id="sig-prmrj-${idx}" class="prmrj-sig-canvas" data-idx="${idx}" width="400" height="180" style="display:block; width:100%; height:130px; cursor:crosshair; touch-action:none;"></canvas>
                 </div>
               </div>
             </div>
@@ -410,8 +410,9 @@ var PrmrjComponent = (() => {
           ctx.moveTo(lastX, lastY);
           ctx.lineTo(pos.x, pos.y);
           ctx.strokeStyle = "#000";
-          ctx.lineWidth = 3.0;
+          ctx.lineWidth = 5.5;
           ctx.lineCap = "round";
+          ctx.lineJoin = "round";
           ctx.stroke();
           lastX = pos.x; lastY = pos.y;
           saveSig();
@@ -515,7 +516,7 @@ var PrmrjComponent = (() => {
       const entries = this.formData.entries || [];
       entries.forEach((e, idx) => {
         const tglJam = (e.tglDate || e.tglTime) ? `${e.tglDate || ''}<br>${e.tglTime || ''}` : '-';
-        const parafImgHtml = e.parafImg ? `<img src="${e.parafImg}" style="height:40px; max-width:95%; object-fit:contain; display:block; margin:2px auto;">` : '';
+        const parafImgHtml = e.parafImg ? `<img src="${e.parafImg}" style="height:55px; max-height:60px; max-width:98%; object-fit:contain; display:block; margin:2px auto;">` : '';
         const ketText = e.ket || '';
         const ketHtml = (parafImgHtml || ketText) ? `${parafImgHtml}${ketText ? `<div>${ketText}</div>` : ''}` : '-';
         rowsHtml += `
@@ -526,7 +527,7 @@ var PrmrjComponent = (() => {
             <td style="white-space:pre-wrap; padding:6px 6px;">${e.uraianKlinis || '-'}</td>
             <td style="white-space:pre-wrap; padding:6px 6px;">${e.diagnosis || '-'}</td>
             <td style="white-space:pre-wrap; padding:6px 6px;">${e.rencanaPenting || '-'}</td>
-            <td style="text-align:center; padding:6px 4px;">${ketHtml}</td>
+            <td style="text-align:center; vertical-align:middle; padding:4px 2px;">${ketHtml}</td>
         </tr>`;
       });
 
@@ -552,13 +553,13 @@ var PrmrjComponent = (() => {
 
               <table class="prmrj-table" style="border:none; border-top:1px solid black; flex:1;">
                 <colgroup>
-                    <col style="width:5%">
+                    <col style="width:4%">
                     <col style="width:11%">
                     <col style="width:14%">
-                    <col style="width:25%">
+                    <col style="width:23%">
                     <col style="width:17%">
                     <col style="width:16%">
-                    <col style="width:12%">
+                    <col style="width:15%">
                 </colgroup>
                 <thead>
                     <tr>
