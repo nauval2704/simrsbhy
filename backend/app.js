@@ -129,6 +129,8 @@ app.use(
 app.use(bodyParser.json({ limit: "50mb" }));
 
 app.use(express.static(path.join(process.cwd(), '/simrs')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 
 app.get("/", function (req, res) {

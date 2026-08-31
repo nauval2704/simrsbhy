@@ -48,6 +48,9 @@ const PengkajianAwalIgd = require("../models/pengkajianAwalIgd");
 const PoliGigi = require("../models/poliGigi");
 const GeneralConsent = require("../models/generalConsent");
 const TataTertibRanap = require("../models/tataTertibRanap");
+const path = require("path");
+const fs = require("fs");
+const sharp = require("sharp");
 var mongoose = require("mongoose");
 const { ObjectId } = mongoose.Types.ObjectId;
 
@@ -4144,6 +4147,105 @@ module.exports = {
       return res.status(200).send({ status: 200, message: "Ok", data: data });
     } catch (error) {
       return res.status(400).send({ status: 400, message: "Gagal mengambil data General Consent", data: null });
+    }
+  },
+  uploadKtpGeneralConsent: async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).send({ status: 400, message: "File KTP tidak ditemukan", data: null });
+      }
+      const noCheckin = req.body.noCheckin || "temp";
+      const noMr = (req.body.noMr || "").replace(/[^a-zA-Z0-9]/g, "");
+      const tglClean = (req.body.tglCheckin || req.body.tglMasuk || "").replace(/[^0-9]/g, "");
+      const basePrefix = noMr ? `ktp_${noMr}_${tglClean || noCheckin}` : `ktp_${noCheckin}_${Date.now()}`;
+      const uploadDir = path.join(process.cwd(), "uploads", "ktp");
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+
+      let fileName = "";
+      let filePath = "";
+      const mime = req.file.mimetype;
+
+      if (mime.startsWith("image/")) {
+        fileName = `${basePrefix}.jpg`;
+        filePath = path.join(uploadDir, fileName);
+        await sharp(req.file.buffer)
+          .rotate()
+          .resize({ width: 1280, height: 1280, fit: "inside", withoutEnlargement: true })
+          .jpeg({ quality: 80, progressive: true })
+          .toFile(filePath);
+      } else if (mime === "application/pdf") {
+        fileName = `${basePrefix}.pdf`;
+        filePath = path.join(uploadDir, fileName);
+        fs.writeFileSync(filePath, req.file.buffer);
+      } else {
+        return res.status(400).send({ status: 400, message: "Format file harus JPG, PNG, atau PDF", data: null });
+      }
+
+      const fileUrl = `/uploads/ktp/${fileName}`;
+
+      if (req.body.noCheckin) {
+        const existing = await GeneralConsent.findOne({ noCheckin: req.body.noCheckin });
+        if (existing && existing.data && existing.data.fileKtp) {
+          const oldRelative = existing.data.fileKtp.replace(/^\//, '');
+          const oldFilePath = path.join(process.cwd(), oldRelative);
+          if (fs.existsSync(oldFilePath) && oldFilePath !== filePath) {
+            try { fs.unlinkSync(oldFilePath); } catch (e) {}
+          }
+        }
+        await GeneralConsent.findOneAndUpdate(
+          { noCheckin: req.body.noCheckin },
+          { $set: { "data.fileKtp": fileUrl } },
+          { new: true, upsert: true }
+        );
+      }
+
+      return res.status(200).send({
+        status: 200,
+        message: "File KTP berhasil diunggah dan dikompresi",
+        data: {
+          url: fileUrl,
+          fileName: fileName
+        }
+      });
+    } catch (error) {
+      return res.status(500).send({ status: 500, message: "Gagal mengunggah file KTP", error: error.message });
+    }
+  },
+  deleteKtpGeneralConsent: async (req, res) => {
+    try {
+      const { noCheckin, fileUrl } = req.body;
+      let targetUrl = fileUrl;
+
+      if (noCheckin) {
+        const doc = await GeneralConsent.findOne({ noCheckin });
+        if (doc && doc.data && doc.data.fileKtp) {
+          targetUrl = doc.data.fileKtp;
+        }
+        await GeneralConsent.findOneAndUpdate(
+          { noCheckin },
+          { $set: { "data.fileKtp": "" } }
+        );
+      }
+
+      if (targetUrl) {
+        const relativePath = targetUrl.replace(/^\//, '');
+        const targetFilePath = path.join(process.cwd(), relativePath);
+        if (fs.existsSync(targetFilePath)) {
+          try {
+            fs.unlinkSync(targetFilePath);
+          } catch (e) {}
+        }
+      }
+
+      return res.status(200).send({
+        status: 200,
+        message: "File KTP berhasil dihapus",
+        data: null
+      });
+    } catch (error) {
+      return res.status(500).send({ status: 500, message: "Gagal menghapus file KTP", error: error.message });
     }
   },
   saveTataTertibRanap: async (req, res) => {
