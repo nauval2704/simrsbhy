@@ -51,6 +51,7 @@ export var GeneralConsentComponent = (() => {
         tglConsent: new Date().toISOString().split("T")[0],
         namaPetugas: "",
         namaTtdPasien: "",
+        fileKtp: "",
         sigPetugas: null,
         sigPasien: null
       };
@@ -275,6 +276,28 @@ export var GeneralConsentComponent = (() => {
                 <div class="row g-2">
                   <div class="col-md-12"><label class="f-label">Alamat Lengkap</label><input type="text" id="gc-alamatWali" class="f-input" value="${d.alamatWali || ''}" placeholder="Alamat lengkap..."></div>
                 </div>
+                <div class="row g-2 mt-2">
+                  <div class="col-md-12">
+                    <label class="f-label">Foto / Berkas KTP Pasien / Wali</label>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                      <input type="file" id="gc-input-ktp" accept="image/*,application/pdf" class="d-none">
+                      <button type="button" class="btn btn-sm btn-outline-primary" id="gc-btn-upload-ktp">
+                        <i class="bi bi-camera me-1"></i>Pilih / Ambil Foto KTP
+                      </button>
+                      <span id="gc-ktp-status" class="small text-muted"></span>
+                    </div>
+                    <div id="gc-ktp-preview-container" style="${d.fileKtp ? '' : 'display:none;'}">
+                      <div class="border rounded p-2 bg-light d-inline-flex align-items-center gap-3">
+                        <div id="gc-ktp-preview-content">
+                          ${d.fileKtp ? (d.fileKtp.endsWith('.pdf') ? `<a href="${d.fileKtp.startsWith('http') ? d.fileKtp : (i.apiUrl + d.fileKtp)}" target="_blank" class="btn btn-sm btn-outline-danger"><i class="bi bi-file-earmark-pdf me-1"></i>Lihat Dokumen PDF KTP</a>` : `<div style="position:relative;display:inline-block;cursor:pointer;"><img src="${d.fileKtp.startsWith('http') ? d.fileKtp : (i.apiUrl + d.fileKtp)}" class="gc-ktp-img-preview" style="max-height:120px;max-width:200px;object-fit:contain;border:1px solid #ddd;border-radius:4px;display:block;" alt="KTP"><div style="position:absolute;inset:0;background:rgba(0,0,0,0.3);color:#fff;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s;border-radius:4px;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0"><i class="bi bi-zoom-in me-1"></i>Perbesar</div></div>`) : ''}
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-danger" id="gc-btn-hapus-ktp">
+                          <i class="bi bi-trash me-1"></i>Hapus
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -407,6 +430,151 @@ export var GeneralConsentComponent = (() => {
       root.querySelector("#gc-namaTtdPasien")?.addEventListener("input", (e) => {
         e.target.dataset.manual = "true";
       });
+
+      const btnUploadKtp = root.querySelector("#gc-btn-upload-ktp");
+      const inputKtp = root.querySelector("#gc-input-ktp");
+      const btnHapusKtp = root.querySelector("#gc-btn-hapus-ktp");
+      const previewContainer = root.querySelector("#gc-ktp-preview-container");
+      const previewContent = root.querySelector("#gc-ktp-preview-content");
+      const ktpStatus = root.querySelector("#gc-ktp-status");
+
+      if (btnUploadKtp && inputKtp) {
+        btnUploadKtp.addEventListener("click", () => inputKtp.click());
+      }
+
+      if (inputKtp) {
+        inputKtp.addEventListener("change", (e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+
+          const formData = new FormData();
+          formData.append("fileKtp", file);
+          formData.append("noCheckin", this.noCheckin);
+          formData.append("noMr", this.patient?.noMr || this.patient?.norm || "");
+          formData.append("tglCheckin", this.patient?.tglCheckin || this.patient?.tglInput || "");
+
+          if (btnUploadKtp) {
+            btnUploadKtp.disabled = true;
+            btnUploadKtp.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Mengunggah &amp; Mengompresi...';
+          }
+          if (ktpStatus) ktpStatus.textContent = "Sedang mengompresi...";
+
+          this.http.post(i.apiUrl + "/simrsba/general-consent/upload-ktp", formData).subscribe({
+            next: (res) => {
+              if (btnUploadKtp) {
+                btnUploadKtp.disabled = false;
+                btnUploadKtp.innerHTML = '<i class="bi bi-camera me-1"></i>Ganti Foto KTP';
+              }
+              if (ktpStatus) ktpStatus.textContent = "";
+
+              if (res && res.data && res.data.url) {
+                this.formData.fileKtp = res.data.url;
+                const fullUrl = res.data.url.startsWith("http") ? res.data.url : (i.apiUrl + res.data.url);
+                if (previewContent) {
+                  if (res.data.url.endsWith(".pdf")) {
+                    previewContent.innerHTML = `<a href="${fullUrl}" target="_blank" class="btn btn-sm btn-outline-danger"><i class="bi bi-file-earmark-pdf me-1"></i>Lihat Dokumen PDF KTP</a>`;
+                  } else {
+                    previewContent.innerHTML = `<div style="position:relative;display:inline-block;cursor:pointer;"><img src="${fullUrl}" class="gc-ktp-img-preview" style="max-height:120px;max-width:200px;object-fit:contain;border:1px solid #ddd;border-radius:4px;display:block;" alt="KTP"><div style="position:absolute;inset:0;background:rgba(0,0,0,0.3);color:#fff;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s;border-radius:4px;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0"><i class="bi bi-zoom-in me-1"></i>Perbesar</div></div>`;
+                  }
+                }
+                if (previewContainer) previewContainer.style.display = "";
+                showSuccessToast("Foto KTP berhasil diunggah");
+              }
+            },
+            error: () => {
+              if (btnUploadKtp) {
+                btnUploadKtp.disabled = false;
+                btnUploadKtp.innerHTML = '<i class="bi bi-camera me-1"></i>Pilih / Ambil Foto KTP';
+              }
+              if (ktpStatus) ktpStatus.textContent = "";
+              showErrorAlert("Gagal mengunggah file KTP");
+            }
+          });
+        });
+      }
+
+      if (previewContent) {
+        previewContent.addEventListener("click", (e) => {
+          const img = previewContent.querySelector("img");
+          if (img && img.src && !e.target.closest("a") && !e.target.closest("#gc-btn-hapus-ktp")) {
+            const existing = document.getElementById("gc-ktp-lightbox");
+            if (existing) existing.remove();
+
+            const overlay = document.createElement("div");
+            overlay.id = "gc-ktp-lightbox";
+            overlay.style.cssText = "position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.92);z-index:999999;display:flex;align-items:center;justify-content:center;padding:20px;cursor:zoom-out;backdrop-filter:blur(3px);";
+
+            const closeBtn = document.createElement("button");
+            closeBtn.type = "button";
+            closeBtn.innerHTML = "&times;";
+            closeBtn.title = "Tutup (Esc)";
+            closeBtn.style.cssText = "position:absolute;top:15px;right:25px;background:none;border:none;color:#ffffff;font-size:42px;font-weight:300;line-height:1;cursor:pointer;padding:0 10px;z-index:1000000;opacity:0.85;transition:opacity 0.2s;";
+            closeBtn.onmouseover = () => { closeBtn.style.opacity = "1"; };
+            closeBtn.onmouseout = () => { closeBtn.style.opacity = "0.85"; };
+
+            const fullImg = document.createElement("img");
+            fullImg.src = img.src;
+            fullImg.alt = "KTP Fullscreen";
+            fullImg.style.cssText = "max-width:92vw;max-height:90vh;object-fit:contain;border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,0.9);cursor:default;";
+            fullImg.addEventListener("click", (ev) => ev.stopPropagation());
+
+            const closeLightbox = () => {
+              window.removeEventListener("keydown", onKeyDown);
+              overlay.remove();
+            };
+
+            const onKeyDown = (ev) => {
+              if (ev.key === "Escape" || ev.keyCode === 27) {
+                closeLightbox();
+              }
+            };
+
+            closeBtn.addEventListener("click", closeLightbox);
+            overlay.addEventListener("click", closeLightbox);
+            window.addEventListener("keydown", onKeyDown);
+
+            overlay.appendChild(closeBtn);
+            overlay.appendChild(fullImg);
+            document.body.appendChild(overlay);
+          }
+        });
+      }
+
+      if (btnHapusKtp) {
+        btnHapusKtp.addEventListener("click", () => {
+          const currentUrl = this.formData.fileKtp;
+          if (currentUrl) {
+            btnHapusKtp.disabled = true;
+            btnHapusKtp.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Menghapus...';
+            this.http.post(i.apiUrl + "/simrsba/general-consent/delete-ktp", {
+              noCheckin: this.noCheckin,
+              fileUrl: currentUrl
+            }).subscribe({
+              next: () => {
+                btnHapusKtp.disabled = false;
+                btnHapusKtp.innerHTML = '<i class="bi bi-trash me-1"></i>Hapus';
+                this.formData.fileKtp = "";
+                if (inputKtp) inputKtp.value = "";
+                if (previewContent) previewContent.innerHTML = "";
+                if (previewContainer) previewContainer.style.display = "none";
+                if (btnUploadKtp) btnUploadKtp.innerHTML = '<i class="bi bi-camera me-1"></i>Pilih / Ambil Foto KTP';
+                showSuccessToast("File KTP berhasil dihapus");
+              },
+              error: () => {
+                btnHapusKtp.disabled = false;
+                btnHapusKtp.innerHTML = '<i class="bi bi-trash me-1"></i>Hapus';
+                showErrorAlert("Gagal menghapus file KTP dari server");
+              }
+            });
+          } else {
+            this.formData.fileKtp = "";
+            if (inputKtp) inputKtp.value = "";
+            if (previewContent) previewContent.innerHTML = "";
+            if (previewContainer) previewContainer.style.display = "none";
+            if (btnUploadKtp) btnUploadKtp.innerHTML = '<i class="bi bi-camera me-1"></i>Pilih / Ambil Foto KTP';
+          }
+        });
+      }
 
       this.initCanvas("sig-gc-petugas", "sigPetugas");
       this.initCanvas("sig-gc-pasien", "sigPasien");

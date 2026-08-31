@@ -1,5 +1,10 @@
 const express = require("express");
 const router = express.Router();
+const multer = require("multer");
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 15 * 1024 * 1024 }
+});
 const simrsBaController = require("../app/api/controllers/simrsba");
 const { authenticateToken, authorizeRoles } = require("../app/api/middleware/auth");
 
@@ -211,6 +216,8 @@ router.post("/lab/save", simrsBaController.saveLab);
 router.post("/rad/save", simrsBaController.saveRad);
 
 router.post("/general-consent", simrsBaController.saveGeneralConsent);
+router.post("/general-consent/upload-ktp", upload.single("fileKtp"), simrsBaController.uploadKtpGeneralConsent);
+router.post("/general-consent/delete-ktp", simrsBaController.deleteKtpGeneralConsent);
 router.get("/general-consent/:noCheckin", simrsBaController.getGeneralConsent);
 
 router.post("/tata-tertib-ranap", simrsBaController.saveTataTertibRanap);
