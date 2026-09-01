@@ -309,7 +309,7 @@ var TriaseComponent = (() => {
                 <option value="red" data-label="Level 2">Level 2 - Emergensi (Merah)</option>
                 <option value="yellow" data-label="Level 3">Level 3 - Urgent (Kuning)</option>
                 <option value="green" data-label="Level 4">Level 4 - Non Urgent (Hijau)</option>
-                <option value="green" data-label="Level 5">Level 5 - False Emergency / DOA (Hijau)</option>
+                <option value="black" data-label="Level 5">Level 5 - DOA / False Emergency (Hitam)</option>
               </select>
             </div>
           </div>
@@ -497,7 +497,7 @@ var TriaseComponent = (() => {
         <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_t_5">
             <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_5" aria-expanded="false" aria-controls="collapse_t_5">
-              <span class="fw-bold text-success" style="font-size:13px;"><i class="bi bi-shield-check me-2"></i> 5. Level 5 : False Emergency (Green / Black Zone)</span>
+              <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-shield-x me-2 text-dark"></i> 5. Level 5 : DOA / Dead on Arrival (Black Zone)</span>
             </button>
           </h2>
           <div id="collapse_t_5" class="accordion-collapse collapse" aria-labelledby="heading_t_5" data-bs-parent="#accordionTriase">
@@ -532,14 +532,14 @@ var TriaseComponent = (() => {
                 </div>
               </div>
 
-              <div class="border rounded p-3" style="background-color: #ffebee; border-color: #ef5350 !important;">
+              <div class="border rounded p-3 text-white" style="background-color: #212529; border-color: #000 !important;">
                 <div class="form-check mb-2">
                   <input class="form-check-input f-symptom" type="checkbox" value="L5_DOA" id="l5_doa">
-                  <label class="form-check-label small fw-bold text-danger" for="l5_doa">DOA (Dead on Arrival)</label>
+                  <label class="form-check-label small fw-bold text-white" for="l5_doa">DOA (Dead on Arrival / Kematian saat Tiba di IGD)</label>
                 </div>
                 <div class="mt-2">
-                  <label class="form-label small text-muted mb-1 fw-semibold d-block">Catatan / Keterangan DOA:</label>
-                  <textarea id="f-doaDetail" class="form-control form-control-sm" rows="3" placeholder="Tuliskan keterangan detail DOA (misal: waktu kematian, kondisi saat tiba, dll)..." style="font-size:12px;"></textarea>
+                  <label class="form-label small text-white-50 mb-1 fw-semibold d-block">Catatan / Keterangan DOA:</label>
+                  <textarea id="f-doaDetail" class="form-control form-control-sm text-white" style="background-color:#2c3034; border-color:#495057; font-size:12px;" rows="3" placeholder="Tuliskan keterangan detail DOA (misal: waktu kematian, kondisi saat tiba, lebam mayat, pupil, dll)..."></textarea>
                 </div>
               </div>
             </div>
@@ -881,11 +881,11 @@ var TriaseComponent = (() => {
                     <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L4_dr. Umum"></span>dr. Umum</li></ul></div>
                   </div>
 
-                  <div class="t-level t-green t-white">LEVEL 5 : FALSE EMERGENCY</div>
+                  <div class="t-level t-blk t-white">LEVEL 5 : DOA / DEAD ON ARRIVAL (BLACK ZONE)</div>
                   <div class="t-row" style="flex-shrink:0; min-height:60px; padding:6px 8px;">
                     <div class="t-col" style="width:100%; border:none;">
                       <div style="font-weight:bold; margin-bottom:4px;">
-                        <span class="t-sq p-symptom" data-val="L5_DOA"></span> DOA (Dead on Arrival)
+                        <span class="t-sq p-symptom" data-val="L5_DOA"></span> DOA (Dead on Arrival / Kematian saat Tiba di IGD)
                       </div>
                       <div style="padding-left:18px; font-size:11px; white-space:pre-wrap; min-height:30px;" id="p-doaDetail"></div>
                     </div>
