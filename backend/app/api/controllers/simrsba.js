@@ -24,21 +24,14 @@ function getDoctorDpjpMatch(req) {
     const rawName = (req.user.nama || '').trim();
     const cleanName = rawName.replace(/^(dr\.|drg\.|Dr\.|Drg\.|dr|drg)\s*/gi, '').trim();
 
-    const searchNames = [];
-    if (rawName) searchNames.push(rawName);
-    if (cleanName && cleanName !== rawName) searchNames.push(cleanName);
+    const keyword = cleanName || rawName;
 
-    if (searchNames.length > 0) {
-      const orConditions = [];
-      searchNames.forEach(n => {
-        const safe = n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        orConditions.push({ dpjp: { $regex: new RegExp("^" + safe + "$", "i") } });
-        orConditions.push({ dpjp: { $regex: new RegExp("^dr\\.?\\s*" + safe + "$", "i") } });
-      });
-      return { $or: orConditions };
-    } else {
-      return { dpjp: "__NO_DOCTOR_MATCH__" };
+    if (!keyword) {
+      return { dpjp: '__NO_DOCTOR_MATCH__' };
     }
+
+    const safe = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return { dpjp: { $regex: new RegExp(safe, 'i') } };
   }
   return null;
 }
