@@ -309,7 +309,7 @@ var TriaseComponent = (() => {
                 <option value="red" data-label="Level 2">Level 2 - Emergensi (Merah)</option>
                 <option value="yellow" data-label="Level 3">Level 3 - Urgent (Kuning)</option>
                 <option value="green" data-label="Level 4">Level 4 - Non Urgent (Hijau)</option>
-                <option value="black" data-label="Level 5">Level 5 - DOA / False Emergency (Hitam)</option>
+                <option value="green" data-label="Level 5">Level 5 - False Emergency (Hijau)</option>
               </select>
             </div>
           </div>
@@ -497,12 +497,12 @@ var TriaseComponent = (() => {
         <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_t_5">
             <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_5" aria-expanded="false" aria-controls="collapse_t_5">
-              <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-shield-x me-2 text-dark"></i> 5. Level 5 : DOA / Dead on Arrival (Black Zone)</span>
+              <span class="fw-bold text-success" style="font-size:13px;"><i class="bi bi-shield-check me-2"></i> 5. Level 5 : False Emergency (Green Zone)</span>
             </button>
           </h2>
           <div id="collapse_t_5" class="accordion-collapse collapse" aria-labelledby="heading_t_5" data-bs-parent="#accordionTriase">
             <div class="accordion-body bg-white p-3">
-              <div class="row g-2 mb-3">
+              <div class="row g-2">
                 <div class="col">
                   <p class="small fw-bold mb-1 text-secondary border-bottom pb-1">AIRWAY</p>
                   <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_Bebas" id="l5_s1"><label class="form-check-label small" for="l5_s1">Bebas</label></div>
@@ -531,17 +531,6 @@ var TriaseComponent = (() => {
                   <div class="form-check mb-1"><input class="form-check-input f-symptom" type="checkbox" value="L4_dr. Umum" id="l5_s9"><label class="form-check-label small" for="l5_s9">dr. Umum</label></div>
                 </div>
               </div>
-
-              <div class="border rounded p-3 text-white" style="background-color: #212529; border-color: #000 !important;">
-                <div class="form-check mb-2">
-                  <input class="form-check-input f-symptom" type="checkbox" value="L5_DOA" id="l5_doa">
-                  <label class="form-check-label small fw-bold text-white" for="l5_doa">DOA (Dead on Arrival / Kematian saat Tiba di IGD)</label>
-                </div>
-                <div class="mt-2">
-                  <label class="form-label small text-white-50 mb-1 fw-semibold d-block">Catatan / Keterangan DOA:</label>
-                  <textarea id="f-doaDetail" class="form-control form-control-sm text-white" style="background-color:#2c3034; border-color:#495057; font-size:12px;" rows="3" placeholder="Tuliskan keterangan detail DOA (misal: waktu kematian, kondisi saat tiba, lebam mayat, pupil, dll)..."></textarea>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -549,10 +538,32 @@ var TriaseComponent = (() => {
         <div class="accordion-item mb-2 border rounded">
           <h2 class="accordion-header" id="heading_t_6">
             <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_6" aria-expanded="false" aria-controls="collapse_t_6">
-              <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-pencil-square me-2 text-secondary"></i> 6. Konsul, Ruang Tujuan &amp; Tanda Tangan</span>
+              <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-file-earmark-medical me-2 text-dark"></i> 6. Catatan Khusus : DOA (Dead on Arrival)</span>
             </button>
           </h2>
           <div id="collapse_t_6" class="accordion-collapse collapse" aria-labelledby="heading_t_6" data-bs-parent="#accordionTriase">
+            <div class="accordion-body bg-white p-3">
+              <div class="border rounded p-3 bg-light">
+                <div class="form-check mb-2">
+                  <input class="form-check-input f-symptom" type="checkbox" value="L5_DOA" id="l5_doa">
+                  <label class="form-check-label small fw-bold text-dark" for="l5_doa">DOA (Dead on Arrival / Kematian saat Tiba di IGD)</label>
+                </div>
+                <div class="mt-2">
+                  <label class="form-label small text-muted mb-1 fw-semibold d-block">Catatan / Keterangan DOA:</label>
+                  <textarea id="f-doaDetail" class="form-control form-control-sm" rows="3" placeholder="Tuliskan keterangan detail DOA (misal: waktu kematian, kondisi saat tiba, lebam mayat, pupil, dll)..." style="font-size:12px;"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-item mb-2 border rounded">
+          <h2 class="accordion-header" id="heading_t_7">
+            <button class="accordion-button collapsed py-2 bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_t_7" aria-expanded="false" aria-controls="collapse_t_7">
+              <span class="fw-bold text-dark" style="font-size:13px;"><i class="bi bi-pencil-square me-2 text-secondary"></i> 7. Konsul, Ruang Tujuan &amp; Tanda Tangan</span>
+            </button>
+          </h2>
+          <div id="collapse_t_7" class="accordion-collapse collapse" aria-labelledby="heading_t_7" data-bs-parent="#accordionTriase">
             <div class="accordion-body bg-white p-3">
               <div class="row g-3">
                 <div class="col-md-4">
@@ -795,7 +806,6 @@ var TriaseComponent = (() => {
                     <span class="t-sq p-triageColor-red"></span><span class="t-cbox t-red"></span>
                     <span class="t-sq p-triageColor-yellow"></span><span class="t-cbox t-yellow"></span>
                     <span class="t-sq p-triageColor-green"></span><span class="t-cbox t-green"></span>
-                    <span class="t-sq p-triageColor-black"></span><span class="t-cbox t-blk"></span>
                   </div>
                   <div style="margin-top:4px;">Pukul pemeriksaan : &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; WIB</div>
                 </div>
@@ -881,11 +891,11 @@ var TriaseComponent = (() => {
                     <div class="t-col t-f1"><ul><li><span class="t-sq p-symptom" data-val="L4_dr. Umum"></span>dr. Umum</li></ul></div>
                   </div>
 
-                  <div class="t-level t-blk t-white">LEVEL 5 : DOA / DEAD ON ARRIVAL (BLACK ZONE)</div>
-                  <div class="t-row" style="flex-shrink:0; min-height:60px; padding:6px 8px;">
+                  <div class="t-level t-green t-white">LEVEL 5 : FALSE EMERGENCY</div>
+                  <div class="t-row" style="flex-shrink:0; min-height:55px; padding:4px 8px;">
                     <div class="t-col" style="width:100%; border:none;">
-                      <div style="font-weight:bold; margin-bottom:4px;">
-                        <span class="t-sq p-symptom" data-val="L5_DOA"></span> DOA (Dead on Arrival / Kematian saat Tiba di IGD)
+                      <div style="font-weight:bold; margin-bottom:2px;">
+                        <span class="t-sq p-symptom" data-val="L5_DOA"></span> DOA
                       </div>
                       <div style="padding-left:18px; font-size:11px; white-space:pre-wrap; min-height:30px;" id="p-doaDetail"></div>
                     </div>
@@ -930,7 +940,7 @@ var TriaseComponent = (() => {
             headerHtml: hospitalHeaderDiv(noMr, nama, tglLahir, kelamin, getFontSize, 'FORMULIR TRIASE GAWAT DARURAT'),
             bodyHtml: bodyHtml,
             footerHtml: '',
-            footerLabelCode: 'RM03/Rev02/RSBHY/2022'
+            footerLabelCode: 'RM03/RSBHY/2022'
           });
           syncToPreview();
         });
