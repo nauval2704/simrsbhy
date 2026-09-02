@@ -58,11 +58,12 @@ var PrmrjComponent = (() => {
     }
 
     fetchPrmrj() {
-      this.http.get(i.apiUrl + "/simrsba/prmrj/" + this.noCheckin).subscribe({
+      const lookupKey = this.patient?.noMr || this.noCheckin;
+      this.http.get(i.apiUrl + "/simrsba/prmrj/" + lookupKey).subscribe({
         next: (res) => {
           if (res && res.data) {
             this.prmrjData = res.data;
-            if (res.data.formData) {
+            if (res.data.formData && res.data.formData.entries) {
               this.formData = Object.assign({ entries: [] }, res.data.formData);
             } else if (res.data.entries) {
               this.formData.entries = res.data.entries;
@@ -82,20 +83,47 @@ var PrmrjComponent = (() => {
           const pkData = res?.data?.formData || res?.data || {};
           const dpjp = this.patient?.dokterDpjp || this.patient?.dpjp || this.patient?.namaDokter || "";
           const tglMasukStr = String(this.patient?.tglMasuk || "").split(" ")[0];
+          const today = new Date();
+          const todayDateStr = today.toISOString().split("T")[0];
+          const todayTimeStr = today.toTimeString().split(" ")[0].substring(0, 5);
 
           if (!this.formData.entries || this.formData.entries.length === 0) {
             this.formData.entries = [{
-              tglOrder: tglMasukStr || new Date().toISOString().split("T")[0],
+              noCheckin: this.noCheckin,
+              tglDate: tglMasukStr || todayDateStr,
+              tglTime: todayTimeStr,
               drSp: dpjp,
+              uraianKlinis: pkData.keluhanUtama || "",
               diagnosis: pkData.diagnosisKerja || "",
-              terapi: "",
-              catatan: ""
+              rencanaPenting: pkData.tindakanTerapi || "",
+              ket: "",
+              parafImg: null
             }];
           } else {
-            const first = this.formData.entries[0];
-            if (!first.drSp && dpjp) first.drSp = dpjp;
-            if (!first.diagnosis && pkData.diagnosisKerja) first.diagnosis = pkData.diagnosisKerja;
-            if (!first.tglOrder && tglMasukStr) first.tglOrder = tglMasukStr;
+            const hasCurrentCheckin = this.formData.entries.some(e => e.noCheckin === this.noCheckin);
+            const hasSameDayAndDoctor = this.formData.entries.some(e => e.tglDate === (tglMasukStr || todayDateStr) && e.drSp === dpjp);
+
+            if (!hasCurrentCheckin && !hasSameDayAndDoctor) {
+              this.formData.entries.push({
+                noCheckin: this.noCheckin,
+                tglDate: tglMasukStr || todayDateStr,
+                tglTime: todayTimeStr,
+                drSp: dpjp,
+                uraianKlinis: pkData.keluhanUtama || "",
+                diagnosis: pkData.diagnosisKerja || "",
+                rencanaPenting: pkData.tindakanTerapi || "",
+                ket: "",
+                parafImg: null
+              });
+            } else if (hasCurrentCheckin) {
+              const currentEntry = this.formData.entries.find(e => e.noCheckin === this.noCheckin);
+              if (currentEntry) {
+                if (!currentEntry.drSp && dpjp) currentEntry.drSp = dpjp;
+                if (!currentEntry.diagnosis && pkData.diagnosisKerja) currentEntry.diagnosis = pkData.diagnosisKerja;
+                if (!currentEntry.uraianKlinis && pkData.keluhanUtama) currentEntry.uraianKlinis = pkData.keluhanUtama;
+                if (!currentEntry.rencanaPenting && pkData.tindakanTerapi) currentEntry.rencanaPenting = pkData.tindakanTerapi;
+              }
+            }
           }
           this.loading = false;
           this.renderView();
@@ -512,72 +540,94 @@ var PrmrjComponent = (() => {
       const printContainer = document.getElementById("prmrj-print-container");
       if (!printContainer) return;
 
-      let rowsHtml = "";
       const entries = this.formData.entries || [];
-      entries.forEach((e, idx) => {
-        const tglJam = (e.tglDate || e.tglTime) ? `${e.tglDate || ''}<br>${e.tglTime || ''}` : '-';
-        const parafImgHtml = e.parafImg ? `<img src="${e.parafImg}" style="height:55px; max-height:60px; max-width:98%; object-fit:contain; display:block; margin:2px auto;">` : '';
-        const ketText = e.ket || '';
-        const ketHtml = (parafImgHtml || ketText) ? `${parafImgHtml}${ketText ? `<div>${ketText}</div>` : ''}` : '-';
+      const ROWS_PER_PAGE = 8;
+      const chunks = [];
+      if (entries.length === 0) {
+        chunks.push([]);
+      } else {
+        for (let i = 0; i < entries.length; i += ROWS_PER_PAGE) {
+          chunks.push(entries.slice(i, i + ROWS_PER_PAGE));
+        }
+      }
+
+      const totalPages = chunks.length;
+      let pagesHtml = "";
+
+      chunks.forEach((chunk, pageIdx) => {
+        let rowsHtml = "";
+        chunk.forEach((e, idx) => {
+          const globalIdx = pageIdx * ROWS_PER_PAGE + idx + 1;
+          const tglJam = (e.tglDate || e.tglTime) ? `${e.tglDate || ''}<br>${e.tglTime || ''}` : '-';
+          const parafImgHtml = e.parafImg ? `<img src="${e.parafImg}" style="height:50px; max-height:55px; max-width:98%; object-fit:contain; display:block; margin:2px auto;">` : '';
+          const ketText = e.ket || '';
+          const ketHtml = (parafImgHtml || ketText) ? `${parafImgHtml}${ketText ? `<div>${ketText}</div>` : ''}` : '-';
+          rowsHtml += `
+          <tr>
+              <td style="text-align:center; padding:6px 4px;">${globalIdx}</td>
+              <td style="text-align:center; padding:6px 4px;">${tglJam}</td>
+              <td style="padding:6px 6px;">${e.drSp || '-'}</td>
+              <td style="white-space:pre-wrap; padding:6px 6px;">${e.uraianKlinis || '-'}</td>
+              <td style="white-space:pre-wrap; padding:6px 6px;">${e.diagnosis || '-'}</td>
+              <td style="white-space:pre-wrap; padding:6px 6px;">${e.rencanaPenting || '-'}</td>
+              <td style="text-align:center; vertical-align:middle; padding:4px 2px;">${ketHtml}</td>
+          </tr>`;
+        });
+
         rowsHtml += `
-        <tr>
-            <td style="text-align:center; padding:6px 4px;">${idx + 1}</td>
-            <td style="text-align:center; padding:6px 4px;">${tglJam}</td>
-            <td style="padding:6px 6px;">${e.drSp || '-'}</td>
-            <td style="white-space:pre-wrap; padding:6px 6px;">${e.uraianKlinis || '-'}</td>
-            <td style="white-space:pre-wrap; padding:6px 6px;">${e.diagnosis || '-'}</td>
-            <td style="white-space:pre-wrap; padding:6px 6px;">${e.rencanaPenting || '-'}</td>
-            <td style="text-align:center; vertical-align:middle; padding:4px 2px;">${ketHtml}</td>
+        <tr style="height:100%;">
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
         </tr>`;
+
+        const titleText = totalPages > 1
+          ? `PANDUAN PROFIL RINGKAS RAWAT JALAN (PRMRJ) POLIKLINIK - LEMBAR ${pageIdx + 1} DARI ${totalPages}`
+          : `PANDUAN PROFIL RINGKAS RAWAT JALAN (PRMRJ) POLIKLINIK`;
+
+        pagesHtml += `
+        <div class="surat-document" style="display:flex; flex-direction:column; height:1247px; page-break-after:always; margin-bottom:20px;">
+            ${hospitalHeaderDiv(noMr, nama, tglLahir, kelamin)}
+
+            <div style="border:2px solid black; font-family:'Times New Roman',Times,serif; flex:1; display:flex; flex-direction:column; min-height:0; margin-top:10px;">
+                <div style="text-align:center; font-weight:bold; font-size:13px !important; padding:8px; border-bottom:2px solid black; background-color:#e6e6e6;">
+                    ${titleText}
+                </div>
+
+                <table class="prmrj-table" style="border:none; border-top:1px solid black; flex:1;">
+                  <colgroup>
+                      <col style="width:4%">
+                      <col style="width:11%">
+                      <col style="width:14%">
+                      <col style="width:23%">
+                      <col style="width:17%">
+                      <col style="width:16%">
+                      <col style="width:15%">
+                  </colgroup>
+                  <thead>
+                      <tr>
+                          <th style="border-left:none;">NO</th>
+                          <th>TGL/JAM</th>
+                          <th>DR.SP</th>
+                          <th>URAIAN KLINIS PENTING</th>
+                          <th>DIAGNOSIS</th>
+                          <th>RENCANA PENTING</th>
+                          <th style="border-right:none;">PARAF / KET</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      ${rowsHtml}
+                  </tbody>
+                </table>
+            </div>
+        </div>`;
       });
 
-      rowsHtml += `
-      <tr style="height:100%;">
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-      </tr>`;
-
-      printContainer.innerHTML = `
-      <div class="surat-document" style="display:flex; flex-direction:column; height:1247px;">
-          ${hospitalHeaderDiv(noMr, nama, tglLahir, kelamin)}
-
-          <div style="border:2px solid black; font-family:'Times New Roman',Times,serif; flex:1; display:flex; flex-direction:column; min-height:0; margin-top:10px;">
-              <div style="text-align:center; font-weight:bold; font-size:14px !important; padding:8px; border-bottom:2px solid black; background-color:#e6e6e6;">
-                  PANDUAN PROFIL RINGKAS RAWAT JALAN (PRMRJ) POLIKLINIK
-              </div>
-
-              <table class="prmrj-table" style="border:none; border-top:1px solid black; flex:1;">
-                <colgroup>
-                    <col style="width:4%">
-                    <col style="width:11%">
-                    <col style="width:14%">
-                    <col style="width:23%">
-                    <col style="width:17%">
-                    <col style="width:16%">
-                    <col style="width:15%">
-                </colgroup>
-                <thead>
-                    <tr>
-                        <th style="border-left:none;">NO</th>
-                        <th>TGL/JAM</th>
-                        <th>DR.SP</th>
-                        <th>URAIAN KLINIS PENTING</th>
-                        <th>DIAGNOSIS</th>
-                        <th>RENCANA PENTING</th>
-                        <th style="border-right:none;">PARAF / KET</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${rowsHtml}
-                </tbody>
-              </table>
-          </div>
-      </div>`;
+      printContainer.innerHTML = pagesHtml;
     }
 
     static {

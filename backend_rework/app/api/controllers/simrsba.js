@@ -3908,8 +3908,15 @@ module.exports = {
   savePrmrj: async (req, res) => {
     try {
       const payload = req.body;
+      const noMr = payload.noMr ? String(payload.noMr).trim() : null;
+      let query = {};
+      if (noMr) {
+        query = { noMr: noMr };
+      } else {
+        query = { noCheckin: payload.noCheckin };
+      }
       const saved = await Prmrj.findOneAndUpdate(
-        { noCheckin: payload.noCheckin },
+        query,
         { $set: payload },
         { upsert: true, new: true }
       );
@@ -3920,7 +3927,21 @@ module.exports = {
   },
   getPrmrj: async (req, res) => {
     try {
-      const data = await Prmrj.findOne({ noCheckin: req.params.noCheckin });
+      const param = req.params.noCheckin ? String(req.params.noCheckin).trim() : '';
+      let noMr = null;
+      const checkin = await Checkin.findOne({ noCheckin: param }).select({ noMr: 1 }).lean();
+      if (checkin && checkin.noMr) {
+        noMr = String(checkin.noMr).trim();
+      }
+
+      const orConditions = [{ noCheckin: param }];
+      if (noMr) {
+        orConditions.push({ noMr: noMr });
+      } else {
+        orConditions.push({ noMr: param });
+      }
+
+      const data = await Prmrj.findOne({ $or: orConditions }).sort({ updatedAt: -1 });
       return res.status(200).send({ status: 200, message: "Ok", data: data });
     } catch (error) {
       return res.status(400).send({ status: 400, message: "Gagal mengambil data PRMRJ", data: null });
@@ -4095,8 +4116,15 @@ module.exports = {
   savePoliGigi: async (req, res) => {
     try {
       const payload = req.body;
+      const noMr = payload.noMr ? String(payload.noMr).trim() : null;
+      let query = {};
+      if (noMr) {
+        query = { noMr: noMr };
+      } else {
+        query = { noCheckin: payload.noCheckin };
+      }
       const saved = await PoliGigi.findOneAndUpdate(
-        { noCheckin: payload.noCheckin },
+        query,
         { $set: payload },
         { upsert: true, new: true }
       );
@@ -4107,7 +4135,21 @@ module.exports = {
   },
   getPoliGigi: async (req, res) => {
     try {
-      const data = await PoliGigi.findOne({ noCheckin: req.params.noCheckin });
+      const param = req.params.noCheckin ? String(req.params.noCheckin).trim() : '';
+      let noMr = null;
+      const checkin = await Checkin.findOne({ noCheckin: param }).select({ noMr: 1 }).lean();
+      if (checkin && checkin.noMr) {
+        noMr = String(checkin.noMr).trim();
+      }
+
+      const orConditions = [{ noCheckin: param }];
+      if (noMr) {
+        orConditions.push({ noMr: noMr });
+      } else {
+        orConditions.push({ noMr: param });
+      }
+
+      const data = await PoliGigi.findOne({ $or: orConditions }).sort({ updatedAt: -1 });
       return res.status(200).send({ status: 200, message: "Ok", data: data });
     } catch (error) {
       return res.status(400).send({ status: 400, message: "Gagal mengambil data Poli Gigi", data: null });

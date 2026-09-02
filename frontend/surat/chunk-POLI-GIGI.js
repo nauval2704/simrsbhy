@@ -59,11 +59,12 @@ var PoliGigiComponent = (() => {
     }
 
     fetchPoliGigi() {
-      this.http.get(i.apiUrl + "/simrsba/poli-gigi/" + this.noCheckin).subscribe({
+      const lookupKey = this.patient?.noMr || this.noCheckin;
+      this.http.get(i.apiUrl + "/simrsba/poli-gigi/" + lookupKey).subscribe({
         next: (res) => {
           if (res && res.data) {
             this.gigiData = res.data;
-            if (res.data.formData) {
+            if (res.data.formData && res.data.formData.entries) {
               this.formData = Object.assign({ entries: [] }, res.data.formData);
             } else if (res.data.entries) {
               this.formData.entries = res.data.entries;
@@ -83,20 +84,46 @@ var PoliGigiComponent = (() => {
           const pkData = res?.data?.formData || res?.data || {};
           const dpjp = this.patient?.dokterDpjp || this.patient?.dpjp || this.patient?.namaDokter || "";
           const tglMasukStr = String(this.patient?.tglMasuk || "").split(" ")[0];
+          const today = new Date();
+          const todayDateStr = today.toISOString().split("T")[0];
+          const todayTimeStr = today.toTimeString().split(" ")[0].substring(0, 5);
 
           if (!this.formData.entries || this.formData.entries.length === 0) {
             this.formData.entries = [{
-              tglKunjungan: tglMasukStr || new Date().toISOString().split("T")[0],
+              noCheckin: this.noCheckin,
+              tglDate: tglMasukStr || todayDateStr,
+              tglTime: todayTimeStr,
+              gigi: "",
+              icd10: "",
+              keluhan: pkData.keluhanUtama || pkData.diagnosisKerja || "",
+              tindakan: pkData.tindakanTerapi || "",
               parafName: dpjp,
-              diagnosis: pkData.diagnosisKerja || "",
-              anamnesa: "",
-              tindakan: ""
+              ttd: null
             }];
           } else {
-            const first = this.formData.entries[0];
-            if (!first.parafName && dpjp) first.parafName = dpjp;
-            if (!first.diagnosis && pkData.diagnosisKerja) first.diagnosis = pkData.diagnosisKerja;
-            if (!first.tglKunjungan && tglMasukStr) first.tglKunjungan = tglMasukStr;
+            const hasCurrentCheckin = this.formData.entries.some(e => e.noCheckin === this.noCheckin);
+            const hasSameDayAndDoctor = this.formData.entries.some(e => e.tglDate === (tglMasukStr || todayDateStr) && e.parafName === dpjp);
+
+            if (!hasCurrentCheckin && !hasSameDayAndDoctor) {
+              this.formData.entries.push({
+                noCheckin: this.noCheckin,
+                tglDate: tglMasukStr || todayDateStr,
+                tglTime: todayTimeStr,
+                gigi: "",
+                icd10: "",
+                keluhan: pkData.keluhanUtama || pkData.diagnosisKerja || "",
+                tindakan: pkData.tindakanTerapi || "",
+                parafName: dpjp,
+                ttd: null
+              });
+            } else if (hasCurrentCheckin) {
+              const currentEntry = this.formData.entries.find(e => e.noCheckin === this.noCheckin);
+              if (currentEntry) {
+                if (!currentEntry.parafName && dpjp) currentEntry.parafName = dpjp;
+                if (!currentEntry.keluhan && (pkData.keluhanUtama || pkData.diagnosisKerja)) currentEntry.keluhan = pkData.keluhanUtama || pkData.diagnosisKerja;
+                if (!currentEntry.tindakan && pkData.tindakanTerapi) currentEntry.tindakan = pkData.tindakanTerapi;
+              }
+            }
           }
           this.loading = false;
           this.renderView();
@@ -158,6 +185,7 @@ var PoliGigiComponent = (() => {
       const dpjp = this.patient?.dokterDpjp || this.patient?.dpjp || this.patient?.namaDokter || "Dokter Gigi";
 
       this.formData.entries.push({
+        noCheckin: this.noCheckin,
         tglDate,
         tglTime,
         gigi: "",
@@ -475,64 +503,85 @@ var PoliGigiComponent = (() => {
       const printContainer = document.getElementById("poli-gigi-print-container");
       if (!printContainer) return;
 
-      let rowsHtml = "";
       const entries = this.formData.entries || [];
-      entries.forEach((e, idx) => {
-        const tglJamStr = (e.tglDate || e.tglTime) ? (e.tglDate + '<br>' + (e.tglTime || '')) : '-';
+      const ROWS_PER_PAGE = 8;
+      const chunks = [];
+      if (entries.length === 0) {
+        chunks.push([]);
+      } else {
+        for (let i = 0; i < entries.length; i += ROWS_PER_PAGE) {
+          chunks.push(entries.slice(i, i + ROWS_PER_PAGE));
+        }
+      }
 
-        rowsHtml += '<tr>' +
-            '<td style="text-align:center; padding: 6px 4px;">' + (idx + 1) + '</td>' +
-            '<td style="text-align:center; padding: 6px 4px;">' + tglJamStr + '</td>' +
-            '<td style="text-align:center; padding: 6px 4px;">' + (e.gigi || '-') + '</td>' +
-            '<td style="white-space:pre-wrap; padding: 6px 6px;">' + (e.keluhan || '-') + '</td>' +
-            '<td style="white-space:pre-wrap; padding: 6px 6px;">' + (e.tindakan || '-') + '</td>' +
-            '<td style="text-align:center; padding: 6px 4px;">' + (e.icd10 || '-') + '</td>' +
-            '<td style="text-align:center; vertical-align:middle; padding: 4px 2px;">' +
-                (e.ttd ? '<img src="' + e.ttd + '" style="height:55px; max-height:60px; max-width:95%; object-fit:contain; display:block; margin:2px auto;">' : '') +
-                '<div style="font-weight:bold; font-size:10px;">' + (e.parafName || '') + '</div>' +
-            '</td>' +
+      const totalPages = chunks.length;
+      let pagesHtml = "";
+
+      chunks.forEach((chunk, pageIdx) => {
+        let rowsHtml = "";
+        chunk.forEach((e, idx) => {
+          const globalIdx = pageIdx * ROWS_PER_PAGE + idx + 1;
+          const tglJamStr = (e.tglDate || e.tglTime) ? (e.tglDate + '<br>' + (e.tglTime || '')) : '-';
+
+          rowsHtml += '<tr>' +
+              '<td style="text-align:center; padding: 6px 4px;">' + globalIdx + '</td>' +
+              '<td style="text-align:center; padding: 6px 4px;">' + tglJamStr + '</td>' +
+              '<td style="text-align:center; padding: 6px 4px;">' + (e.gigi || '-') + '</td>' +
+              '<td style="white-space:pre-wrap; padding: 6px 6px;">' + (e.keluhan || '-') + '</td>' +
+              '<td style="white-space:pre-wrap; padding: 6px 6px;">' + (e.tindakan || '-') + '</td>' +
+              '<td style="text-align:center; padding: 6px 4px;">' + (e.icd10 || '-') + '</td>' +
+              '<td style="text-align:center; vertical-align:middle; padding: 4px 2px;">' +
+                  (e.ttd ? '<img src="' + e.ttd + '" style="height:50px; max-height:55px; max-width:95%; object-fit:contain; display:block; margin:2px auto;">' : '') +
+                  '<div style="font-weight:bold; font-size:10px;">' + (e.parafName || '') + '</div>' +
+              '</td>' +
+          '</tr>';
+        });
+
+        rowsHtml += '<tr style="height:100%;">' +
+            '<td></td>' +
+            '<td></td>' +
+            '<td></td>' +
+            '<td></td>' +
+            '<td></td>' +
+            '<td></td>' +
+            '<td></td>' +
         '</tr>';
+
+        const titleText = totalPages > 1
+          ? 'PANDUAN PROFIL RINGKAS RAWAT JALAN (PRMRJ) POLI GIGI - LEMBAR ' + (pageIdx + 1) + ' DARI ' + totalPages
+          : 'PANDUAN PROFIL RINGKAS RAWAT JALAN (PRMRJ) POLI GIGI';
+
+        pagesHtml += '<div class="surat-document" style="display:flex; flex-direction:column; height:1247px; page-break-after:always; margin-bottom:20px;">' +
+            hospitalHeaderDiv(noMr, nama, tglLahir, kelamin, getFontSize, titleText) +
+            '<div style="border:2px solid black; font-family:\'Times New Roman\',Times,serif; flex:1; display:flex; flex-direction:column; min-height:0; margin-top:10px;">' +
+                '<table class="gigi-table" style="border:none; border-top:1px solid black; flex:1;">' +
+                  '<colgroup>' +
+                      '<col style="width:4%">' +
+                      '<col style="width:11%">' +
+                      '<col style="width:10%">' +
+                      '<col style="width:28%">' +
+                      '<col style="width:26%">' +
+                      '<col style="width:8%">' +
+                      '<col style="width:13%">' +
+                  '</colgroup>' +
+                  '<thead>' +
+                      '<tr>' +
+                          '<th style="border-left:none;">NO</th>' +
+                          '<th>TGL / JAM</th>' +
+                          '<th>GIGI</th>' +
+                          '<th>KELUHAN / DIAGNOSA</th>' +
+                          '<th>PENGOBATAN DAN TINDAKAN</th>' +
+                          '<th>KODE ICD 10</th>' +
+                          '<th style="border-right:none;">PARAF</th>' +
+                      '</tr>' +
+                  '</thead>' +
+                  '<tbody>' + rowsHtml + '</tbody>' +
+                '</table>' +
+            '</div>' +
+        '</div>';
       });
 
-      // Expanding filler row to stretch table 100% to bottom of page
-      rowsHtml += '<tr style="height:100%;">' +
-          '<td></td>' +
-          '<td></td>' +
-          '<td></td>' +
-          '<td></td>' +
-          '<td></td>' +
-          '<td></td>' +
-          '<td></td>' +
-      '</tr>';
-
-      printContainer.innerHTML = '<div class="surat-document" style="display:flex; flex-direction:column; height:1247px;">' +
-          hospitalHeaderDiv(noMr, nama, tglLahir, kelamin, getFontSize, 'PANDUAN PROFIL RINGKAS RAWAT JALAN (PRMRJ) POLI GIGI') +
-          '<div style="border:2px solid black; font-family:\'Times New Roman\',Times,serif; flex:1; display:flex; flex-direction:column; min-height:0; margin-top:10px;">' +
-              '<table class="gigi-table" style="border:none; flex:1;">' +
-                '<colgroup>' +
-                    '<col style="width:4%">' +
-                    '<col style="width:11%">' +
-                    '<col style="width:10%">' +
-                    '<col style="width:28%">' +
-                    '<col style="width:26%">' +
-                    '<col style="width:8%">' +
-                    '<col style="width:13%">' +
-                '</colgroup>' +
-                '<thead>' +
-                    '<tr>' +
-                        '<th style="border-left:none;">NO</th>' +
-                        '<th>TGL / JAM</th>' +
-                        '<th>GIGI</th>' +
-                        '<th>KELUHAN / DIAGNOSA</th>' +
-                        '<th>PENGOBATAN DAN TINDAKAN</th>' +
-                        '<th>KODE ICD 10</th>' +
-                        '<th style="border-right:none;">PARAF</th>' +
-                    '</tr>' +
-                '</thead>' +
-                '<tbody>' + rowsHtml + '</tbody>' +
-              '</table>' +
-          '</div>' +
-      '</div>';
+      printContainer.innerHTML = pagesHtml;
     }
 
     static {

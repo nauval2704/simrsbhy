@@ -5,13 +5,14 @@ const PrmrjSchema = new Schema(
   {
     noCheckin: {
       type: String,
-      required: true,
-      unique: true,
+      trim: true,
+      default: null,
     },
     noMr: {
       type: String,
       trim: true,
       default: null,
+      index: true,
     },
     formData: {
       type: Object,
