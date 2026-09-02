@@ -21,17 +21,33 @@ const RingkasanPulang = require("../models/ringkasanPulang");
 
 function getDoctorDpjpMatch(req) {
   if (req.user && req.user.role !== 'ROLE_ADMIN' && ['ROLE_POLI', 'ROLE_IGD', 'ROLE_INAP'].includes(req.user.role)) {
-    const rawName = (req.user.nama || '').trim();
-    const cleanName = rawName.replace(/^(dr\.|drg\.|Dr\.|Drg\.|dr|drg)\s*/gi, '').trim();
+    let rawName = (req.user.nama || '').trim();
+    let cleanName = rawName.replace(/^(dr\.|drg\.|Dr\.|Drg\.|dr|drg|prof\.|Prof\.|h\.|H\.|hj\.|Hj\.)\s*/gi, '').trim();
+    cleanName = cleanName.replace(/,.*$/g, '').trim();
+    cleanName = cleanName.replace(/\s+(Sp\.[a-zA-Z\s.]+|Sp[A-Z]+|M\.[a-zA-Z\s.]+|MARS|FINASIM|FICS|S\.Ked|M\.Ked[a-zA-Z\s.]*|M\.Kes|M\.Biomed|M\.Si)$/gi, '').trim();
 
     const keyword = cleanName || rawName;
 
-    if (!keyword) {
+    if (!keyword && !req.user.kodedpjp) {
       return { dpjp: '__NO_DOCTOR_MATCH__' };
     }
 
-    const safe = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return { dpjp: { $regex: new RegExp(safe, 'i') } };
+    const conditions = [];
+
+    if (req.user.kodedpjp) {
+      conditions.push({ kodedpjp: req.user.kodedpjp });
+    }
+
+    if (keyword) {
+      const safe = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      conditions.push({ dpjp: { $regex: new RegExp(safe, 'i') } });
+    }
+
+    if (conditions.length === 1) {
+      return conditions[0];
+    }
+
+    return { $or: conditions };
   }
   return null;
 }
