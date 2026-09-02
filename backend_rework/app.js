@@ -15,50 +15,48 @@ const jwt = require("jsonwebtoken");
 const app = express();
 const httpServer = createServer(app);
 
-// Enable CORS for all origins (plug-and-play)
 app.use(cors({
-  origin: "*",
+  origin: true,
   credentials: true
 }));
 
-// Configure Socket.io with dynamic CORS
 const io = new Server(httpServer, {
   cors: {
-    origin: "*",
+    origin: true,
     methods: ["GET", "POST"],
+    credentials: true
   },
 });
 
 app.set("socketio", io);
-app.set("secretKey", process.env.JWT_SECRET); // jwt secret token
+app.set("secretKey", process.env.JWT_SECRET);
 
 app.use(compression());
 app.use(helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: false }));
 
-// Rate limiter untuk endpoint login
 const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 menit
+  windowMs: 15 * 60 * 1000,
   max: 20,
   message: { status: 429, message: 'Terlalu banyak percobaan login. Coba lagi nanti.' },
   standardHeaders: true,
   legacyHeaders: false,
 });
 
-// Replicate original backend CORS exactly
-app.use(cors());
-
 app.use(function (req, res, next) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  const origin = req.headers.origin || "*";
+  res.setHeader("Access-Control-Allow-Origin", origin);
   res.setHeader("Access-Control-Allow-Credentials", "true");
   res.setHeader("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
   res.setHeader(
     "Access-Control-Allow-Headers",
-    "Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers"
+    "Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, x-token, Authorization"
   );
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
   next();
 });
 
-// Connection to MongoDB
 mongoose.connection.on(
   "error",
   console.error.bind(console, "MongoDB connection error:")
@@ -76,7 +74,6 @@ app.use(express.static(path.join(process.cwd(), '/simrs')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
-// Import Routes
 const users = require("./routes/users");
 const mansis = require("./routes/mansis");
 const antreans = require("./routes/antreans");
@@ -121,33 +118,24 @@ app.get("/favicon.ico", function (req, res) {
   res.sendStatus(204);
 });
 
-// Middleware to validate JWT token
 function validateUser(req, res, next) {
-  console.log("=== VALIDATE USER DEBUG ===");
-  console.log("URL:", req.url);
-  console.log("x-token header:", req.headers["x-token"]);
-  console.log("secretKey loaded:", !!req.app.get("secretKey"));
-  
   jwt.verify(
     req.headers["x-token"],
     req.app.get("secretKey"),
     function (err) {
       if (err) {
-        console.log("JWT VERIFY FAILED:", err.message);
         return res.status(500).json({
           status: "error121",
           message: err.message,
           data: null,
         });
       } else {
-        console.log("JWT VERIFY SUCCESS");
         next();
       }
     }
   );
 }
 
-// Public routes
 app.use("/mansis", mansis);
 app.use("/users", loginLimiter, users);
 app.use("/simrs", simrs);
@@ -158,7 +146,6 @@ app.use("/radiologi", radiologi);
 app.use("/satusehat/auth", satusehatAuth);
 app.use("/icare", icare);
 
-// Private routes (Butuh JWT Auth)
 app.use("/simrsba", simrsba);
 app.use("/nakes", simrsba);
 app.use("/gudang", validateUser, gudang);
@@ -176,7 +163,6 @@ app.use("/satusehat/encounter", validateUser, satusehatEncounter);
 app.use("/satusehat/condition", validateUser, satusehatCondition);
 app.use("/keuangan", validateUser, keuangan);
 
-// Error Handling
 app.use(function (req, res, next) {
   let err = new Error("Not Found");
   err.status = 404;
@@ -201,7 +187,6 @@ app.use(function (err, req, res, next) {
   }
 });
 
-// Socket.IO Connections
 io.on("connection", (socket) => {
   socket.emit("test event", "DEVELOPMENT MODE, CONNECTED TO BACKEND");
 
