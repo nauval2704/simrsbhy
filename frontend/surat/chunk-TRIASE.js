@@ -101,6 +101,7 @@ var TriaseComponent = (() => {
         triageLevel:
           document.getElementById("f-triageColor")?.selectedOptions[0]?.text ||
           "",
+        pukulPemeriksaan: document.getElementById("f-pukulPemeriksaan")?.value || "",
         symptoms: Array.from(
           document.querySelectorAll(".f-symptom:checked"),
         ).map((cb) => cb.value),
@@ -196,6 +197,13 @@ var TriaseComponent = (() => {
       const tglLahir = p.tglLahir || "-";
       const kelamin = p.kelamin || "-";
       const dpjp = p.dokterDpjp || p.dpjp || p.namaDokter || p.dokter || "";
+      let initPukul = (this.triaseData && this.triaseData.pukulPemeriksaan) || "";
+      if (!initPukul) {
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2, "0");
+        const mm = String(now.getMinutes()).padStart(2, "0");
+        initPukul = `${hh}:${mm}`;
+      }
 
       const getFontSize = (str, maxLen = 16, defaultSize = 10, minSize = 7) => {
         if (!str || str.length <= maxLen) return defaultSize;
@@ -294,15 +302,13 @@ var TriaseComponent = (() => {
 
       <div class="card border mb-3">
         <div class="card-header bg-light py-2 fw-bold text-dark d-flex align-items-center justify-content-between">
-          <span><i class="bi bi-tag-fill me-2 text-danger"></i> Label Triase Pasien</span>
+          <span><i class="bi bi-tag-fill me-2 text-danger"></i> Label Triase &amp; Waktu Pemeriksaan</span>
           <span class="badge bg-secondary text-white fw-normal" style="font-size: 11px;">Pilihan Utama Triase</span>
         </div>
         <div class="card-body p-3 bg-white">
-          <div class="row align-items-center">
-            <div class="col-md-3">
-              <label for="f-triageColor" class="form-label small fw-bold text-dark mb-0">Hasil Label Triase :</label>
-            </div>
+          <div class="row align-items-center g-3">
             <div class="col-md-6">
+              <label for="f-triageColor" class="form-label small fw-bold text-dark mb-1">Hasil Label Triase :</label>
               <select id="f-triageColor" class="form-select form-select-sm fw-semibold border-secondary">
                 <option value="">-- Pilih Level Triase --</option>
                 <option value="red" data-label="Level 1">Level 1 - Resusitasi (Merah)</option>
@@ -311,6 +317,13 @@ var TriaseComponent = (() => {
                 <option value="green" data-label="Level 4">Level 4 - Non Urgent (Hijau)</option>
                 <option value="green" data-label="Level 5">Level 5 - False Emergency (Hijau)</option>
               </select>
+            </div>
+            <div class="col-md-6">
+              <label for="f-pukulPemeriksaan" class="form-label small fw-bold text-dark mb-1">Pukul / Waktu Pemeriksaan :</label>
+              <div class="input-group input-group-sm">
+                <input type="time" id="f-pukulPemeriksaan" class="form-control form-control-sm border-secondary fw-bold" value="${initPukul}">
+                <span class="input-group-text">WIB</span>
+              </div>
             </div>
           </div>
         </div>
@@ -749,6 +762,7 @@ var TriaseComponent = (() => {
         setText("p-situasiBerbahaya", getVal("f-situasiBerbahaya"));
         setText("p-doaDetail", getVal("f-doaDetail"));
         setText("p-konsul", getVal("f-konsul") || ".....................................");
+        setText("p-pukulPemeriksaan", getVal("f-pukulPemeriksaan") || ".......");
         ["red", "yellow", "green", "black"].forEach((c) => {
           const el = document.querySelector(".p-triageColor-" + c);
           if (el) el.innerHTML = getVal("f-triageColor") === c ? "\u2713" : "";
@@ -807,7 +821,7 @@ var TriaseComponent = (() => {
                     <span class="t-sq p-triageColor-yellow"></span><span class="t-cbox t-yellow"></span>
                     <span class="t-sq p-triageColor-green"></span><span class="t-cbox t-green"></span>
                   </div>
-                  <div style="margin-top:4px;">Pukul pemeriksaan : &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; WIB</div>
+                  <div style="margin-top:4px;">Pukul pemeriksaan : <span class="p-val" id="p-pukulPemeriksaan" style="min-width:35px;font-weight:bold;">${initPukul}</span> WIB</div>
                 </div>
                 <div class="t-col" style="width:55%;display:flex;align-items:center;">
                   <div class="t-vgrid" style="width:100%;">
@@ -971,6 +985,7 @@ var TriaseComponent = (() => {
         setVal("f-gcsV", d.gcsV);
         setVal("f-gcsM", d.gcsM);
         setVal("f-triageColor", d.triageColor);
+        setVal("f-pukulPemeriksaan", d.pukulPemeriksaan);
         setVal("f-namaDokter", d.namaDokter || defaultDpjp);
         setVal("f-namaPerawat", d.namaPerawat);
         setVal("f-situasiBerbahaya", d.situasiBerbahaya);

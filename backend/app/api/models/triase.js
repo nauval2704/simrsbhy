@@ -59,6 +59,11 @@ const TriaseSchema = new Schema({
     trim: true,
     default: null,
   },
+  pukulPemeriksaan: {
+    type: String,
+    trim: true,
+    default: null,
+  },
   symptoms: {
     type: [String],
     default: [],
