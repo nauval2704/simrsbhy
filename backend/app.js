@@ -51,15 +51,7 @@ const httpServer = createServer(app);
 // dev
 const io = new Server(httpServer, {
   cors: {
-    origin: [
-      "http://localhost",
-      "http://localhost:182",
-      "http://localhost:1821",
-      "http://localhost:4200", 
-      "http://103.76.174.236:182",
-      "https://rsbhayangkaraaceh.com:1821",
-      "https://rsbhayangkaraaceh.com:182",
-    ],
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
