@@ -6,7 +6,7 @@ import {
   hc as ɵelementEnd,
   ra as inject,
 } from "../chunk-UYVTZL26.js";
-import { getStandardGridCSS, createSuratShell, createAutoPageSurat, bindSuratPrintButton, hospitalHeaderDiv } from "./chunk-SURAT-LAYOUT.js";
+import { getStandardGridCSS, createSuratShell, createAutoPageSurat, bindSuratPrintButton, hospitalHeaderDiv, buildSuratPdfFilename } from "./chunk-SURAT-LAYOUT.js";
 
 function renderTemplate(t, s) {
   if (t & 1) {
@@ -340,7 +340,10 @@ var PoliGigiComponent = (() => {
           '</div>' +
         '</div>' +
       '</div>' +
-      '<div class="d-flex justify-content-end mt-3 border-top pt-3"><button type="button" id="btn-save-poli-gigi" class="btn btn-primary px-4"><i class="bi bi-save me-1"></i>Simpan Data</button></div>';
+      '<div class="d-flex justify-content-end gap-2 mt-3 border-top pt-3">' +
+        '<button type="button" class="btn btn-outline-success surat-download-pdf-btn px-3"><i class="bi bi-file-earmark-pdf-fill me-1"></i>Simpan sebagai PDF</button>' +
+        '<button type="button" id="btn-save-poli-gigi" class="btn btn-primary px-4"><i class="bi bi-save me-1"></i>Simpan Data</button>' +
+      '</div>';
 
       const extraCssStr = '#accordionPoliGigi .accordion-item { box-shadow: none !important; border-color: #dee2e6 !important; }\n' +
         '#accordionPoliGigi .accordion-button { box-shadow: none !important; }\n' +
@@ -364,7 +367,9 @@ var PoliGigiComponent = (() => {
         inputContent,
       });
 
-      bindSuratPrintButton(root);
+      bindSuratPrintButton(root, {
+        getFilename: () => buildSuratPdfFilename('PRMRJ_POLI_GIGI', this.patient?.noMr || this.patient?.norm, this.patient?.nama)
+      });
 
       const btnSave = root.querySelector("#btn-save-poli-gigi");
       if (btnSave) btnSave.addEventListener("click", () => this.handleSave());

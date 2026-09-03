@@ -7,7 +7,7 @@ import {
   hc as _elementEnd,
   ra as inject,
 } from "../chunk-UYVTZL26.js";
-import { createSuratShell, bindSuratPrintButton, hospitalHeaderRow, showSuccessToast, showErrorAlert } from "./chunk-SURAT-LAYOUT.js";
+import { createSuratShell, bindSuratPrintButton, hospitalHeaderRow, showSuccessToast, showErrorAlert, buildSuratPdfFilename } from "./chunk-SURAT-LAYOUT.js";
 
 function renderTemplate(t, s) {
   if (t & 1) {
@@ -362,7 +362,8 @@ var RingkasanPulangComponent = (() => {
 
       </div>
 
-      <div class="d-flex justify-content-end mt-3 border-top pt-3">
+      <div class="d-flex justify-content-end gap-2 mt-3 border-top pt-3">
+        <button type="button" class="btn btn-outline-success surat-download-pdf-btn px-3"><i class="bi bi-file-earmark-pdf-fill me-1"></i>Simpan sebagai PDF</button>
         <button id="btn-save-rp" class="btn btn-primary px-4"><i class="bi bi-save me-1"></i>Simpan Data</button>
       </div>`;
 
@@ -385,7 +386,9 @@ var RingkasanPulangComponent = (() => {
 .footer-id { text-align: right; font-size: 9px !important; margin-top: 5px; font-style: italic; }`,
         inputContent,
       });
-      bindSuratPrintButton(root);
+      bindSuratPrintButton(root, {
+        getFilename: () => buildSuratPdfFilename('RINGKASAN_PULANG_IGD', this.patient?.noMr || this.patient?.norm, this.patient?.nama)
+      });
 
       const makeSigPad = (canvasId, fieldName) => {
         const canvas = root.querySelector("#" + canvasId);

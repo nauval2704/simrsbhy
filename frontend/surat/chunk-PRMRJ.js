@@ -6,7 +6,7 @@ import {
   hc as ɵelementEnd,
   ra as inject,
 } from "../chunk-UYVTZL26.js";
-import { getStandardGridCSS, createSuratShell, createAutoPageSurat, bindSuratPrintButton, hospitalHeaderDiv } from "./chunk-SURAT-LAYOUT.js";
+import { getStandardGridCSS, createSuratShell, createAutoPageSurat, bindSuratPrintButton, hospitalHeaderDiv, buildSuratPdfFilename } from "./chunk-SURAT-LAYOUT.js";
 
 function renderTemplate(t, s) {
   if (t & 1) {
@@ -333,7 +333,8 @@ var PrmrjComponent = (() => {
 
       </div>
 
-      <div class="d-flex justify-content-end mt-3 border-top pt-3">
+      <div class="d-flex justify-content-end gap-2 mt-3 border-top pt-3">
+        <button type="button" class="btn btn-outline-success surat-download-pdf-btn px-3"><i class="bi bi-file-earmark-pdf-fill me-1"></i>Simpan sebagai PDF</button>
         <button type="button" id="btn-save-prmrj" class="btn btn-primary px-4"><i class="bi bi-save me-1"></i>Simpan Data</button>
       </div>`;
 
@@ -357,7 +358,9 @@ var PrmrjComponent = (() => {
         inputContent,
       });
 
-      bindSuratPrintButton(root);
+      bindSuratPrintButton(root, {
+        getFilename: () => buildSuratPdfFilename('PRMRJ', this.patient?.noMr || this.patient?.norm, this.patient?.nama)
+      });
 
       function trimPrmrjCanvas(c) {
         const ctx = c.getContext("2d");

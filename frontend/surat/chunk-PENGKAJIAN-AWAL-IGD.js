@@ -8,7 +8,7 @@ import {
   ra as inject,
 } from "../chunk-UYVTZL26.js";
 import "./chunk-SURAT-CANVAS.js";
-import { createSuratShell, bindSuratPrintButton, hospitalHeaderRow, hospitalHeaderDiv, signatureFooterRows, suratDocumentWrapper, createAutoPageSurat, createMultiPageSurat, footerLabel, showSuccessToast, showErrorAlert } from "./chunk-SURAT-LAYOUT.js";
+import { createSuratShell, bindSuratPrintButton, hospitalHeaderRow, hospitalHeaderDiv, signatureFooterRows, suratDocumentWrapper, createAutoPageSurat, createMultiPageSurat, footerLabel, showSuccessToast, showErrorAlert, buildSuratPdfFilename } from "./chunk-SURAT-LAYOUT.js";
 
 function renderTemplate(t, s) {
   if (t & 1) {
@@ -409,7 +409,8 @@ var PengkajianAwalIgdComponent = (() => {
 
       </div>
 
-      <div class="d-flex justify-content-end mt-3 border-top pt-3">
+      <div class="d-flex justify-content-end gap-2 mt-3 border-top pt-3">
+        <button type="button" class="btn btn-outline-success surat-download-pdf-btn px-3"><i class="bi bi-file-earmark-pdf-fill me-1"></i>Simpan sebagai PDF</button>
         <button id="btn-save-pengkajian" class="btn btn-primary px-4"><i class="bi bi-save me-1"></i>Simpan Data</button>
       </div>`;
 
@@ -446,7 +447,9 @@ var PengkajianAwalIgdComponent = (() => {
 `,
         inputContent,
       });
-      bindSuratPrintButton(root);
+      bindSuratPrintButton(root, {
+        getFilename: () => buildSuratPdfFilename('PENGKAJIAN_AWAL_IGD', this.patient?.noMr || this.patient?.norm, this.patient?.nama)
+      });
 
       const btnSave = root.querySelector("#btn-save-pengkajian");
       if (btnSave) btnSave.addEventListener("click", () => this.saveData());

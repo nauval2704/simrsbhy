@@ -7,7 +7,7 @@ import {
   hc as ɵelementEnd,
   ra as inject,
 } from "../chunk-UYVTZL26.js";
-import { getStandardGridCSS, hospitalHeaderTableRow, signatureFooterRows, footerLabel, createSuratShell, bindSuratPrintButton, suratDocumentWrapper } from "./chunk-SURAT-LAYOUT.js";
+import { getStandardGridCSS, hospitalHeaderTableRow, signatureFooterRows, footerLabel, createSuratShell, bindSuratPrintButton, suratDocumentWrapper, buildSuratPdfFilename } from "./chunk-SURAT-LAYOUT.js";
 
 function renderTemplate(t, s) {
   if (t & 1) {
@@ -907,7 +907,8 @@ var PengkajianAwalPoliComponent = (() => {
               </div>
             </div>
       </div>
-      <div class="d-flex justify-content-end mt-3 border-top pt-3">
+      <div class="d-flex justify-content-end gap-2 mt-3 border-top pt-3">
+        <button type="button" class="btn btn-outline-success surat-download-pdf-btn px-3"><i class="bi bi-file-earmark-pdf-fill me-1"></i>Simpan sebagai PDF</button>
         <button type="button" id="btn-save-poli" class="btn btn-primary px-4"><i class="bi bi-save me-1"></i>Simpan Data</button>
       </div>`;
       const printContent =
@@ -1252,7 +1253,9 @@ var PengkajianAwalPoliComponent = (() => {
         inputContent,
         printContent,
       });
-      bindSuratPrintButton(root);
+      bindSuratPrintButton(root, {
+        getFilename: () => buildSuratPdfFilename('PENGKAJIAN_AWAL_POLI', this.patient?.noMr || this.patient?.norm, this.patient?.nama)
+      });
 
       const initAnatomiCanvas = () => {
         const canvasAnatomi = root.querySelector("#canvas-anatomi-input");

@@ -182,9 +182,12 @@ ${extraCss}
   </div>
 
   <div class="tab-pane fade" id="${printPaneId}" role="tabpanel">
-    <div class="mb-3 no-print text-start mt-3">
-      <button class="btn btn-primary surat-print-btn">
-        <i class="bi bi-printer me-1"></i>Cetak / PDF
+    <div class="mb-3 no-print d-flex gap-2 align-items-center mt-3">
+      <button type="button" class="btn btn-success surat-download-pdf-btn">
+        <i class="bi bi-file-earmark-pdf-fill me-1"></i>Simpan sebagai PDF
+      </button>
+      <button type="button" class="btn btn-primary surat-print-btn">
+        <i class="bi bi-printer me-1"></i>Cetak
       </button>
     </div>
     <div class="surat-print-bg" id="${idPrefix}-print-container">
@@ -265,10 +268,63 @@ if (typeof window !== 'undefined' && !window._suratBeforePrintBound) {
   });
 }
 
-export function bindSuratPrintButton(root) {
-  const btn = root.querySelector('.surat-print-btn');
-  if (btn) {
-    btn.addEventListener('click', () => {
+export function loadHtml2Pdf() {
+  if (typeof window !== 'undefined' && window.html2pdf) {
+    return Promise.resolve(window.html2pdf);
+  }
+  return new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = "assets/js/html2pdf.bundle.min.js";
+    s.onload = () => resolve(window.html2pdf);
+    s.onerror = (err) => reject(err);
+    document.head.appendChild(s);
+  });
+}
+
+export function buildSuratPdfFilename(prefix, noMr, nama) {
+  const clean = (s) => (s || '').toString().trim().replace(/[^a-zA-Z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+  const p = clean(prefix) || 'DOKUMEN';
+  const rm = clean(noMr);
+  const nm = clean(nama);
+  const parts = [p];
+  if (rm) parts.push(rm);
+  if (nm) parts.push(nm);
+  return parts.join('_') + '.pdf';
+}
+
+export function downloadSuratAsPdf(targetElement, filename, isLandscape = false) {
+  if (!targetElement) return Promise.reject(new Error("Target element not found"));
+
+  return loadHtml2Pdf().then((h2p) => {
+    const opt = {
+      margin: [0, 0, 0, 0],
+      filename: filename || "dokumen.pdf",
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        scrollX: 0,
+        scrollY: 0,
+        backgroundColor: "#ffffff"
+      },
+      jsPDF: {
+        unit: "mm",
+        format: isLandscape ? [330.2, 215.9] : "a4",
+        orientation: isLandscape ? "landscape" : "portrait"
+      },
+      pagebreak: {
+        mode: ["css", "legacy"]
+      }
+    };
+    return h2p().set(opt).from(targetElement).save();
+  });
+}
+
+export function bindSuratPrintButton(root, pdfConfig = {}) {
+  const printBtn = root.querySelector('.surat-print-btn');
+  if (printBtn) {
+    printBtn.addEventListener('click', () => {
       const isLandscape = !!root.querySelector('.surat-document-landscape, .surat-page-landscape');
       forceChromePrintStyles(isLandscape);
       const printTabTrigger = root.querySelector('.nav-link[id*="print"], button[id*="print"]');
@@ -281,6 +337,49 @@ export function bindSuratPrintButton(root) {
       window.print();
     });
   }
+
+  const downloadBtns = root.querySelectorAll('.surat-download-pdf-btn');
+  downloadBtns.forEach((downloadBtn) => {
+    downloadBtn.addEventListener('click', () => {
+      const printTabTrigger = root.querySelector('.nav-link[id*="print"], button[id*="print"]');
+      if (printTabTrigger) {
+        printTabTrigger.click();
+        if (window.bootstrap && window.bootstrap.Tab) {
+          try {
+            const bsTab = window.bootstrap.Tab.getOrCreateInstance(printTabTrigger);
+            bsTab.show();
+          } catch (e) {}
+        }
+      }
+
+      setTimeout(() => {
+        const container = root.querySelector('.surat-print-bg') || root.querySelector('[id*="-print-container"]');
+        if (!container) return;
+
+        const isLandscape = !!root.querySelector('.surat-document-landscape, .surat-page-landscape');
+        const filename = pdfConfig.filename || (typeof pdfConfig.getFilename === 'function' ? pdfConfig.getFilename() : 'dokumen.pdf');
+
+        const origHtml = downloadBtn.innerHTML;
+        downloadBtn.disabled = true;
+        downloadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span>Mengunduh PDF...';
+
+        downloadSuratAsPdf(container, filename, isLandscape)
+          .then(() => {
+            downloadBtn.disabled = false;
+            downloadBtn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>Tersimpan!';
+            showSuccessToast("PDF berhasil diunduh: " + filename);
+            setTimeout(() => {
+              downloadBtn.innerHTML = origHtml;
+            }, 2500);
+          })
+          .catch(() => {
+            downloadBtn.disabled = false;
+            downloadBtn.innerHTML = origHtml;
+            showErrorAlert("Gagal mengunduh PDF, silakan gunakan tombol Cetak");
+          });
+      }, 200);
+    });
+  });
 }
 
 

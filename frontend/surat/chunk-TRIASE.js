@@ -7,7 +7,7 @@ import {
   ra as inject,
 } from "../chunk-UYVTZL26.js";
 import "./chunk-SURAT-CANVAS.js";
-import { getStandardGridCSS, createSuratShell, createAutoPageSurat, bindSuratPrintButton, hospitalHeaderDiv } from "./chunk-SURAT-LAYOUT.js";
+import { getStandardGridCSS, createSuratShell, createAutoPageSurat, bindSuratPrintButton, hospitalHeaderDiv, buildSuratPdfFilename } from "./chunk-SURAT-LAYOUT.js";
 
 function renderTemplate(t, s) {
   if (t & 1) {
@@ -627,11 +627,14 @@ var TriaseComponent = (() => {
 
       </div>
 
-      <div class="d-flex justify-content-end mt-3 border-top pt-3">
+      <div class="d-flex justify-content-end gap-2 mt-3 border-top pt-3">
+        <button type="button" class="btn btn-outline-success surat-download-pdf-btn px-3"><i class="bi bi-file-earmark-pdf-fill me-1"></i>Simpan sebagai PDF</button>
         <button id="btn-save-triase" class="btn btn-primary px-4"><i class="bi bi-save me-1"></i>Simpan Triase</button>
       </div>`
       });
-      bindSuratPrintButton(root);
+      bindSuratPrintButton(root, {
+        getFilename: () => buildSuratPdfFilename('TRIASE', self.patient?.noMr || self.patient?.norm, self.patient?.nama)
+      });
 
       const makeSigPad = (id) => {
         const canvas = document.getElementById(id);
