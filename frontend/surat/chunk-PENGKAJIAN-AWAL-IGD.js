@@ -620,11 +620,14 @@ var PengkajianAwalIgdComponent = (() => {
       updatePrint();
     }
 
-    renderPrintLayout(noMr, nama, tglLahir, kelamin, getFontSize) {
-      const printContainer = document.getElementById("pengkajian-print-container");
-      if (!printContainer) return;
-
-      const fd = this.formData;
+    static getPrintHtml(patient, formData) {
+      const p = patient || {};
+      const noMr = p.noMr || p.norm || '';
+      const nama = p.nama || '';
+      const tglLahir = p.tglLahir || '';
+      const kelamin = p.kelamin || '';
+      const getFontSize = (str, maxLen = 16, defaultSize = 10, minSize = 7) => { if (!str || str.length <= maxLen) return defaultSize; return Math.max(minSize, defaultSize * (maxLen / str.length)).toFixed(1); };
+      const fd = formData || {};
       const getVal = (field) => fd[field] || "";
       const cb = (field, val) => (fd[field] === val) ? 'cb' : '';
 
@@ -973,7 +976,7 @@ var PengkajianAwalIgdComponent = (() => {
         </div>
       `;
 
-      printContainer.innerHTML = createMultiPageSurat([
+      return createMultiPageSurat([
         {
           headerHtml: hospitalHeaderDiv(noMr, nama, tglLahir, kelamin, getFontSize, 'PENGKAJIAN AWAL IGD'),
           bodyHtml: page1Html
@@ -983,6 +986,12 @@ var PengkajianAwalIgdComponent = (() => {
           bodyHtml: page2Html
         }
       ], 'RM04/Rev02/RSBHY/2022');
+    }
+
+    renderPrintLayout(noMr, nama, tglLahir, kelamin, getFontSize) {
+      const printContainer = document.getElementById("pengkajian-print-container");
+      if (!printContainer) return;
+      printContainer.innerHTML = t.getPrintHtml(this.patient || { noMr, nama, tglLahir, kelamin }, this.formData);
     }
   }
 

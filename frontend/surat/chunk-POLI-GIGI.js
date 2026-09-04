@@ -504,11 +504,15 @@ var PoliGigiComponent = (() => {
       });
     }
 
-    renderPrintLayout(noMr, nama, tglLahir, kelamin, dpjp, getFontSize) {
-      const printContainer = document.getElementById("poli-gigi-print-container");
-      if (!printContainer) return;
-
-      const entries = this.formData.entries || [];
+    static getPrintHtml(patient, formData) {
+      const getFontSize = (str, maxLen = 16, defaultSize = 10, minSize = 7) => { if (!str || str.length <= maxLen) return defaultSize; return Math.max(minSize, defaultSize * (maxLen / str.length)).toFixed(1); };
+      const p = patient || {};
+      const noMr = p.noMr || p.norm || '';
+      const nama = p.nama || '';
+      const tglLahir = p.tglLahir || '';
+      const kelamin = p.kelamin || '';
+      const fd = formData || {};
+      const entries = fd.entries || [];
       const ROWS_PER_PAGE = 8;
       const chunks = [];
       if (entries.length === 0) {
@@ -586,7 +590,13 @@ var PoliGigiComponent = (() => {
         '</div>';
       });
 
-      printContainer.innerHTML = pagesHtml;
+      return pagesHtml;
+    }
+
+    renderPrintLayout(noMr, nama, tglLahir, kelamin, dpjp, getFontSize) {
+      const printContainer = document.getElementById("poli-gigi-print-container");
+      if (!printContainer) return;
+      printContainer.innerHTML = t.getPrintHtml(this.patient || { noMr, nama, tglLahir, kelamin, dpjp }, this.formData);
     }
 
     static {

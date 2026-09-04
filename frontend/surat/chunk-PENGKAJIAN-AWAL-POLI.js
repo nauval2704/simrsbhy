@@ -1473,6 +1473,22 @@ var PengkajianAwalPoliComponent = (() => {
       this.syncToPreview();
     }
 
+    static getPrintHtml(patient, data) {
+      const p = patient || {};
+      const d = data || {};
+      const dummyRoot = document.createElement("div");
+      const comp = new t();
+      comp.patient = p;
+      comp.formData = d;
+      comp.renderTemplate(dummyRoot, comp);
+      if (d) {
+        comp.populateDraft(d);
+        comp.syncToPreview();
+      }
+      const printPane = dummyRoot.querySelector("#pengkajian-poli-print");
+      return printPane ? printPane.innerHTML : dummyRoot.innerHTML;
+    }
+
     static {
       this.ɵfac = function (a) {
         return new (a || t)();

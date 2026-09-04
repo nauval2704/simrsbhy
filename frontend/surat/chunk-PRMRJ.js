@@ -539,11 +539,14 @@ var PrmrjComponent = (() => {
       updatePrint();
     }
 
-    renderPrintLayout(noMr, nama, tglLahir, kelamin, dpjp, getFontSize) {
-      const printContainer = document.getElementById("prmrj-print-container");
-      if (!printContainer) return;
-
-      const entries = this.formData.entries || [];
+    static getPrintHtml(patient, formData) {
+      const p = patient || {};
+      const noMr = p.noMr || p.norm || '';
+      const nama = p.nama || '';
+      const tglLahir = p.tglLahir || '';
+      const kelamin = p.kelamin || '';
+      const fd = formData || {};
+      const entries = fd.entries || [];
       const ROWS_PER_PAGE = 8;
       const chunks = [];
       if (entries.length === 0) {
@@ -569,11 +572,13 @@ var PrmrjComponent = (() => {
           <tr>
               <td style="text-align:center; padding:6px 4px;">${globalIdx}</td>
               <td style="text-align:center; padding:6px 4px;">${tglJam}</td>
-              <td style="padding:6px 6px;">${e.drSp || '-'}</td>
+              <td style="text-align:center; padding:6px 4px;">${e.parafName || '-'}</td>
               <td style="white-space:pre-wrap; padding:6px 6px;">${e.uraianKlinis || '-'}</td>
               <td style="white-space:pre-wrap; padding:6px 6px;">${e.diagnosis || '-'}</td>
-              <td style="white-space:pre-wrap; padding:6px 6px;">${e.rencanaPenting || '-'}</td>
-              <td style="text-align:center; vertical-align:middle; padding:4px 2px;">${ketHtml}</td>
+              <td style="white-space:pre-wrap; padding:6px 6px;">${e.rencana || '-'}</td>
+              <td style="text-align:center; vertical-align:middle; padding:4px 2px;">
+                  ${ketHtml}
+              </td>
           </tr>`;
         });
 
@@ -630,7 +635,13 @@ var PrmrjComponent = (() => {
         </div>`;
       });
 
-      printContainer.innerHTML = pagesHtml;
+      return pagesHtml;
+    }
+
+    renderPrintLayout(noMr, nama, tglLahir, kelamin, dpjp, getFontSize) {
+      const printContainer = document.getElementById("prmrj-print-container");
+      if (!printContainer) return;
+      printContainer.innerHTML = t.getPrintHtml(this.patient || { noMr, nama, tglLahir, kelamin, dpjp }, this.formData);
     }
 
     static {

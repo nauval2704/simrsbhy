@@ -1036,7 +1036,151 @@ var TriaseComponent = (() => {
           }
         }
       }
-      syncToPreview();
+    static getPrintHtml(patient, data) {
+      const p = patient || {};
+      const noMr = p.noMr || p.norm || "";
+      const nama = p.nama || "";
+      const tglLahir = p.tglLahir || "";
+      const kelamin = p.kelamin || "";
+      const getFontSize = (str, maxLen = 16, defaultSize = 10, minSize = 7) => {
+        if (!str || str.length <= maxLen) return defaultSize;
+        return Math.max(minSize, defaultSize * (maxLen / str.length)).toFixed(1);
+      };
+      const d = data || {};
+      const initPukul = d.pukulPemeriksaan || "";
+      const sym = (val) => (d.symptoms && Array.isArray(d.symptoms) && d.symptoms.includes(val)) ? "\u2713" : "";
+      const tc = (c) => d.triageColor === c ? "\u2713" : "";
+      const sigDokterHtml = d.canvasImage ? `<img src="${d.canvasImage}" style="max-width:100%;max-height:48px;object-fit:contain;">` : "";
+      const sigPerawatHtml = d.canvasImagePerawat ? `<img src="${d.canvasImagePerawat}" style="max-width:100%;max-height:48px;object-fit:contain;">` : "";
+      const defaultDpjp = p.dokterDpjp || p.dpjp || p.namaDokter || p.dokter || "";
+
+      const bodyHtml = `
+            <div class="t-border" style="flex: 1; border: 2px solid black; border-top: none; display: flex; flex-direction: column; font-family: 'Times New Roman', Times, serif; background: white;">
+              <div class="t-row" style="font-weight:bold;flex-shrink:0;">
+                <div class="t-col" style="width:45%;">
+                  <div>LABEL TRIASE (pilih salah satu hasil triase (\u221A))</div>
+                  <div style="display:flex;gap:12px;margin-top:4px;align-items:center;">
+                    <span class="t-sq p-triageColor-red">${tc('red')}</span><span class="t-cbox t-red"></span>
+                    <span class="t-sq p-triageColor-yellow">${tc('yellow')}</span><span class="t-cbox t-yellow"></span>
+                    <span class="t-sq p-triageColor-green">${tc('green')}</span><span class="t-cbox t-green"></span>
+                  </div>
+                  <div style="margin-top:4px;">Pukul pemeriksaan : <span class="p-val" style="min-width:35px;font-weight:bold;">${initPukul}</span> WIB</div>
+                </div>
+                <div class="t-col" style="width:55%;display:flex;align-items:center;">
+                  <div class="t-vgrid" style="width:100%;">
+                    <div>TD : <span class="p-val">${d.td || ''}</span></div><div>Suhu : <span class="p-val">${d.suhu || ''}</span></div><div>GCS : E<span class="p-val">${d.gcsE || ''}</span> V<span class="p-val">${d.gcsV || ''}</span> M<span class="p-val">${d.gcsM || ''}</span></div>
+                    <div>HR : <span class="p-val">${d.hr || ''}</span></div><div>SPO2 : <span class="p-val">${d.spo2 || ''}</span></div><div></div>
+                    <div>RR : <span class="p-val">${d.rr || ''}</span></div><div></div><div></div>
+                  </div>
+                </div>
+              </div>
+              <div class="t-row" style="font-weight:bold;text-align:center;flex-shrink:0;">
+                <div class="t-col t-f1">AIRWAY</div><div class="t-col t-f1">BREATHING</div><div class="t-col t-f1">CIRCULATION</div><div class="t-col t-f1">DISABILITY</div><div class="t-col t-f1">PREDIKSI PENUNJANG</div>
+              </div>
+              <div class="t-row" style="flex-shrink:0;">
+                <div class="t-col t-f1"><ul><li><span class="t-sq">${sym('L1_Terintubasi')}</span>Terintubasi</li><li><span class="t-sq">${sym('L1_Sumbatan')}</span>Sumbatan</li><li><span class="t-sq">${sym('L1_Ancaman')}</span>Ancaman</li></ul></div>
+                <div class="t-col t-f1"><ul><li><span class="t-sq">${sym('L1_Apnoe')}</span>Apnoe</li><li><span class="t-sq">${sym('L1_Ventilator')}</span>Ventilator</li></ul></div>
+                <div class="t-col t-f1"><ul><li><span class="t-sq">${sym('L1_Henti Jantung')}</span>Henti Jantung</li><li><span class="t-sq">${sym('L1_Nadi Tak Teraba')}</span>Nadi Tak Teraba</li></ul></div>
+                <div class="t-col t-f1"><ul><li><span class="t-sq">${sym('L1_Tidak Respon')}</span>Tidak Respon</li><li><span class="t-sq">${sym('L1_Kejang')}</span>Kejang</li><li><span class="t-sq">${sym('L1_GCS <8')}</span>GCS &lt;8</li></ul></div>
+                <div class="t-col t-f1"><ul><li><span class="t-sq">${sym('L1_Kompleks')}</span>Kompleks</li><li><span class="t-sq">${sym('L1_≥ 2')}</span>\u2265 2</li></ul></div>
+              </div>
+              <div class="t-level t-red t-white">LEVEL 1 : RESUSITASI (RED ZONE)</div>
+              <div class="t-arrow">\u2193 Tidak</div>
+              <div class="t-row" style="font-weight:bold;text-align:center;flex-shrink:0;">
+                <div class="t-col t-f1">AIRWAY</div><div class="t-col t-f1">BREATHING</div><div class="t-col t-f1">CIRCULATION</div><div class="t-col t-f1">DISABILITY</div><div class="t-col t-f2">PREDIKSI PENUNJANG</div>
+              </div>
+              <div class="t-row" style="flex-shrink:0;">
+                <div class="t-col t-f1"><ul><li><span class="t-sq">${sym('L1_Ancaman_R')}</span>Ancaman</li><li><span class="t-sq">${sym('L1_Bebas_R')}</span>Bebas</li></ul></div>
+                <div class="t-col t-f1"><ul><li><span class="t-sq">${sym('L1_Takipnue_R')}</span>Takipnue</li><li><span class="t-sq">${sym('L1_Bradipnue_R')}</span>Bradipnue</li><li><span class="t-sq">${sym('L1_SPO2 <92_R')}</span>SPO2 &lt;92</li><li><span class="t-sq">${sym('L1_Dangkal_R')}</span>Dangkal</li></ul></div>
+                <div class="t-col t-f1"><ul><li><span class="t-sq">${sym('L1_Nadi Terasa Lemah_R')}</span>Nadi Terasa Lemah</li><li><span class="t-sq">${sym('L1_Akral Dingin_R')}</span>Akral Dingin</li><li><span class="t-sq">${sym('L1_Bradikardi_R')}</span>Bradikardi</li><li><span class="t-sq">${sym('L1_Takikardi_R')}</span>Takikardi</li><li><span class="t-sq">${sym('L1_CRT >2 detik_R')}</span>CRT &gt;2 detik</li><li><span class="t-sq">${sym('L1_Turgor Kulit Jelek_R')}</span>Turgor Kulit Jelek</li></ul></div>
+                <div class="t-col t-f1"><ul><li><span class="t-sq">${sym('L1_Respon Dengan Rangsangan Nyeri_R')}</span>Respon Dengan Rangsangan Nyeri</li><li><span class="t-sq">${sym('L1_Gelisah_R')}</span>Gelisah</li><li><span class="t-sq">${sym('L1_GCS : > 8 > 15_R')}</span>GCS : &gt; 8 &gt; 15</li><li><span class="t-sq">${sym('L1_GCS : 15_R')}</span>GCS : 15</li></ul></div>
+                <div class="t-col t-f2"><ul><li><span class="t-sq">${sym('L1_Kompleks_R')}</span>Kompleks</li><li><span class="t-sq">${sym('L1_≥ 2_R')}</span>\u2265 2</li><li style="margin-top:3px !important;">Catatan Khusus:</li><li><span class="t-sq">${sym('L1_Nyeri Berat_R')}</span>Nyeri Berat</li><li><span class="t-sq">${sym('L1_Situasi Berbahaya :_R')}</span>Situasi Berbahaya : <span class="p-val">${d.situasiBerbahaya || ''}</span></li></ul></div>
+              </div>
+              <div class="t-row" style="justify-content:center;padding:3px 4px;font-weight:bold;flex-shrink:0;">
+                Keterangan Termasuk level 2 apabila peringatan yang ada menimbulkan / berkaitan dengan kondisi yang berisiko tinggi memburuk pada pasien
+              </div>
+              <div class="t-level t-red t-white">LEVEL 2 : EMERGENSI (RED ZONE)</div>
+              <div class="t-arrow">\u2193 Tidak</div>
+              <div class="t-row" style="font-weight:bold;text-align:center;flex-shrink:0;">
+                <div class="t-col t-f1">AIRWAY</div><div class="t-col t-f1">BREATHING</div><div class="t-col t-f1">CIRCULATION</div><div class="t-col t-f1">DISABILITY</div><div class="t-col t-f1">PREDIKSI PENUNJANG</div>
+              </div>
+              <div class="t-row" style="flex-shrink:0;">
+                <div class="t-col t-f1"><ul><li><span class="t-sq">${sym('L3_Bebas')}</span>Bebas</li></ul></div>
+                <div class="t-col t-f1"><ul><li><span class="t-sq">${sym('L3_Normal')}</span>Normal</li><li><span class="t-sq">${sym('L3_Mengi')}</span>Mengi</li><li><span class="t-sq">${sym('L3_SPO2 92-95')}</span>SPO2 92-95</li></ul></div>
+                <div class="t-col t-f1"><ul><li><span class="t-sq">${sym('L3_Nadi Kuat')}</span>Nadi Kuat</li><li><span class="t-sq">${sym('L3_Takikardi')}</span>Takikardi</li><li><span class="t-sq">${sym('L3_Akral Hangat')}</span>Akral Hangat</li><li><span class="t-sq">${sym('L3_CRT <2 detik')}</span>CRT &lt;2 detik</li></ul></div>
+                <div class="t-col t-f1"><ul><li><span class="t-sq">${sym('L3_GCS 15')}</span>GCS 15</li><li><span class="t-sq">${sym('L3_Apatis')}</span>Apatis</li><li><span class="t-sq">${sym('L3_Somnolen')}</span>Somnolen</li></ul></div>
+                <div class="t-col t-f1"><ul><li><span class="t-sq">${sym('L3_Sederhana')}</span>Sederhana</li><li><span class="t-sq">${sym('L3_≥ 2')}</span>\u2265 2</li></ul></div>
+              </div>
+              <div class="t-level t-yellow t-black">LEVEL 3 : URGENT (YELLOW ZONE)</div>
+              <div class="t-arrow">\u2193 Tidak</div>
+              <div class="t-row" style="font-weight:bold;text-align:center;flex-shrink:0;">
+                <div class="t-col t-f1">AIRWAY</div><div class="t-col t-f1">BREATHING</div><div class="t-col t-f1">CIRCULATION</div><div class="t-col t-f1">DISABILITY</div><div class="t-col t-f1">PREDIKSI PENUNJANG</div>
+              </div>
+              <div class="t-row" style="flex-shrink:0;">
+                <div class="t-col t-f1"><ul><li><span class="t-sq">${sym('L4_Bebas')}</span>Bebas</li></ul></div>
+                <div class="t-col t-f1"><ul><li><span class="t-sq">${sym('L4_Normal')}</span>Normal</li><li><span class="t-sq">${sym('L4_SPO2 >95')}</span>SPO2 &gt;95</li></ul></div>
+                <div class="t-col t-f1"><ul><li><span class="t-sq">${sym('L4_Nadi Kuat')}</span>Nadi Kuat</li><li><span class="t-sq">${sym('L4_Frekuensi Normal')}</span>Frekuensi Normal</li><li><span class="t-sq">${sym('L4_Akral Hangat')}</span>Akral Hangat</li><li><span class="t-sq">${sym('L4_CRT <2 detik')}</span>CRT &lt;2 detik</li></ul></div>
+                <div class="t-col t-f1"><ul><li><span class="t-sq">${sym('L4_GCS 15')}</span>GCS 15</li></ul></div>
+                <div class="t-col t-f1"><ul><li><span class="t-sq">${sym('L4_1 Jenis')}</span>1 Jenis</li></ul></div>
+              </div>
+              <div class="t-level t-green t-black">LEVEL 4 : NON URGENT (GREEN ZONE)</div>
+              <div class="t-arrow">\u2193 Tidak</div>
+              <div class="t-row" style="font-weight:bold;text-align:center;flex-shrink:0;">
+                <div class="t-col t-f1">AIRWAY</div><div class="t-col t-f1">BREATHING</div><div class="t-col t-f1">CIRCULATION</div><div class="t-col t-f1">DISABILITY</div><div class="t-col t-f1">PREDIKSI PENUNJANG</div>
+              </div>
+              <div class="t-row" style="flex-shrink:0;">
+                <div class="t-col t-f1"><ul><li><span class="t-sq">${sym('L5_Bebas')}</span>Bebas</li></ul></div>
+                <div class="t-col t-f1"><ul><li><span class="t-sq">${sym('L5_Normal')}</span>Normal</li><li><span class="t-sq">${sym('L5_SPO2 >95')}</span>SPO2 &gt;95</li></ul></div>
+                <div class="t-col t-f1"><ul><li><span class="t-sq">${sym('L5_Nadi Kuat')}</span>Nadi Kuat</li><li><span class="t-sq">${sym('L5_Frekuensi Normal')}</span>Frekuensi Normal</li><li><span class="t-sq">${sym('L5_Akral Hangat')}</span>Akral Hangat</li><li><span class="t-sq">${sym('L5_CRT <2 detik')}</span>CRT &lt;2 detik</li></ul></div>
+                <div class="t-col t-f1"><ul><li><span class="t-sq">${sym('L5_GCS 15')}</span>GCS 15</li></ul></div>
+                <div class="t-col t-f1"><ul><li><span class="t-sq">${sym('L5_Tidak Ada')}</span>Tidak Ada</li></ul></div>
+              </div>
+              <div class="t-level t-green t-black">LEVEL 5 : FALSE EMERGENCY (GREEN ZONE)</div>
+              <div class="t-row" style="padding:4px 6px;flex-shrink:0;">
+                <div style="font-weight:bold;margin-bottom:2px;width:100%;">DOA (DEATH ON ARRIVAL) / BLACK ZONE ( <span class="t-sq p-triageColor-black">${tc('black')}</span> )</div>
+                <div style="padding-left:14px;line-height:1.4;width:100%;">
+                  <div>1. Tanda Kematian (+) : Lebam Mayat / Kaku Mayat / Pembusukan</div>
+                  <div>2. Henti Nafas (-), Henti Jantung (-), EKG Flat (-)</div>
+                  <div>3. Waktu Kematian : <span class="p-val">${d.doaDetail || ''}</span> WIB</div>
+                </div>
+              </div>
+              <div class="t-row" style="padding:4px 6px;flex-shrink:0;">
+                <div style="font-weight:bold;margin-bottom:2px;width:100%;">KONSUL DOKTER SPESIALIS :</div>
+                <div style="padding-left:14px;width:100%;">
+                  <div>1. Jam : <span class="p-val">${d.konsul || '.....................................'}</span></div>
+                </div>
+              </div>
+              <div style="flex:1;border-top:1px solid black;display:flex;flex-direction:column;justify-content:flex-end;">
+                <div style="padding:4px 6px 2px 6px;font-size:10px;">Banda Aceh, Tgl ${new Date().toISOString().split('T')[0]}</div>
+                <div style="display:flex;width:100%;">
+                  <div style="width:50%;padding:6px;text-align:center;border-right:1px solid black;display:flex;flex-direction:column;justify-content:space-between;">
+                    <div style="font-weight:bold;font-size:11px;">TTD Dokter</div>
+                    <div style="height:55px;display:flex;align-items:center;justify-content:center;">${sigDokterHtml}</div>
+                    <div>
+                      <div style="text-decoration:underline;font-weight:bold;font-size:11px;">${d.namaDokter || defaultDpjp || '.....................................'}</div>
+                      <div style="font-size:9px;color:#555;margin-top:2px;">Nama Jelas dan Gelar</div>
+                    </div>
+                  </div>
+                  <div style="width:50%;padding:6px;text-align:center;display:flex;flex-direction:column;justify-content:space-between;">
+                    <div style="font-weight:bold;font-size:11px;">TTD Perawat</div>
+                    <div style="height:55px;display:flex;align-items:center;justify-content:center;">${sigPerawatHtml}</div>
+                    <div>
+                      <div style="text-decoration:underline;font-weight:bold;font-size:11px;">${d.namaPerawat || '.....................................'}</div>
+                      <div style="font-size:9px;color:#555;margin-top:2px;">Nama Jelas dan Gelar</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>`;
+
+      return createAutoPageSurat({
+        headerHtml: hospitalHeaderDiv(noMr, nama, tglLahir, kelamin, getFontSize, 'FORMULIR TRIASE GAWAT DARURAT'),
+        bodyHtml: bodyHtml,
+        footerHtml: '',
+        footerLabelCode: 'RM03/RSBHY/2022'
+      });
     }
 
     static {

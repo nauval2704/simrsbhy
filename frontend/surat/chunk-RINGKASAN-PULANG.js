@@ -512,19 +512,21 @@ var RingkasanPulangComponent = (() => {
       updatePrint();
     }
 
-    renderPrintLayout(noMr, nama, tglLahir, kelamin) {
-        const printContainer = document.getElementById("rp-print-container");
-        if (!printContainer) return;
-        
-        const getFontSize = (str, maxLen = 16, defaultSize = 10, minSize = 7) => { if (!str || str.length <= maxLen) return defaultSize; return Math.max(minSize, defaultSize * (maxLen / str.length)).toFixed(1); };
-        const fd = this.formData || {};
-        const tl = fd.tindakLanjut || {};
-        const atd = fd.alasanTidakDirawat || {};
-        const kk = fd.kondisiKeluar || {};
-        const cb = (val, match) => (val === match) ? 'cb cb-checked' : 'cb';
-        const dpjp = this.patient && this.patient.dpjp ? this.patient.dpjp : '........................................';
-        
-        printContainer.innerHTML = `
+    static getPrintHtml(patient, formData) {
+      const getFontSize = (str, maxLen = 16, defaultSize = 10, minSize = 7) => { if (!str || str.length <= maxLen) return defaultSize; return Math.max(minSize, defaultSize * (maxLen / str.length)).toFixed(1); };
+      const p = patient || {};
+      const noMr = p.noMr || p.norm || '';
+      const nama = p.nama || '';
+      const tglLahir = p.tglLahir || '';
+      const kelamin = p.kelamin || '';
+      const fd = formData || {};
+      const tl = fd.tindakLanjut || {};
+      const atd = fd.alasanTidakDirawat || {};
+      const kk = fd.kondisiKeluar || {};
+      const cb = (val, match) => (val === match) ? 'cb cb-checked' : 'cb';
+      const dpjp = p.dpjp || p.dokterDpjp || p.namaDokter || '........................................';
+
+      return `
     <div class="surat-document">
         <table class="master-grid">
             <colgroup>
@@ -587,28 +589,6 @@ var RingkasanPulangComponent = (() => {
                 <tr style="height: 75px;">
                     <td colspan="3">Pemeriksaan Fisik:<br><div style="white-space:pre-wrap; margin-top:2px;">${fd.pemeriksaanFisik || ''}</div></td>
                     <td colspan="3">Pemeriksaan Penunjang:<br><div style="white-space:pre-wrap; margin-top:2px;">${fd.pemeriksaanPenunjang || ''}</div></td>
-                </tr>
-
-                <tr>
-                    <td colspan="2">Diagnosis Kerja</td>
-                    <td colspan="4" style="white-space:pre-wrap;">${fd.diagnosisKerja || ''}</td>
-                </tr>
-
-                <tr style="height: 70px;">
-                    <td colspan="3">Tindakan / Terapi saat di IGD:<br><div style="white-space:pre-wrap; margin-top:2px;">${fd.tindakanTerapi || ''}</div></td>
-                    <td colspan="3">Diagnosis Banding<br><div style="white-space:pre-wrap; margin-top:2px;">${fd.diagnosisBanding || ''}</div></td>
-                </tr>
-
-                <tr>
-                    <td colspan="2">Tindak Lanjut</td>
-                    <td colspan="4" style="line-height: 1.6;">
-                        <span class="${cb(tl.tipe, 'APS')}"></span> Pulang Atas Permintaan Sendiri/ Menolak rawat inap<br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Alasan menolak rawat inap karena ${tl.alasanAps || '.................................................'}<br>
-                        <span class="${cb(tl.tipe, 'Persetujuan')}"></span> Pulang Atas Persetujuan, pada jam ${tl.jamPersetujuan || '...........................'}<br>
-                        <span class="${cb(tl.tipe, 'Kontrol')}"></span> Kontrol Tanggal ${tl.kontrolTgl || '....................................................'} Ke ${tl.kontrolKe || '.................................................'}<br>
-                        <span class="${cb(tl.tipe, 'Rujuk')}"></span> Dirujuk ke ${tl.rujukKe || '.................................................................'}<br>
-                        <span class="${cb(tl.tipe, 'Meninggal')}"></span> Meninggal, pukul ${tl.jamMeninggal || '........................'} WIB
-                    </td>
                 </tr>
 
                 <tr>

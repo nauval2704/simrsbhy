@@ -54,6 +54,7 @@ class SimrsPatientSidebar extends HTMLElement {
                     <a href="javascript:void(0)" data-path="checkout" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Checkout</a>
                     <a href="javascript:void(0)" data-path="transferinap" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Transfer Inap</a>
                     <a href="javascript:void(0)" data-path="rujuk" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Rujuk Inap</a>
+                    <a href="javascript:void(0)" class="list-group-item list-group-item-action text-primary fw-bold btn-sidebar-unduh-dokumen"><i class="bi bi-file-earmark-zip-fill text-primary me-1"></i> Unduh Dokumen Terisi</a>
                 </div>
             `;
     } else if (this._moduleType === "POLI") {
@@ -82,6 +83,7 @@ class SimrsPatientSidebar extends HTMLElement {
                     <a href="javascript:void(0)" data-path="checkoutpoli" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Checkout</a>
                     <a href="javascript:void(0)" data-path="transferinap" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Transfer Inap</a>
                     <a href="javascript:void(0)" data-path="rujuk" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Rujuk</a>
+                    <a href="javascript:void(0)" class="list-group-item list-group-item-action text-primary fw-bold btn-sidebar-unduh-dokumen"><i class="bi bi-file-earmark-zip-fill text-primary me-1"></i> Unduh Dokumen Terisi</a>
                 </div>
             `;
     } else {
@@ -193,6 +195,16 @@ class SimrsPatientSidebar extends HTMLElement {
       icareBtn.addEventListener("click", (e) => {
         e.preventDefault();
         if (typeof this.onIcareClick === "function") this.onIcareClick();
+      });
+    }
+
+    const unduhBtn = this.querySelector(".btn-sidebar-unduh-dokumen");
+    if (unduhBtn) {
+      unduhBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (window.SimrsMassDownloader) {
+          window.SimrsMassDownloader.open(this._data, this._moduleType);
+        }
       });
     }
   }
