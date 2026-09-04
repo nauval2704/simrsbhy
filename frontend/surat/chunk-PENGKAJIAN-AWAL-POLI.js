@@ -1475,18 +1475,353 @@ var PengkajianAwalPoliComponent = (() => {
 
     static getPrintHtml(patient, data) {
       const p = patient || {};
-      const d = data || {};
-      const dummyRoot = document.createElement("div");
-      const comp = new t();
-      comp.patient = p;
-      comp.formData = d;
-      comp.renderTemplate(dummyRoot, comp);
-      if (d) {
-        comp.populateDraft(d);
-        comp.syncToPreview();
-      }
-      const printPane = dummyRoot.querySelector("#pengkajian-poli-print");
-      return printPane ? printPane.innerHTML : dummyRoot.innerHTML;
+      const noMr = p.noMr || p.norm || "-";
+      const nama = p.nama || "-";
+      const tglLahir = p.tglLahir || "-";
+      const kelamin = p.kelamin || "-";
+      const d = (data && data.formData) ? data.formData : (data || {});
+
+      const val = (k) => d[k] || "";
+      const chk = (cond) => cond ? "\u2611" : "\u2610";
+
+      const tglMasukDate = val('tglMasukDate') || (p.tglInput ? p.tglInput.substring(0, 10) : "-");
+      const tglMasukTime = val('tglMasukTime') || (p.tglInput && p.tglInput.length > 10 ? p.tglInput.substring(11) : "");
+
+      const anatomiSrc = d.canvasAnatomi || "assets/img/anatomi (front & back).jpg";
+      const sigKeluargaHtml = d.sigKeluarga ? `<img src="${d.sigKeluarga}" style="max-height:75px;max-width:140px;object-fit:contain;display:block;" alt="TTD Pasien">` : "";
+      const sigPerawatHtml = d.sigPerawat ? `<img src="${d.sigPerawat}" style="max-height:75px;max-width:140px;object-fit:contain;display:block;" alt="TTD Perawat">` : "";
+      const sigDokterHtml = d.sigDokter ? `<img src="${d.sigDokter}" style="max-height:75px;max-width:140px;object-fit:contain;display:block;" alt="TTD Dokter">` : "";
+
+      const dirujukJenis = Array.isArray(d.tindakLanjutDirujukJenis) ? d.tindakLanjutDirujukJenis : (d.tindakLanjutDirujukJenis ? [d.tindakLanjutDirujukJenis] : []);
+
+      const page1 = suratDocumentWrapper(`
+        <table class="pap-master-grid">
+          <colgroup>
+            <col style="width:16.66%;"><col style="width:16.66%;"><col style="width:16.66%;"><col style="width:16.66%;"><col style="width:16.66%;"><col style="width:16.66%;">
+          </colgroup>
+          <tbody>
+            ${hospitalHeaderTableRow(noMr, nama, tglLahir, kelamin)}
+            <tr>
+              <td colspan="6" style="text-align:center;padding:6px;font-weight:bold;font-size:12px;">
+                PENGKAJIAN AWAL PASIEN TERINTEGRASI<br>POLIKLINIK RAWAT JALAN
+              </td>
+            </tr>
+            <tr style="height:75px;">
+              <td colspan="2">Tanggal : ${tglMasukDate}</td>
+              <td colspan="1">Jam : ${tglMasukTime}</td>
+              <td colspan="3">
+                Asal Pasien : <br>
+                <table class="pap-inner-align" style="margin-top:2px;">
+                  <tr>
+                    <td style="width:50%;"><span class="pap-cb">${chk(d.asalPasien === "Umum")}</span> Umum</td>
+                    <td style="width:50%;"><span class="pap-cb">${chk(d.asalPasien === "yankes")}</span> yankes</td>
+                  </tr>
+                  <tr>
+                    <td><span class="pap-cb">${chk(d.asalPasien === "BPJS")}</span> BPJS</td>
+                    <td><span class="pap-cb">${chk(d.asalPasien === "Mandiri")}</span> Mandiri</td>
+                  </tr>
+                  <tr>
+                    <td><span class="pap-cb">${chk(d.asalPasien === "JKN")}</span> JKN</td>
+                    <td><span class="pap-cb">${chk(d.asalPasien === "Lainnya")}</span> Lainnya <span>${d.asalPasien === "Lainnya" ? val("asalPasienLain") : ""}</span></td>
+                  </tr>
+                  <tr>
+                    <td colspan="2"><span class="pap-cb">${chk(d.asalPasien === "Asuransi")}</span> Asuransi</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr style="height:130px;">
+              <td colspan="3">
+                <strong>KELUHAN UTAMA: (Auto/Allo Anamnesis)</strong><br>
+                <div style="min-height:90px;margin-top:2px;white-space:pre-wrap;">${val('keluhanUtama')}</div>
+              </td>
+              <td colspan="3">
+                <strong>RIWAYAT PENGOBATAN : (perawat)</strong><br>
+                <div style="min-height:35px;margin-top:2px;white-space:pre-wrap;">${val('riwayatPengobatan')}</div>
+                Alergi Obat :<br>
+                <span class="pap-cb">${chk(d.alergiObat === "Tidak")}</span> Tidak<br>
+                <span class="pap-cb">${chk(d.alergiObat === "Ya")}</span> Ya, Nama obat : <span>${d.alergiObat === "Ya" ? val('namaAlergiObat') : ""}</span>
+              </td>
+            </tr>
+            <tr style="height:85px;">
+              <td colspan="6">
+                <strong>RIWAYAT PENYAKIT SEKARANG :</strong><br>
+                <div style="min-height:50px;margin-top:2px;white-space:pre-wrap;">${val('riwayatPenyakitSekarang')}</div>
+              </td>
+            </tr>
+            <tr style="height:85px;">
+              <td colspan="6">
+                <strong>RIWAYAT PENYAKIT DAHULU :</strong><br>
+                <div style="min-height:50px;margin-top:2px;white-space:pre-wrap;">${val('riwayatPenyakitDahulu')}</div>
+              </td>
+            </tr>
+            <tr style="height:190px;">
+              <td colspan="3">
+                <strong>TANDA-TANDA VITAL (perawat)</strong><br><br>
+                <table class="pap-inner-align" style="line-height:1.7;">
+                  <tr><td style="width:85px;">Keadaan Umum</td><td style="width:10px;">:</td><td>${val('ku')}</td><td></td></tr>
+                  <tr><td>Tekanan darah</td><td>:</td><td>${val('td')}</td><td style="width:45px;">mmHg</td></tr>
+                  <tr><td>Nadi</td><td>:</td><td>${val('nadi')}</td><td>x/Menit</td></tr>
+                  <tr><td>Suhu</td><td>:</td><td>${val('suhu')}</td><td>&deg;C</td></tr>
+                  <tr><td>Pernapasan</td><td>:</td><td>${val('nafas')}</td><td>x/Menit</td></tr>
+                  <tr><td>Berat Badan</td><td>:</td><td>${val('bb')}</td><td>Kg</td></tr>
+                </table>
+                <div style="margin-top:5px;">GCS : ${val('gcs')}</div>
+              </td>
+              <td colspan="3">
+                <strong>RIWAYAT PSIKO-SOSIO-BUDAYA-SPIRITUAL DAN EKONOMI : (perawat)</strong><br>
+                <div style="min-height:130px;margin-top:2px;white-space:pre-wrap;">${val('riwayatPsikososial')}</div>
+              </td>
+            </tr>
+            <tr style="height:100px;">
+              <td colspan="3">
+                <strong>RIWAYAT REPRODUKSI WANITA (perawat)</strong><br><br>
+                Haid terakhir : ${val('haidTerakhir')}<br><br>
+                Hamil : <span class="pap-cb">${chk(d.hamilStatus === "Tidak")}</span> Tidak &nbsp; <span class="pap-cb">${chk(d.hamilStatus === "Ya")}</span> Ya, Umur Kehamilan : ${val('hamilUsia')} Minggu
+              </td>
+              <td colspan="3">
+                <strong>PEMERIKSAAN PENUNJANG :</strong><br>
+                <div style="min-height:60px;margin-top:2px;white-space:pre-wrap;">${val('pemeriksaanPenunjang')}</div>
+              </td>
+            </tr>
+            <tr style="height:260px;">
+              <td colspan="6" style="vertical-align:top; padding:6px;">
+                <strong>PEMERIKSAAN FISIK :</strong><br>
+                <span style="font-size:10px;">Keterangan : (Tulis yang positif)</span>
+                <div style="min-height:60px;margin-top:4px;white-space:pre-wrap;">${val('pemeriksaanFisik')}</div>
+                <div style="text-align:center;margin-top:8px;">
+                  <img src="${anatomiSrc}" style="width:400px;max-height:180px;object-fit:contain;display:inline-block;" alt="Anatomi">
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        ${footerLabel('005/RMBHY/2026')}
+      `);
+
+      const page2 = suratDocumentWrapper(`
+        <table class="pap-master-grid">
+          <colgroup>
+            <col style="width:34%;"><col style="width:8%;"><col style="width:8%;"><col style="width:34%;"><col style="width:8%;"><col style="width:8%;">
+          </colgroup>
+          <tbody>
+            <tr>
+              <td colspan="2"><strong>STATUS FUNGSIONAL</strong></td>
+              <td colspan="4">
+                <span class="pap-cb">${chk(d.statusFungsional === "Mandiri")}</span> Mandiri &emsp; <span class="pap-cb">${chk(d.statusFungsional === "Intermiten")}</span> Intermiten &emsp; <span class="pap-cb">${chk(d.statusFungsional === "Ketergantungan Total")}</span> Ketergantungan Total
+              </td>
+            </tr>
+            <tr>
+              <td colspan="3">
+                <strong>PENILAIAN NYERI (diisi oleh perawat)</strong><br><br>
+                Nyeri : <span class="pap-cb">${chk(d.nyeri === "tidak")}</span> tidak &nbsp; <span class="pap-cb">${chk(d.nyeri === "ya")}</span> ya<br>
+                Faktor-faktor pemicu : ${val('nyeriFaktorPemicu')}<br>
+                Faktor-faktor mengurang : ${val('nyeriFaktorKurang')}<br>
+                Frekuensi : ${val('nyeriFrekuensi')} x/hari
+              </td>
+              <td colspan="3">
+                Lokasi : ${val('nyeriLokasi')}<br><br>
+                Menjalar : ${val('nyeriMenjalar')}<br><br>
+                Lama nyeri : ${val('nyeriLama')}
+              </td>
+            </tr>
+            <tr>
+              <td colspan="3">
+                <strong>SKRINING NYERI (diisi oleh perawat)</strong><br><br>
+                <div style="font-weight:bold;text-align:center;margin-bottom:5px;">PAIN MEASUREMENT SCALE</div>
+                <table class="pap-inner-align">
+                  <tr>
+                    <td style="width:60%;">
+                      <img src="assets/img/pain measurement.png" style="width:100%;max-height:80px;object-fit:contain;" alt="Skala Nyeri">
+                    </td>
+                    <td style="width:40%;vertical-align:middle;text-align:center;">
+                      <strong>Skala nyeri: ${val('nyeriSkala')}</strong>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+              <td colspan="3">
+                P : ${val('nyeriP')}<br><br>
+                Q : ${val('nyeriQ')}<br><br>
+                R : ${val('nyeriR')}<br><br>
+                S : ${val('nyeriS')}<br><br>
+                T : ${val('nyeriT')}
+              </td>
+            </tr>
+            <tr>
+              <td colspan="3"><strong>SKRINING GIZI ANAK (usia 1 bulan - 18 tahun) *(perawat)</strong></td>
+              <td colspan="3"><strong>SKRINING GIZI DEWASA (perawat)</strong></td>
+            </tr>
+            <tr>
+              <th rowspan="2" style="border:1px solid black;padding:4px;">PARAMETER</th>
+              <th colspan="2" style="border:1px solid black;text-align:center;padding:4px;">SKOR</th>
+              <th rowspan="2" style="border:1px solid black;padding:4px;">PARAMETER</th>
+              <th colspan="2" style="border:1px solid black;text-align:center;padding:4px;">SKOR</th>
+            </tr>
+            <tr>
+              <th style="border:1px solid black;text-align:center;font-weight:bold;padding:4px;">YA</th>
+              <th style="border:1px solid black;text-align:center;font-weight:bold;padding:4px;">TIDAK</th>
+              <th style="border:1px solid black;text-align:center;font-weight:bold;padding:4px;">YA</th>
+              <th style="border:1px solid black;text-align:center;font-weight:bold;padding:4px;">TIDAK</th>
+            </tr>
+            <tr>
+              <td style="border:1px solid black;padding:4px;">1. Apakah pasien tampak kurus?</td>
+              <td style="border:1px solid black;text-align:center;vertical-align:middle;padding:4px;"><span class="pap-cb">${chk(d.gizianakA1 === "1")}</span> 1</td>
+              <td style="border:1px solid black;text-align:center;vertical-align:middle;padding:4px;"><span class="pap-cb">${chk(d.gizianakA1 === "0")}</span> 0</td>
+              <td style="border:1px solid black;padding:4px;">1. Apakah pasien mengalami penurunan berat badan yang tidak direncanakan / tidak diinginkan dalam 6 bulan terakhir?</td>
+              <td style="border:1px solid black;text-align:center;vertical-align:middle;padding:4px;"><span class="pap-cb">${chk(d.giziDewasaD1 === "2")}</span> 2</td>
+              <td style="border:1px solid black;text-align:center;vertical-align:middle;padding:4px;"><span class="pap-cb">${chk(d.giziDewasaD1 === "0")}</span> 0</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid black;padding:4px;">
+                2. Apakah terdapat penurunan BB selama satu bulan terakhir?<br>
+                - Berdasarkan penilaian obyektif data BB bila ada atau penilaian subyektif orang tua pasien<br>
+                - Untuk bayi kurang 1 tahun BB tidak naik selama 3 bulan terakhir
+              </td>
+              <td style="border:1px solid black;text-align:center;vertical-align:middle;padding:4px;"><span class="pap-cb">${chk(d.gizianakA2 === "2")}</span> 2</td>
+              <td style="border:1px solid black;text-align:center;vertical-align:middle;padding:4px;"><span class="pap-cb">${chk(d.gizianakA2 === "0")}</span> 0</td>
+              <td style="border:1px solid black;padding:4px;">2. Apakah asupan makan pasien berkurang karena penurunan nafsu makan / kesulitan menerima makanan?</td>
+              <td style="border:1px solid black;text-align:center;vertical-align:middle;padding:4px;"><span class="pap-cb">${chk(d.giziDewasaD2 === "2")}</span> 2</td>
+              <td style="border:1px solid black;text-align:center;vertical-align:middle;padding:4px;"><span class="pap-cb">${chk(d.giziDewasaD2 === "0")}</span> 0</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid black;padding:4px;">
+                3. Apakah terdapat salah satu dari kondisi berikut?<br>
+                - Diare lebih 5 kali perhari dalam seminggu terakhir<br>
+                - Asupan makanan berkurang selama 1 minggu terakhir
+              </td>
+              <td style="border:1px solid black;text-align:center;vertical-align:middle;padding:4px;"><span class="pap-cb">${chk(d.gizianakA3 === "1")}</span> 1</td>
+              <td style="border:1px solid black;text-align:center;vertical-align:middle;padding:4px;"><span class="pap-cb">${chk(d.gizianakA3 === "0")}</span> 0</td>
+              <td style="border:1px solid black;font-weight:bold;vertical-align:middle;padding:4px;">TOTAL SKOR</td>
+              <td colspan="2" style="border:1px solid black;text-align:center;font-weight:bold;padding:4px;">${val('giziDewasaTotal')}</td>
+            </tr>
+            <tr>
+              <td rowspan="2" style="border:1px solid black;padding:4px;">
+                4. Apakah terdapat penyakit atau keadaan yang menyebabkan pasien berisiko mengalami malnutrisi? (penyakit diare kronis, HIV, PJB, hepatum, ginjal, stoma, dan lain-lain)
+              </td>
+              <td rowspan="2" style="border:1px solid black;text-align:center;vertical-align:middle;padding:4px;"><span class="pap-cb">${chk(d.gizianakA4 === "2")}</span> 2</td>
+              <td rowspan="2" style="border:1px solid black;text-align:center;vertical-align:middle;padding:4px;"><span class="pap-cb">${chk(d.gizianakA4 === "0")}</span> 0</td>
+              <td colspan="3" rowspan="2" style="border:1px solid black;font-size:10.5px;line-height:1.35;padding:6px;">
+                <strong>PASIEN DENGAN DIAGNOSIS KHUSUS :</strong><br>
+                Diabetes Melitus, kemoterapi, hemodialisa, Bedah digestif, imunitas dan lain-lain.<br><br>
+                Bila skor &gt; 2 dan atau pasien dengan diagnosis/kondisi khusus dilanjutkan dengan asesmen gizi dietisien.
+              </td>
+            </tr>
+            <tr></tr>
+            <tr>
+              <td style="border:1px solid black;font-weight:bold;padding:4px;">TOTAL SKOR</td>
+              <td colspan="2" style="border:1px solid black;text-align:center;font-weight:bold;padding:4px;">${val('gizianakTotal')}</td>
+              <td colspan="3" style="background-color:#ffffff;border-top:none;border:1px solid black;"></td>
+            </tr>
+            <tr style="height:75px;">
+              <td colspan="6"><strong>DIAGNOSIS KERJA :</strong><br><div style="white-space:pre-wrap;margin-top:2px;">${val('diagnosisKerja')}</div></td>
+            </tr>
+            <tr style="height:75px;">
+              <td colspan="6"><strong>PERMASALAHAN MEDIS :</strong><br><div style="white-space:pre-wrap;margin-top:2px;">${val('permasalahanMedis')}</div></td>
+            </tr>
+            <tr style="height:75px;">
+              <td colspan="6"><strong>DIAGNOSA KEPERAWATAN (perawat) :</strong><br><div style="white-space:pre-wrap;margin-top:2px;">${val('diagnosisKeperawatan')}</div></td>
+            </tr>
+          </tbody>
+        </table>
+        ${footerLabel('005/RMBHY/2026')}
+      `);
+
+      const page3 = suratDocumentWrapper(`
+        <table class="pap-master-grid">
+          <colgroup>
+            <col style="width:16.66%;"><col style="width:16.66%;"><col style="width:16.66%;"><col style="width:16.66%;"><col style="width:16.66%;"><col style="width:16.66%;">
+          </colgroup>
+          <tbody>
+            <tr style="height:150px;">
+              <td colspan="6"><strong>TERAPI DAN TINDAKAN</strong><br><div style="white-space:pre-wrap;margin-top:2px;">${val('terapiTindakan')}</div></td>
+            </tr>
+            <tr>
+              <td colspan="6" style="padding-bottom:15px;">
+                <strong>TINDAK LANJUT</strong><br><br>
+                <span class="pap-cb">${chk(d.tindakLanjut === "Kontrol")}</span> Kontrol tanggal : ${d.tindakLanjut === "Kontrol" ? val('tindakLanjutKontrolTgl') : ""} &nbsp;&nbsp;&nbsp;&nbsp; Ke : ${d.tindakLanjut === "Kontrol" ? val('tindakLanjutKontrolKe') : ""}<br>
+                <table class="pap-inner-align" style="margin-top:4px;">
+                  <tr>
+                    <td style="width:55%;">
+                      <span class="pap-cb">${chk(d.tindakLanjut === "Dirujuk")}</span> Dirujuk ke : ${d.tindakLanjut === "Dirujuk" ? val('tindakLanjutDirujukKe') : ""}
+                      <div style="padding-left:15px;margin-top:4px;line-height:1.6;">
+                        <span class="pap-cb">${chk(dirujukJenis.includes("preventif"))}</span> preventif<br>
+                        <span class="pap-cb">${chk(dirujukJenis.includes("kuratif"))}</span> kuratif<br>
+                        <span class="pap-cb">${chk(dirujukJenis.includes("rehabilitatif"))}</span> rehabilitatif<br>
+                        <span class="pap-cb">${chk(dirujukJenis.includes("paliatif"))}</span> paliatif
+                      </div>
+                    </td>
+                    <td style="width:42%;padding-top:2px;">
+                      <span class="pap-cb">${chk(d.tindakLanjut === "Rawat Inap")}</span> Rawat inap, Indikasi : ${d.tindakLanjut === "Rawat Inap" ? val('tindakLanjutRawatInapIndikasi') : ""}
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="6" style="border-bottom:1px;padding-bottom:0;">
+                <strong>KONDISI SAAT KELUAR POLIKLINIK (perawat)</strong>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="3" style="border-top:1px;border-right:1px solid black;">
+                <table class="pap-inner-align" style="line-height:1.8;">
+                  <tr><td style="width:100px;">Keadaan Umum</td><td style="width:10px;">:</td><td>${val('kondisiKUKeluar')}</td><td style="width:40px;"></td></tr>
+                  <tr><td>Kesadaran</td><td>:</td><td>${val('kondisiKesadaran')}</td><td></td></tr>
+                  <tr><td>GCS</td><td>:</td><td>${val('kondisiGCS')}</td><td></td></tr>
+                  <tr><td>Tekanan Darah</td><td>:</td><td>${val('kondisiTD')}</td><td>mmHg</td></tr>
+                </table>
+              </td>
+              <td colspan="3" style="border-top:none;">
+                <table class="pap-inner-align" style="line-height:1.8;">
+                  <tr><td style="width:90px;">Tanda vital</td><td style="width:10px;">:</td><td>${val('kondisiTandaVital')}</td><td style="width:55px;">mmHg</td></tr>
+                  <tr><td>Suhu</td><td>:</td><td>${val('kondisiSuhu')}</td><td>&deg;C</td></tr>
+                  <tr><td>Nadi</td><td>:</td><td>${val('kondisiNadi')}</td><td>x/Menit</td></tr>
+                  <tr><td>Nafas</td><td>:</td><td>${val('kondisiNafas')}</td><td></td></tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="6" style="border-bottom:none;padding-top:8px;">
+                <table class="pap-inner-align">
+                  <tr>
+                    <td></td>
+                    <td style="text-align:right;font-size:11px;padding-right:15px;">
+                      Tgl : ${val('kondisiTgl')} &nbsp;&nbsp;&nbsp;&nbsp; Pukul : ${val('kondisiPukul')}
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr style="height:150px;">
+              <td colspan="2" style="border-top:none;border-right:none;text-align:center;vertical-align:top;padding:5px;">
+                <div>Keluarnya Pasien</div>
+                <div style="height:85px;display:flex;align-items:center;justify-content:center;">
+                  ${sigKeluargaHtml}
+                </div>
+                <div>( &nbsp;<span>${val('keluarPasien') || '..........................'}</span>&nbsp; )</div>
+              </td>
+              <td colspan="2" style="border-top:none;border-left:none;border-right:none;text-align:center;vertical-align:top;padding:5px;">
+                <div>Perawat/Bidan</div>
+                <div style="height:85px;display:flex;align-items:center;justify-content:center;">
+                  ${sigPerawatHtml}
+                </div>
+                <div>( &nbsp;<span>${val('perawat') || '..........................'}</span>&nbsp; )</div>
+              </td>
+              <td colspan="2" style="border-top:none;border-left:none;text-align:center;vertical-align:top;padding:5px;">
+                <div>Dokter</div>
+                <div style="height:85px;display:flex;align-items:center;justify-content:center;">
+                  ${sigDokterHtml}
+                </div>
+                <div>( &nbsp;<span>${val('dokter') || '..........................'}</span>&nbsp; )</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        ${footerLabel('005/RMBHY/2026')}
+      `);
+
+      return page1 + page2 + page3;
     }
 
     static {

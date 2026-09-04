@@ -1036,6 +1036,9 @@ var TriaseComponent = (() => {
           }
         }
       }
+      syncToPreview();
+    }
+
     static getPrintHtml(patient, data) {
       const p = patient || {};
       const noMr = p.noMr || p.norm || "";

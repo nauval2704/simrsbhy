@@ -6,6 +6,7 @@ let PoliGigiComponent = null;
 let PengkajianAwalPoliComponent = null;
 let loadHtml2Pdf = null;
 let buildSuratPdfFilename = null;
+let getStandardGridCSS = null;
 let apiUrl = "";
 
 async function loadDependencies() {
@@ -13,6 +14,7 @@ async function loadDependencies() {
     const modLayout = await import("./chunk-SURAT-LAYOUT.js");
     loadHtml2Pdf = modLayout.loadHtml2Pdf;
     buildSuratPdfFilename = modLayout.buildSuratPdfFilename;
+    getStandardGridCSS = modLayout.getStandardGridCSS;
   }
   if (!TriaseComponent) {
     const modTriase = await import("./chunk-TRIASE.js");
@@ -43,6 +45,7 @@ async function loadDependencies() {
       const modEnv = await import("../chunk-W7XVFZVJ.js");
       if (modEnv && modEnv.a && modEnv.a.apiUrl) apiUrl = modEnv.a.apiUrl;
     } catch (e) {}
+    if (!apiUrl) apiUrl = "http://36.66.36.106:1822";
   }
 }
 
@@ -74,10 +77,22 @@ function cleanFilename(str) {
   return String(str || "").trim().toUpperCase().replace(/[^A-Z0-9_-]/g, "_");
 }
 
+function showModal(modalEl) {
+  modalEl.style.cssText = "display:block !important; position:fixed !important; top:0 !important; left:0 !important; width:100vw !important; height:100vh !important; z-index:100050 !important; overflow-x:hidden !important; overflow-y:auto !important; background:rgba(0,0,0,0.55);";
+  modalEl.classList.add("show");
+  document.body.classList.add("modal-open");
+}
+
+function hideModal(modalEl) {
+  if (!modalEl) return;
+  modalEl.style.display = "none";
+  modalEl.classList.remove("show");
+  document.body.classList.remove("modal-open");
+}
+
 class SimrsMassDownloader {
   constructor() {
     this.initNetworkInterceptor();
-    this.initDropdownObserver();
   }
 
   initNetworkInterceptor() {
@@ -104,74 +119,6 @@ class SimrsMassDownloader {
     };
   }
 
-  initDropdownObserver() {
-    let lastClickedPatient = null;
-    let lastModule = "IGD";
-
-    document.addEventListener("mousedown", (e) => {
-      const btn = e.target.closest("button[ngbdropdowntoggle], .btn-warning, button.dropdown-toggle");
-      if (!btn) return;
-      const tr = btn.closest("tr");
-      if (!tr) return;
-
-      const cells = tr.querySelectorAll("td, th");
-      let foundNoMr = "";
-      cells.forEach((c) => {
-        const txt = c.textContent.trim();
-        if (/^\d{6,}$/.test(txt) || /^\d{2}-\d{2}-\d{2}$/.test(txt)) {
-          if (!foundNoMr) foundNoMr = txt;
-        }
-      });
-
-      let pt = (window._simrsCurrentPatientList || []).find((p) => p.noMr === foundNoMr);
-      if (!pt) {
-        pt = {
-          noMr: foundNoMr,
-          nama: cells[5]?.textContent.trim() || cells[4]?.textContent.trim() || "",
-          kelamin: cells[6]?.textContent.trim() || cells[5]?.textContent.trim() || "",
-          dpjp: cells[9]?.textContent.trim() || ""
-        };
-      }
-      lastClickedPatient = pt;
-      lastModule = window.location.pathname.includes("/poli") ? "POLI" : "IGD";
-    }, true);
-
-    const observer = new MutationObserver((mutations) => {
-      for (const m of mutations) {
-        for (const node of m.addedNodes) {
-          if (node.nodeType !== Node.ELEMENT_NODE) continue;
-          let menuEl = null;
-          if (node.matches && (node.matches(".dropdown-menu") || node.matches("[ngbdropdownmenu]"))) {
-            menuEl = node;
-          } else if (node.querySelector) {
-            menuEl = node.querySelector(".dropdown-menu, [ngbdropdownmenu]");
-          }
-
-          if (menuEl && !menuEl.querySelector(".btn-action-unduh-dokumen")) {
-            const hasCetakBilling = Array.from(menuEl.querySelectorAll("button, a")).some((b) => b.textContent.includes("Cetak Billing"));
-            const hasPrintGelang = Array.from(menuEl.querySelectorAll("button, a")).some((b) => b.textContent.includes("Print Gelang"));
-            if (hasCetakBilling || hasPrintGelang) {
-              const btn = document.createElement("button");
-              btn.type = "button";
-              btn.className = "dropdown-item text-primary fw-bold btn-action-unduh-dokumen border-top mt-1 pt-2";
-              btn.innerHTML = '<i class="bi bi-file-earmark-zip-fill text-primary me-2"></i>Unduh Dokumen Terisi';
-              const pData = lastClickedPatient;
-              const pMod = lastModule;
-              btn.addEventListener("click", (evt) => {
-                evt.preventDefault();
-                evt.stopPropagation();
-                this.open(pData, pMod);
-              });
-              menuEl.appendChild(btn);
-            }
-          }
-        }
-      }
-    });
-
-    observer.observe(document.body, { childList: true, subtree: true });
-  }
-
   getModalElement() {
     let el = document.getElementById("simrs-mass-downloader-modal");
     if (!el) {
@@ -180,15 +127,16 @@ class SimrsMassDownloader {
       el.className = "modal fade";
       el.tabIndex = -1;
       el.setAttribute("aria-hidden", "true");
+      el.style.cssText = "display:none; position:fixed !important; top:0 !important; left:0 !important; width:100vw !important; height:100vh !important; z-index:100050 !important; overflow-x:hidden !important; overflow-y:auto !important; background:rgba(0,0,0,0.55);";
       el.innerHTML = `
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-          <div class="modal-content shadow-lg border-0">
-            <div class="modal-header bg-primary text-white py-3">
-              <h5 class="modal-title fw-bold d-flex align-items-center">
+        <div class="modal-dialog modal-dialog-centered modal-lg" style="margin:2rem auto; max-width:780px; width:92%;">
+          <div class="modal-content shadow-lg border-0" style="background:#fff !important; width:100% !important; max-width:100% !important; margin:0 !important; padding:0 !important; border-radius:10px !important; overflow:hidden !important;">
+            <div class="modal-header bg-primary text-white py-3 px-4" style="border-bottom:1px solid #dee2e6;">
+              <h5 class="modal-title fw-bold d-flex align-items-center mb-0" style="color:#fff !important;">
                 <i class="bi bi-file-earmark-zip-fill me-2 fs-4"></i>
                 <span>Unduh Berkas Rekam Medis Pasien</span>
               </h5>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="filter: brightness(0) invert(1);"></button>
             </div>
             <div class="modal-body p-4" id="simrs-mass-modal-body">
               <div class="text-center py-4">
@@ -202,6 +150,11 @@ class SimrsMassDownloader {
           </div>
         </div>
       `;
+      el.addEventListener("click", (e) => {
+        if (e.target.closest("[data-bs-dismiss='modal']") || e.target.classList.contains("btn-close") || e.target === el) {
+          hideModal(el);
+        }
+      });
       document.body.appendChild(el);
     }
     return el;
@@ -222,21 +175,19 @@ class SimrsMassDownloader {
     `;
     modalFooter.innerHTML = `<button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">Tutup</button>`;
 
-    let bsModal = null;
-    if (window.bootstrap && window.bootstrap.Modal) {
-      bsModal = window.bootstrap.Modal.getOrCreateInstance(modalEl);
-      bsModal.show();
-    } else {
-      modalEl.classList.add("show");
-      modalEl.style.display = "block";
-      document.body.classList.add("modal-open");
+    showModal(modalEl);
+
+    let pObj = patient;
+    if (typeof pObj === "string") {
+      pObj = { noCheckin: patient };
     }
+    pObj = pObj || {};
 
-    const noMr = String(patient?.noMr || patient?.norm || "").trim();
-    let noCheckin = String(patient?.noCheckin || patient?.nocheckin || "").trim();
-    let namaPasien = patient?.nama || patient?.namaPasien || "";
+    let noMr = String(pObj.noMr || pObj.norm || "").trim();
+    let noCheckin = String(pObj.noCheckin || pObj.nocheckin || "").trim();
+    let namaPasien = pObj.nama || pObj.namaPasien || "";
 
-    const baseApi = apiUrl || "";
+    const baseApi = apiUrl || "http://36.66.36.106:1822";
 
     if (!noCheckin && noMr) {
       try {
@@ -251,8 +202,22 @@ class SimrsMassDownloader {
       } catch (err) {}
     }
 
-    const poliStr = (patient?.poli || "").toUpperCase();
-    const isPoliGigi = moduleType === "POLI" && (poliStr.includes("GIGI") || (patient?.poliNama || "").toUpperCase().includes("GIGI"));
+    if (!noMr && noCheckin) {
+      try {
+        const resPt = await fetch(`${baseApi}/simrsba/caripasiennocheckin/${encodeURIComponent(noCheckin)}`);
+        if (resPt.ok) {
+          const ptData = await resPt.json();
+          const pFound = Array.isArray(ptData) ? ptData[0] : (ptData.data || ptData);
+          if (pFound) {
+            if (!noMr) noMr = pFound.noMr || pFound.norm || "";
+            if (!namaPasien) namaPasien = pFound.nama || "";
+          }
+        }
+      } catch (e) {}
+    }
+
+    const poliStr = (pObj.poli || "").toUpperCase();
+    const isPoliGigi = moduleType === "POLI" && (poliStr.includes("GIGI") || (pObj.poliNama || "").toUpperCase().includes("GIGI"));
 
     const docDefinitions = [];
     if (moduleType === "POLI") {
@@ -486,21 +451,84 @@ class SimrsMassDownloader {
             document.body.appendChild(renderHost);
           }
 
+          const allSuratCss = `
+            ${getStandardGridCSS ? getStandardGridCSS() : ''}
+            .master-grid { width: 100%; border-collapse: collapse; border: 2px solid black; font-family: 'Times New Roman', Times, serif; }
+            .master-grid th, .master-grid td { border: 1px solid black; padding: 4px 6px; font-size: 10px !important; line-height: 1.3; vertical-align: top; }
+            .master-grid tr { page-break-inside: avoid; }
+            .inner-align { width: 100%; border-collapse: collapse; }
+            .inner-align td { border: none; padding: 1px; font-size: 10px !important; }
+            .title-row { text-align: center; font-weight: bold; font-size: 14px !important; background-color: #f2f2f2; padding: 6px !important; }
+            .cb { display: inline-block; width: 13px; height: 13px; border: 1px solid black; text-align: center; line-height: 11px; font-size: 11px !important; font-weight: bold; margin-right: 4px; vertical-align: middle; overflow: hidden; }
+            .cb-checked::after { content: "✓"; }
+            .rounded-meta { border: 1px solid black; border-radius: 10px; padding: 5px; width: 100%; }
+            .footer-id { text-align: right; font-size: 9px !important; margin-top: 5px; font-style: italic; }
+            .t-border{box-sizing:border-box; width:100%; border:2px solid black; border-top:none; display:flex;flex-direction:column;flex:1;font-family:'Times New Roman',Times,serif; background:white;}
+            .t-border *{font-size:11px !important;line-height:1.25 !important;box-sizing:border-box;margin:0;padding:0;}
+            .t-border h3{font-size:13px !important;font-weight:bold;}
+            .t-row{display:flex;border-bottom:1px solid black; break-inside: avoid; page-break-inside: avoid;}
+            .t-inner-row{display:flex;border-bottom:1px solid black;}
+            .t-inner-row:last-child{border-bottom:none;}
+            .t-inner-col{box-sizing:border-box;padding:3px 4px;border-right:1px solid black;}
+            .t-inner-col:last-child{border-right:none;}
+            .t-row:last-child{border-bottom:none;}
+            .t-col{box-sizing:border-box; padding:4px;border-right:1px solid black;}
+            .t-col:last-child{border-right:none;}
+            .t-f1{flex:1;}.t-f2{flex:2;}.t-f3{flex:3;}.t-f4{flex:4;}
+            .t-sq{display:inline-block;width:13px;height:13px;border:1px solid black;margin-right:4px;flex-shrink:0;vertical-align:middle;text-align:center;line-height:11px;font-size:11px !important;font-weight:bold;overflow:hidden;}
+            .t-level{font-weight:bold !important;padding:4px;border-bottom:1px solid black;background-color:#f2f2f2;text-align:center;}
+            .t-sq.cb::after { content: "✓"; font-size: 11px !important; line-height: 11px; display: block; text-align: center; }
+            .t-arrow{text-align:center;padding:2px 0;border-bottom:1px solid black;}
+            .t-vgrid{display:grid;grid-template-columns:1fr 1fr 1fr;width:100%;gap:2px;}
+            .t-cbox{width:20px;height:10px;display:inline-block;border:1px solid black;}
+            .t-red{background-color:#f44336;}.t-yellow{background-color:#ffeb3b;}.t-green{background-color:#4caf50;}.t-blk{background-color:#212121;}
+            .t-white{color:white !important;}
+            .p-val{font-weight:bold;min-width:12px;display:inline-block;border-bottom:1px dotted #999;padding:0 2px;}
+            .prmrj-table { width: 100%; border-collapse: collapse; font-family: 'Times New Roman', Times, serif; flex: 1; height: 100%; table-layout: fixed; }
+            .prmrj-table th { border: 1px solid black; padding: 5px 4px; vertical-align: middle; font-size: 11px !important; text-align: center; background-color: #f2f2f2; font-weight: bold; }
+            .prmrj-table tbody td { border-top: none !important; border-bottom: none !important; border-left: 1px solid black !important; border-right: 1px solid black !important; padding: 6px 6px; vertical-align: top; font-size: 11px !important; }
+            .prmrj-table tbody td:first-child { border-left: none !important; }
+            .prmrj-table tbody td:last-child { border-right: none !important; }
+            .prmrj-table tbody tr:last-child td { border-bottom: none !important; }
+            .gigi-table { width: 100%; border-collapse: collapse; font-family: 'Times New Roman', Times, serif; flex: 1; height: 100%; table-layout: fixed; }
+            .gigi-table th { border: 1px solid black; padding: 5px 4px; vertical-align: middle; font-size: 11px !important; text-align: center; background-color: #f2f2f2; font-weight: bold; }
+            .gigi-table tbody td { border-top: none !important; border-bottom: none !important; border-left: 1px solid black !important; border-right: 1px solid black !important; padding: 6px 6px; vertical-align: top; font-size: 11px !important; }
+            .gigi-table tbody td:first-child { border-left: none !important; }
+            .gigi-table tbody td:last-child { border-right: none !important; }
+            .gigi-table tbody tr:last-child td { border-bottom: none !important; }
+          `;
+
+          const patientPayload = {
+            noMr: noMr,
+            norm: noMr,
+            nama: namaPasien,
+            namaPasien: namaPasien,
+            tglLahir: pObj.tglLahir || "",
+            kelamin: pObj.kelamin || "",
+            dokterDpjp: pObj.dokterDpjp || pObj.dpjp || pObj.namaDokter || "",
+            dpjp: pObj.dokterDpjp || pObj.dpjp || pObj.namaDokter || "",
+            tglInput: pObj.tglInput || pObj.tglMasuk || "",
+            tglMasuk: pObj.tglInput || pObj.tglMasuk || "",
+            poli: pObj.poli || "",
+            poliNama: pObj.poliNama || ""
+          };
+
           for (let i = 0; i < selectedDocs.length; i++) {
             const doc = selectedDocs[i];
             const percent = Math.round(((i) / selectedDocs.length) * 100);
             progressBar.style.width = `${percent}%`;
             statusText.textContent = `Memproses (${i + 1}/${selectedDocs.length}): ${doc.title}...`;
 
-            const fullHtml = doc.render(patient, doc.data);
-            renderHost.innerHTML = fullHtml;
+            const fullHtml = doc.render(patientPayload, doc.data);
+            renderHost.innerHTML = `<style>${allSuratCss}</style>` + fullHtml;
 
             const opt = {
-              margin: [10, 10, 10, 10],
+              margin: [0, 0, 0, 0],
               filename: doc.filename,
               image: { type: "jpeg", quality: 0.98 },
               html2canvas: { scale: 2, useCORS: true, logging: false },
               jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+              pagebreak: { mode: ["css", "legacy"] }
             };
 
             const pdfBlob = await window.html2pdf().set(opt).from(renderHost).outputPdf("blob");
@@ -509,7 +537,7 @@ class SimrsMassDownloader {
               zip.file(doc.filename, pdfBlob);
             } else {
               saveBlobAs(pdfBlob, doc.filename);
-              await new Promise((r) => setTimeout(r, 400));
+              await new Promise((r) => setTimeout(r, 600));
             }
           }
 
@@ -526,13 +554,7 @@ class SimrsMassDownloader {
           execBtn.classList.replace("btn-primary", "btn-success");
 
           setTimeout(() => {
-            if (bsModal) {
-              bsModal.hide();
-            } else {
-              modalEl.classList.remove("show");
-              modalEl.style.display = "none";
-              document.body.classList.remove("modal-open");
-            }
+            hideModal(modalEl);
           }, 2000);
         } catch (err) {
           statusText.innerHTML = `<span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill me-1"></i> Gagal: ${err.message}</span>`;
