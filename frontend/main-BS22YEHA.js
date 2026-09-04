@@ -20303,6 +20303,20 @@ function h4(t, s) {
         return y(d.onCetakRincian(o.noCheckin));
       }),
       r(1, " Cetak Billing "),
+      n(),
+      i(2, "button", 20),
+      E("click", function () {
+        C(e);
+        let o = h().$implicit;
+        if (window.SimrsMassDownloader) {
+          window.SimrsMassDownloader.open(o, "IGD");
+        } else {
+          import("./surat/chunk-MASS-DOWNLOADER.js").then(() => {
+            if (window.SimrsMassDownloader) window.SimrsMassDownloader.open(o, "IGD");
+          });
+        }
+      }),
+      r(3, " Unduh Dokumen Terisi "),
       n());
   }
 }
@@ -20394,7 +20408,7 @@ function x4(t, s) {
         0,
         "button",
         19,
-      )(19, h4, 2, 0, "button", 19),
+      )(19, h4, 4, 0, "button", 19),
       n()()(),
       i(20, "th", 22),
       r(21),
@@ -57584,6 +57598,20 @@ function BN(t, s) {
         return y(d.onCetakRincian(o.noCheckin));
       }),
       r(1, " Cetak Billing "),
+      n(),
+      i(2, "button", 20),
+      E("click", function () {
+        C(e);
+        let o = h().$implicit;
+        if (window.SimrsMassDownloader) {
+          window.SimrsMassDownloader.open(o, "POLI");
+        } else {
+          import("./surat/chunk-MASS-DOWNLOADER.js").then(() => {
+            if (window.SimrsMassDownloader) window.SimrsMassDownloader.open(o, "POLI");
+          });
+        }
+      }),
+      r(3, " Unduh Dokumen Terisi "),
       n());
   }
 }
@@ -57672,7 +57700,7 @@ function YN(t, s) {
       )(19, NN, 2, 0, "button", 19)(20, KN, 2, 0, "button", 19)(
         21,
         BN,
-        2,
+        4,
         0,
         "button",
         19,

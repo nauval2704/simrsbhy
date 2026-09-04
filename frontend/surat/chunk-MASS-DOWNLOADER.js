@@ -1,11 +1,50 @@
-import { a as i } from "../chunk-W7XVFZVJ.js";
-import { buildSuratPdfFilename, loadHtml2Pdf } from "./chunk-SURAT-LAYOUT.js";
-import { TriaseComponent } from "./chunk-TRIASE.js";
-import { PengkajianAwalIgdComponent } from "./chunk-PENGKAJIAN-AWAL-IGD.js";
-import { RingkasanPulangComponent } from "./chunk-RINGKASAN-PULANG.js";
-import { PrmrjComponent } from "./chunk-PRMRJ.js";
-import { PoliGigiComponent } from "./chunk-POLI-GIGI.js";
-import { PengkajianAwalPoliComponent } from "./chunk-PENGKAJIAN-AWAL-POLI.js";
+let TriaseComponent = null;
+let PengkajianAwalIgdComponent = null;
+let RingkasanPulangComponent = null;
+let PrmrjComponent = null;
+let PoliGigiComponent = null;
+let PengkajianAwalPoliComponent = null;
+let loadHtml2Pdf = null;
+let buildSuratPdfFilename = null;
+let apiUrl = "";
+
+async function loadDependencies() {
+  if (!loadHtml2Pdf) {
+    const modLayout = await import("./chunk-SURAT-LAYOUT.js");
+    loadHtml2Pdf = modLayout.loadHtml2Pdf;
+    buildSuratPdfFilename = modLayout.buildSuratPdfFilename;
+  }
+  if (!TriaseComponent) {
+    const modTriase = await import("./chunk-TRIASE.js");
+    TriaseComponent = modTriase.TriaseComponent;
+  }
+  if (!PengkajianAwalIgdComponent) {
+    const modIgd = await import("./chunk-PENGKAJIAN-AWAL-IGD.js");
+    PengkajianAwalIgdComponent = modIgd.PengkajianAwalIgdComponent;
+  }
+  if (!RingkasanPulangComponent) {
+    const modRp = await import("./chunk-RINGKASAN-PULANG.js");
+    RingkasanPulangComponent = modRp.RingkasanPulangComponent;
+  }
+  if (!PrmrjComponent) {
+    const modPrmrj = await import("./chunk-PRMRJ.js");
+    PrmrjComponent = modPrmrj.PrmrjComponent;
+  }
+  if (!PoliGigiComponent) {
+    const modGigi = await import("./chunk-POLI-GIGI.js");
+    PoliGigiComponent = modGigi.PoliGigiComponent;
+  }
+  if (!PengkajianAwalPoliComponent) {
+    const modPoli = await import("./chunk-PENGKAJIAN-AWAL-POLI.js");
+    PengkajianAwalPoliComponent = modPoli.PengkajianAwalPoliComponent;
+  }
+  if (!apiUrl) {
+    try {
+      const modEnv = await import("../chunk-W7XVFZVJ.js");
+      if (modEnv && modEnv.a && modEnv.a.apiUrl) apiUrl = modEnv.a.apiUrl;
+    } catch (e) {}
+  }
+}
 
 async function ensureJSZip() {
   if (window.JSZip) return window.JSZip;
@@ -37,9 +76,8 @@ function cleanFilename(str) {
 
 class SimrsMassDownloader {
   constructor() {
-    this.apiUrl = i.apiUrl || "";
     this.initNetworkInterceptor();
-    this.initTableActionListeners();
+    this.initDropdownObserver();
   }
 
   initNetworkInterceptor() {
@@ -66,11 +104,14 @@ class SimrsMassDownloader {
     };
   }
 
-  initTableActionListeners() {
-    document.addEventListener("click", (e) => {
-      const toggleBtn = e.target.closest("button[ngbdropdowntoggle], .btn-warning, button.dropdown-toggle");
-      if (!toggleBtn) return;
-      const tr = toggleBtn.closest("tr");
+  initDropdownObserver() {
+    let lastClickedPatient = null;
+    let lastModule = "IGD";
+
+    document.addEventListener("mousedown", (e) => {
+      const btn = e.target.closest("button[ngbdropdowntoggle], .btn-warning, button.dropdown-toggle");
+      if (!btn) return;
+      const tr = btn.closest("tr");
       if (!tr) return;
 
       const cells = tr.querySelectorAll("td, th");
@@ -82,33 +123,53 @@ class SimrsMassDownloader {
         }
       });
 
-      setTimeout(() => {
-        const menus = document.querySelectorAll(".dropdown-menu.show, .dropdown-menu");
-        menus.forEach((menu) => {
-          if (menu.querySelector(".btn-action-unduh-dokumen")) return;
-          const btn = document.createElement("button");
-          btn.type = "button";
-          btn.className = "dropdown-item text-primary fw-bold btn-action-unduh-dokumen border-top mt-1 pt-2";
-          btn.innerHTML = '<i class="bi bi-file-earmark-zip-fill text-primary me-2"></i>Unduh Dokumen Terisi';
-          btn.addEventListener("click", (evt) => {
-            evt.preventDefault();
-            evt.stopPropagation();
-            let patient = (window._simrsCurrentPatientList || []).find((p) => p.noMr === foundNoMr);
-            if (!patient) {
-              patient = {
-                noMr: foundNoMr,
-                nama: cells[5]?.textContent.trim() || cells[4]?.textContent.trim() || "",
-                kelamin: cells[6]?.textContent.trim() || cells[5]?.textContent.trim() || "",
-                dpjp: cells[9]?.textContent.trim() || ""
-              };
+      let pt = (window._simrsCurrentPatientList || []).find((p) => p.noMr === foundNoMr);
+      if (!pt) {
+        pt = {
+          noMr: foundNoMr,
+          nama: cells[5]?.textContent.trim() || cells[4]?.textContent.trim() || "",
+          kelamin: cells[6]?.textContent.trim() || cells[5]?.textContent.trim() || "",
+          dpjp: cells[9]?.textContent.trim() || ""
+        };
+      }
+      lastClickedPatient = pt;
+      lastModule = window.location.pathname.includes("/poli") ? "POLI" : "IGD";
+    }, true);
+
+    const observer = new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        for (const node of m.addedNodes) {
+          if (node.nodeType !== Node.ELEMENT_NODE) continue;
+          let menuEl = null;
+          if (node.matches && (node.matches(".dropdown-menu") || node.matches("[ngbdropdownmenu]"))) {
+            menuEl = node;
+          } else if (node.querySelector) {
+            menuEl = node.querySelector(".dropdown-menu, [ngbdropdownmenu]");
+          }
+
+          if (menuEl && !menuEl.querySelector(".btn-action-unduh-dokumen")) {
+            const hasCetakBilling = Array.from(menuEl.querySelectorAll("button, a")).some((b) => b.textContent.includes("Cetak Billing"));
+            const hasPrintGelang = Array.from(menuEl.querySelectorAll("button, a")).some((b) => b.textContent.includes("Print Gelang"));
+            if (hasCetakBilling || hasPrintGelang) {
+              const btn = document.createElement("button");
+              btn.type = "button";
+              btn.className = "dropdown-item text-primary fw-bold btn-action-unduh-dokumen border-top mt-1 pt-2";
+              btn.innerHTML = '<i class="bi bi-file-earmark-zip-fill text-primary me-2"></i>Unduh Dokumen Terisi';
+              const pData = lastClickedPatient;
+              const pMod = lastModule;
+              btn.addEventListener("click", (evt) => {
+                evt.preventDefault();
+                evt.stopPropagation();
+                this.open(pData, pMod);
+              });
+              menuEl.appendChild(btn);
             }
-            const isPoli = window.location.pathname.includes("/poli");
-            this.open(patient, isPoli ? "POLI" : "IGD");
-          });
-          menu.appendChild(btn);
-        });
-      }, 60);
+          }
+        }
+      }
     });
+
+    observer.observe(document.body, { childList: true, subtree: true });
   }
 
   getModalElement() {
@@ -147,6 +208,8 @@ class SimrsMassDownloader {
   }
 
   async open(patient, moduleType = "IGD") {
+    await loadDependencies();
+
     const modalEl = this.getModalElement();
     const modalBody = modalEl.querySelector("#simrs-mass-modal-body");
     const modalFooter = modalEl.querySelector("#simrs-mass-modal-footer");
@@ -169,13 +232,15 @@ class SimrsMassDownloader {
       document.body.classList.add("modal-open");
     }
 
-    const noMr = String(patient.noMr || patient.norm || "").trim();
-    let noCheckin = String(patient.noCheckin || patient.nocheckin || "").trim();
-    let namaPasien = patient.nama || patient.namaPasien || "";
+    const noMr = String(patient?.noMr || patient?.norm || "").trim();
+    let noCheckin = String(patient?.noCheckin || patient?.nocheckin || "").trim();
+    let namaPasien = patient?.nama || patient?.namaPasien || "";
+
+    const baseApi = apiUrl || "";
 
     if (!noCheckin && noMr) {
       try {
-        const resRiwayat = await fetch(`${this.apiUrl}/simrsba/riwayat/${encodeURIComponent(noMr)}`);
+        const resRiwayat = await fetch(`${baseApi}/simrsba/riwayat/${encodeURIComponent(noMr)}`);
         if (resRiwayat.ok) {
           const listRiwayat = await resRiwayat.json();
           if (Array.isArray(listRiwayat) && listRiwayat.length > 0) {
@@ -186,8 +251,8 @@ class SimrsMassDownloader {
       } catch (err) {}
     }
 
-    const poliStr = (patient.poli || "").toUpperCase();
-    const isPoliGigi = moduleType === "POLI" && (poliStr.includes("GIGI") || (patient.poliNama || "").toUpperCase().includes("GIGI"));
+    const poliStr = (patient?.poli || "").toUpperCase();
+    const isPoliGigi = moduleType === "POLI" && (poliStr.includes("GIGI") || (patient?.poliNama || "").toUpperCase().includes("GIGI"));
 
     const docDefinitions = [];
     if (moduleType === "POLI") {
@@ -196,7 +261,7 @@ class SimrsMassDownloader {
           id: "poli-gigi",
           title: "PRMRJ Poli Gigi",
           filename: `PRMRJ_POLI_GIGI_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
-          endpoint: `${this.apiUrl}/simrsba/poli-gigi/${encodeURIComponent(noMr)}`,
+          endpoint: `${baseApi}/simrsba/poli-gigi/${encodeURIComponent(noMr)}`,
           checkFilled: (data) => data && Array.isArray(data.entries) && data.entries.length > 0,
           render: (pt, data) => PoliGigiComponent.getPrintHtml(pt, data)
         });
@@ -205,7 +270,7 @@ class SimrsMassDownloader {
           id: "pengkajian-awal-poli",
           title: "Pengkajian Awal Poliklinik Rawat Jalan",
           filename: `PENGKAJIAN_AWAL_POLI_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
-          endpoint: `${this.apiUrl}/simrsba/pengkajian-awal-poli/${encodeURIComponent(noCheckin)}`,
+          endpoint: `${baseApi}/simrsba/pengkajian-awal-poli/${encodeURIComponent(noCheckin)}`,
           checkFilled: (data) => data && (data.keluhanUtama || data.td || data.diagnosaMedis || data.tglMasukDate),
           render: (pt, data) => PengkajianAwalPoliComponent.getPrintHtml(pt, data)
         });
@@ -213,7 +278,7 @@ class SimrsMassDownloader {
           id: "prmrj",
           title: "PRMRJ (Profil Ringkas Medis Rawat Jalan)",
           filename: `PRMRJ_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
-          endpoint: `${this.apiUrl}/simrsba/prmrj/${encodeURIComponent(noMr)}`,
+          endpoint: `${baseApi}/simrsba/prmrj/${encodeURIComponent(noMr)}`,
           checkFilled: (data) => data && Array.isArray(data.entries) && data.entries.length > 0,
           render: (pt, data) => PrmrjComponent.getPrintHtml(pt, data)
         });
@@ -223,7 +288,7 @@ class SimrsMassDownloader {
         id: "triase",
         title: "Formulir Triase Gawat Darurat",
         filename: `TRIASE_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
-        endpoint: `${this.apiUrl}/simrsba/triase/${encodeURIComponent(noCheckin)}`,
+        endpoint: `${baseApi}/simrsba/triase/${encodeURIComponent(noCheckin)}`,
         checkFilled: (data) => data && (data.triageColor || data.td || data.suhu || data.canvasImage || data.pukulPemeriksaan || data.keluhan),
         render: (pt, data) => TriaseComponent.getPrintHtml(pt, data)
       });
@@ -231,7 +296,7 @@ class SimrsMassDownloader {
         id: "pengkajian-awal-igd",
         title: "Pengkajian Awal IGD",
         filename: `PENGKAJIAN_AWAL_IGD_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
-        endpoint: `${this.apiUrl}/simrsba/pengkajian-awal-igd/${encodeURIComponent(noCheckin)}`,
+        endpoint: `${baseApi}/simrsba/pengkajian-awal-igd/${encodeURIComponent(noCheckin)}`,
         checkFilled: (data) => data && (data.keluhanUtama || data.td || data.diagnosa || data.diagnosisKerja || data.anamnesis || data.tglMasukDate || data.canvasAnatomi),
         render: (pt, data) => PengkajianAwalIgdComponent.getPrintHtml(pt, data)
       });
@@ -239,7 +304,7 @@ class SimrsMassDownloader {
         id: "ringkasan-pulang",
         title: "Ringkasan Pulang IGD",
         filename: `RINGKASAN_PULANG_IGD_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
-        endpoint: `${this.apiUrl}/simrsba/ringkasan-pulang/${encodeURIComponent(noCheckin)}`,
+        endpoint: `${baseApi}/simrsba/ringkasan-pulang/${encodeURIComponent(noCheckin)}`,
         checkFilled: (data) => data && (data.keluhanUtama || data.indikasiMasuk || data.diagnosisKerja || data.tglJamMasuk || data.terapiPulang),
         render: (pt, data) => RingkasanPulangComponent.getPrintHtml(pt, data)
       });
@@ -247,7 +312,7 @@ class SimrsMassDownloader {
         id: "prmrj",
         title: "PRMRJ (Profil Ringkas Medis Rawat Jalan)",
         filename: `PRMRJ_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
-        endpoint: `${this.apiUrl}/simrsba/prmrj/${encodeURIComponent(noMr)}`,
+        endpoint: `${baseApi}/simrsba/prmrj/${encodeURIComponent(noMr)}`,
         checkFilled: (data) => data && Array.isArray(data.entries) && data.entries.length > 0,
         render: (pt, data) => PrmrjComponent.getPrintHtml(pt, data)
       });
