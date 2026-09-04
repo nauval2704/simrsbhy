@@ -598,7 +598,7 @@ var PrmrjComponent = (() => {
           : `PANDUAN PROFIL RINGKAS RAWAT JALAN (PRMRJ) POLIKLINIK`;
 
         pagesHtml += `
-        <div class="surat-document" style="display:flex; flex-direction:column; height:1247px; page-break-after:always; margin-bottom:20px;">
+        <div class="surat-document" style="display:flex; flex-direction:column; height:1247px; page-break-after:always;">
             ${hospitalHeaderDiv(noMr, nama, tglLahir, kelamin)}
 
             <div style="border:2px solid black; font-family:'Times New Roman',Times,serif; flex:1; display:flex; flex-direction:column; min-height:0; margin-top:10px;">

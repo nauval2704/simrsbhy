@@ -121,6 +121,10 @@ export function getStandardGridCSS() {
 .surat-document-landscape, .surat-page-landscape { box-sizing:border-box !important; padding: 6mm !important; width:1247px !important; height:816px !important; overflow:hidden !important; position:relative !important; margin:0 auto 20px auto !important; background:#fff; box-shadow:0 0 10px rgba(0,0,0,0.1); text-align:left; display:flex; flex-direction:column; }
 .surat-content{position:relative !important;height:auto !important;overflow:visible !important;padding: 6mm !important;box-sizing:border-box !important;}
 .surat-print-bg{padding:20px 10px;background-color:#525659;text-align:center;border-radius:4px;overflow:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.surat-exporting-pdf .surat-document, .surat-exporting-pdf .surat-page { box-sizing:border-box !important; width:215.9mm !important; max-width:215.9mm !important; height:1247px !important; max-height:1247px !important; margin:0 auto !important; margin-bottom:0 !important; padding:6mm !important; box-shadow:none !important; overflow:hidden !important; page-break-inside:avoid !important; break-inside:avoid !important; page-break-after:always !important; break-after:page !important; }
+.surat-exporting-pdf .surat-document:last-child, .surat-exporting-pdf .surat-page:last-child { page-break-after:auto !important; break-after:auto !important; }
+.surat-exporting-pdf .surat-document-landscape, .surat-exporting-pdf .surat-page-landscape { box-sizing:border-box !important; width:330.2mm !important; max-width:330.2mm !important; height:815px !important; max-height:815px !important; margin:0 auto !important; margin-bottom:0 !important; padding:5mm !important; box-shadow:none !important; overflow:hidden !important; page-break-inside:avoid !important; break-inside:avoid !important; page-break-after:always !important; break-after:page !important; }
+.surat-exporting-pdf .surat-document-landscape:last-child, .surat-exporting-pdf .surat-page-landscape:last-child { page-break-after:auto !important; break-after:auto !important; }
 @media print{.no-print{display:none !important;}}
 @page{size: 215.9mm 330.2mm; margin: 0;}
 @page surat-landscape { size: 330.2mm 215.9mm; margin: 0; }
@@ -296,6 +300,7 @@ export function downloadSuratAsPdf(targetElement, filename, isLandscape = false)
   if (!targetElement) return Promise.reject(new Error("Target element not found"));
 
   return loadHtml2Pdf().then((h2p) => {
+    targetElement.classList.add("surat-exporting-pdf");
     const opt = {
       margin: [0, 0, 0, 0],
       filename: filename || "dokumen.pdf",
@@ -310,14 +315,16 @@ export function downloadSuratAsPdf(targetElement, filename, isLandscape = false)
       },
       jsPDF: {
         unit: "mm",
-        format: isLandscape ? [330.2, 215.9] : "a4",
+        format: isLandscape ? [330.2, 215.9] : [215.9, 330.2],
         orientation: isLandscape ? "landscape" : "portrait"
       },
       pagebreak: {
-        mode: ["css", "legacy"]
+        mode: ["avoid-all", "css", "legacy"]
       }
     };
-    return h2p().set(opt).from(targetElement).save();
+    return h2p().set(opt).from(targetElement).save().finally(() => {
+      targetElement.classList.remove("surat-exporting-pdf");
+    });
   });
 }
 

@@ -447,12 +447,56 @@ class SimrsMassDownloader {
           if (!renderHost) {
             renderHost = document.createElement("div");
             renderHost.id = "simrs-mass-render-host";
-            renderHost.style.cssText = "position:fixed; left:-9999px; top:0; width:215.9mm; background:white; z-index:-9999;";
+            renderHost.style.cssText = "position:fixed; left:-9999px; top:0; width:215.9mm; background:white; z-index:-9999; margin:0; padding:0;";
             document.body.appendChild(renderHost);
           }
 
           const allSuratCss = `
             ${getStandardGridCSS ? getStandardGridCSS() : ''}
+            #simrs-mass-render-host .surat-document,
+            #simrs-mass-render-host .surat-page {
+              box-sizing: border-box !important;
+              width: 215.9mm !important;
+              max-width: 215.9mm !important;
+              height: 1247px !important;
+              max-height: 1247px !important;
+              margin: 0 auto !important;
+              margin-bottom: 0 !important;
+              padding: 6mm !important;
+              box-shadow: none !important;
+              overflow: hidden !important;
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
+              page-break-after: always !important;
+              break-after: page !important;
+            }
+            #simrs-mass-render-host .surat-document:last-child,
+            #simrs-mass-render-host .surat-page:last-child {
+              page-break-after: auto !important;
+              break-after: auto !important;
+            }
+            #simrs-mass-render-host .surat-document-landscape,
+            #simrs-mass-render-host .surat-page-landscape {
+              box-sizing: border-box !important;
+              width: 330.2mm !important;
+              max-width: 330.2mm !important;
+              height: 815px !important;
+              max-height: 815px !important;
+              margin: 0 auto !important;
+              margin-bottom: 0 !important;
+              padding: 5mm !important;
+              box-shadow: none !important;
+              overflow: hidden !important;
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
+              page-break-after: always !important;
+              break-after: page !important;
+            }
+            #simrs-mass-render-host .surat-document-landscape:last-child,
+            #simrs-mass-render-host .surat-page-landscape:last-child {
+              page-break-after: auto !important;
+              break-after: auto !important;
+            }
             .master-grid { width: 100%; border-collapse: collapse; border: 2px solid black; font-family: 'Times New Roman', Times, serif; }
             .master-grid th, .master-grid td { border: 1px solid black; padding: 4px 6px; font-size: 10px !important; line-height: 1.3; vertical-align: top; }
             .master-grid tr { page-break-inside: avoid; }
@@ -522,13 +566,20 @@ class SimrsMassDownloader {
             const fullHtml = doc.render(patientPayload, doc.data);
             renderHost.innerHTML = `<style>${allSuratCss}</style>` + fullHtml;
 
+            const isLandscape = !!renderHost.querySelector('.surat-document-landscape, .surat-page-landscape');
+            renderHost.style.width = isLandscape ? '330.2mm' : '215.9mm';
+
             const opt = {
               margin: [0, 0, 0, 0],
               filename: doc.filename,
               image: { type: "jpeg", quality: 0.98 },
               html2canvas: { scale: 2, useCORS: true, logging: false },
-              jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-              pagebreak: { mode: ["css", "legacy"] }
+              jsPDF: {
+                unit: "mm",
+                format: isLandscape ? [330.2, 215.9] : [215.9, 330.2],
+                orientation: isLandscape ? "landscape" : "portrait"
+              },
+              pagebreak: { mode: ["avoid-all", "css", "legacy"] }
             };
 
             const pdfBlob = await window.html2pdf().set(opt).from(renderHost).outputPdf("blob");

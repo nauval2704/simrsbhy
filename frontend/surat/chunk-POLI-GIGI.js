@@ -560,7 +560,7 @@ var PoliGigiComponent = (() => {
           ? 'PANDUAN PROFIL RINGKAS RAWAT JALAN (PRMRJ) POLI GIGI - LEMBAR ' + (pageIdx + 1) + ' DARI ' + totalPages
           : 'PANDUAN PROFIL RINGKAS RAWAT JALAN (PRMRJ) POLI GIGI';
 
-        pagesHtml += '<div class="surat-document" style="display:flex; flex-direction:column; height:1247px; page-break-after:always; margin-bottom:20px;">' +
+        pagesHtml += '<div class="surat-document" style="display:flex; flex-direction:column; height:1247px; page-break-after:always;">' +
             hospitalHeaderDiv(noMr, nama, tglLahir, kelamin, getFontSize, titleText) +
             '<div style="border:2px solid black; font-family:\'Times New Roman\',Times,serif; flex:1; display:flex; flex-direction:column; min-height:0; margin-top:10px;">' +
                 '<table class="gigi-table" style="border:none; border-top:1px solid black; flex:1;">' +
