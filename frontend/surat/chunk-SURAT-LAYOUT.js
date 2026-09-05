@@ -134,10 +134,17 @@ export function getStandardGridCSS() {
   .tab-pane:not(:has(.surat-document)):not(:has(.surat-document-landscape)):not(:has(.surat-page)):not(:has(.surat-page-landscape)), .card:not(:has(.surat-document)):not(:has(.surat-document-landscape)):not(:has(.surat-page)):not(:has(.surat-page-landscape)), .alert:not(:has(.surat-document)):not(:has(.surat-document-landscape)):not(:has(.surat-page)):not(:has(.surat-page-landscape)), .tab-content > *:not(:has(.surat-document)):not(:has(.surat-document-landscape)):not(:has(.surat-page)):not(:has(.surat-page-landscape)), .f-group, .form-group, .form-control, .form-select { display: none !important; }
   html, body, app-root, app-pasien-details, .content-wrapper, .container-fluid, .container, .main-content, .card:has(.surat-document), .card:has(.surat-document-landscape), .card:has(.surat-page), .card:has(.surat-page-landscape), .card-body:has(.surat-document), .card-body:has(.surat-document-landscape), .card-body:has(.surat-page), .card-body:has(.surat-page-landscape), .tab-content:has(.surat-document), .tab-content:has(.surat-page), .tab-pane:has(.surat-document), .tab-pane:has(.surat-document-landscape), .tab-pane:has(.surat-page), .tab-pane:has(.surat-page-landscape), .row, [class*="col-"]:not(.simrs-sidebar-col) { width: 100% !important; max-width: 100% !important; height: auto !important; min-height: 0 !important; max-height: none !important; overflow: visible !important; position: static !important; padding: 0 !important; margin: 0 !important; float: none !important; display: block !important; box-sizing: border-box !important; }
   .surat-print-bg { background: transparent !important; padding: 0 !important; margin: 0 !important; width: 100% !important; display: block !important; box-sizing: border-box !important; }
-  .surat-document, .surat-page {box-sizing:border-box !important;width:215.9mm !important;max-width:215.9mm !important;padding: 6mm !important;overflow:hidden !important;page-break-inside:avoid !important;break-inside:avoid !important;height:330.2mm !important;box-shadow:none !important;margin:0 auto !important;page-break-after:always;break-after:page;}
-  .surat-document-landscape, .surat-page-landscape {box-sizing:border-box !important;width:330.2mm !important;max-width:330.2mm !important;padding: 5mm !important;overflow:hidden !important;page-break-inside:avoid !important;break-inside:avoid !important;height:214mm !important;max-height:214mm !important;box-shadow:none !important;margin:0 auto !important;page-break-after:auto !important;break-after:auto !important;page:surat-landscape;}
+  .surat-document, .surat-page {box-sizing:border-box !important;width:215.9mm !important;max-width:215.9mm !important;padding: 5mm !important;overflow:hidden !important;page-break-inside:avoid !important;break-inside:avoid !important;min-height:330.2mm !important;box-shadow:none !important;margin:0 auto !important;page-break-after:always;break-after:page;}
+  .surat-document-landscape, .surat-page-landscape {box-sizing:border-box !important;width:330.2mm !important;max-width:330.2mm !important;padding: 5mm !important;overflow:hidden !important;page-break-inside:avoid !important;break-inside:avoid !important;min-height:214mm !important;box-shadow:none !important;margin:0 auto !important;page-break-after:auto !important;break-after:auto !important;page:surat-landscape;}
   .surat-document:last-child, .surat-page:last-child, .surat-document-landscape:last-child, .surat-page-landscape:last-child {page-break-after:auto !important;break-after:auto !important;}
   .pap-master-grid, table.master-grid, table.t-border, table.fpo-table, table.pap-inner-align, table { width: 100% !important; max-width: 100% !important; margin: 0 auto !important; box-sizing: border-box !important; }
+  body.simrs-printing-mass app-root { display: none !important; }
+  body.simrs-printing-mass #simrs-mass-print-host { display: block !important; width: 100% !important; margin: 0 auto !important; padding: 0 !important; background: transparent !important; }
+  #simrs-mass-print-host:not(.has-docs) { display: none !important; }
+  body.simrs-printing-mass #simrs-mass-print-host .surat-document, body.simrs-printing-mass #simrs-mass-print-host .surat-page { box-sizing: border-box !important; width: 215.9mm !important; max-width: 215.9mm !important; padding: 5mm !important; margin: 0 auto !important; box-shadow: none !important; page-break-after: always !important; break-after: page !important; page-break-inside: avoid !important; break-inside: avoid !important; }
+  body.simrs-printing-mass #simrs-mass-print-host .surat-document:last-child, body.simrs-printing-mass #simrs-mass-print-host .surat-page:last-child { page-break-after: auto !important; break-after: auto !important; }
+  body.simrs-printing-mass #simrs-mass-print-host .surat-document-landscape, body.simrs-printing-mass #simrs-mass-print-host .surat-page-landscape { box-sizing: border-box !important; width: 330.2mm !important; max-width: 330.2mm !important; padding: 5mm !important; margin: 0 auto !important; box-shadow: none !important; page-break-after: always !important; break-after: page !important; page-break-inside: avoid !important; break-inside: avoid !important; page: surat-landscape !important; }
+  body.simrs-printing-mass #simrs-mass-print-host .surat-document-landscape:last-child, body.simrs-printing-mass #simrs-mass-print-host .surat-page-landscape:last-child { page-break-after: auto !important; break-after: auto !important; }
 }
 `;
 }
@@ -218,9 +225,17 @@ export function forceChromePrintStyles(isLandscape = false) {
       size: ${pageSize} !important;
       margin: 0mm !important;
     }
+    @page surat-landscape {
+      size: 330.2mm 215.9mm !important;
+      margin: 0mm !important;
+    }
     @media print {
       @page {
         size: ${pageSize} !important;
+        margin: 0mm !important;
+      }
+      @page surat-landscape {
+        size: 330.2mm 215.9mm !important;
         margin: 0mm !important;
       }
       html, body {
@@ -296,36 +311,61 @@ export function buildSuratPdfFilename(prefix, noMr, nama) {
   return parts.join('_') + '.pdf';
 }
 
-export function downloadSuratAsPdf(targetElement, filename, isLandscape = false) {
+export async function downloadSuratAsPdf(targetElement, filename, isLandscape = false) {
   if (!targetElement) return Promise.reject(new Error("Target element not found"));
 
-  return loadHtml2Pdf().then((h2p) => {
-    targetElement.classList.add("surat-exporting-pdf");
-    const opt = {
-      margin: [0, 0, 0, 0],
-      filename: filename || "dokumen.pdf",
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        scrollX: 0,
-        scrollY: 0,
-        backgroundColor: "#ffffff"
-      },
-      jsPDF: {
-        unit: "mm",
-        format: isLandscape ? [330.2, 215.9] : [215.9, 330.2],
-        orientation: isLandscape ? "landscape" : "portrait"
-      },
-      pagebreak: {
-        mode: ["avoid-all", "css", "legacy"]
+  const h2p = await loadHtml2Pdf();
+  targetElement.classList.add("surat-exporting-pdf");
+
+  const imgs = Array.from(targetElement.querySelectorAll("img"));
+  await Promise.all(
+    imgs.map((img) => {
+      if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+      if (typeof img.decode === "function") {
+        return img.decode().catch(() => {});
       }
-    };
-    return h2p().set(opt).from(targetElement).save().finally(() => {
-      targetElement.classList.remove("surat-exporting-pdf");
-    });
-  });
+      return new Promise((resolve) => {
+        img.onload = () => resolve();
+        img.onerror = () => resolve();
+        setTimeout(resolve, 800);
+      });
+    })
+  );
+
+  if (document.fonts && document.fonts.ready) {
+    try {
+      await document.fonts.ready;
+    } catch (e) {}
+  }
+
+  const opt = {
+    margin: [0, 0, 0, 0],
+    filename: filename || "dokumen.pdf",
+    image: { type: "jpeg", quality: 1.0 },
+    html2canvas: {
+      scale: 2.5,
+      useCORS: true,
+      logging: false,
+      scrollX: 0,
+      scrollY: 0,
+      backgroundColor: "#ffffff",
+      letterRendering: true
+    },
+    jsPDF: {
+      unit: "mm",
+      format: isLandscape ? [330.2, 215.9] : [215.9, 330.2],
+      orientation: isLandscape ? "landscape" : "portrait"
+    },
+    pagebreak: {
+      mode: ["avoid-all", "css", "legacy"]
+    }
+  };
+
+  try {
+    return await h2p().set(opt).from(targetElement).save();
+  } finally {
+    targetElement.classList.remove("surat-exporting-pdf");
+  }
 }
 
 export function bindSuratPrintButton(root, pdfConfig = {}) {

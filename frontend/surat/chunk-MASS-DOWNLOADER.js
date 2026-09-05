@@ -7,6 +7,7 @@ let PengkajianAwalPoliComponent = null;
 let loadHtml2Pdf = null;
 let buildSuratPdfFilename = null;
 let getStandardGridCSS = null;
+let forceChromePrintStyles = null;
 let apiUrl = "";
 
 async function loadDependencies() {
@@ -15,6 +16,7 @@ async function loadDependencies() {
     loadHtml2Pdf = modLayout.loadHtml2Pdf;
     buildSuratPdfFilename = modLayout.buildSuratPdfFilename;
     getStandardGridCSS = modLayout.getStandardGridCSS;
+    forceChromePrintStyles = modLayout.forceChromePrintStyles;
   }
   if (!TriaseComponent) {
     const modTriase = await import("./chunk-TRIASE.js");
@@ -362,6 +364,12 @@ class SimrsMassDownloader {
 
     modalBody.innerHTML = `
       ${infoPatientHtml}
+      <div class="alert alert-info py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
+        <i class="bi bi-info-circle-fill fs-5 text-primary flex-shrink-0"></i>
+        <div>
+          <strong>Hasil Kualitas Cetak Asli:</strong> Gunakan tombol <strong>"Cetak / Simpan PDF Asli"</strong> untuk membuka jendela Cetak browser dengan ketajaman vector 100% dan pilih <em>Simpan sebagai PDF</em>.
+        </div>
+      </div>
       <div class="d-flex justify-content-between align-items-center mb-2">
         <span class="fw-semibold text-muted small">DOKUMEN TERSEDIA (${filledCount} DARI ${results.length})</span>
         <div class="small">
@@ -398,10 +406,17 @@ class SimrsMassDownloader {
     `;
 
     modalFooter.innerHTML = `
-      <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">Batal</button>
-      <button type="button" id="btn-exec-mass-download" class="btn btn-primary px-4 fw-bold">
-        <i class="bi bi-cloud-arrow-down-fill me-1"></i> Unduh Dokumen Terpilih
-      </button>
+      <div class="d-flex justify-content-between align-items-center w-100 flex-wrap gap-2">
+        <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">Batal</button>
+        <div class="d-flex gap-2">
+          <button type="button" id="btn-print-native-mass" class="btn btn-outline-dark px-3 fw-bold">
+            <i class="bi bi-printer-fill me-1"></i> Cetak / Simpan PDF Asli
+          </button>
+          <button type="button" id="btn-exec-mass-download" class="btn btn-primary px-3 fw-bold">
+            <i class="bi bi-cloud-arrow-down-fill me-1"></i> Unduh File (ZIP / PDF)
+          </button>
+        </div>
+      </div>
     `;
 
     const btnSelectAll = modalBody.querySelector("#btn-select-all-mass");
@@ -414,6 +429,106 @@ class SimrsMassDownloader {
     if (btnDeselectAll) {
       btnDeselectAll.addEventListener("click", () => {
         modalBody.querySelectorAll(".mass-doc-item:not([disabled])").forEach((chk) => (chk.checked = false));
+      });
+    }
+
+    const printNativeBtn = modalFooter.querySelector("#btn-print-native-mass");
+    if (printNativeBtn) {
+      printNativeBtn.addEventListener("click", async () => {
+        const checkedIndices = Array.from(modalBody.querySelectorAll(".mass-doc-item:checked")).map((chk) => parseInt(chk.value, 10));
+        if (checkedIndices.length === 0) {
+          alert("Pilih setidaknya 1 dokumen yang ingin dicetak!");
+          return;
+        }
+
+        const selectedDocs = checkedIndices.map((idx) => results[idx]);
+
+        printNativeBtn.disabled = true;
+        const origText = printNativeBtn.innerHTML;
+        printNativeBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1" role="status"></span> Menyiapkan cetakan...`;
+
+        try {
+          let printHost = document.getElementById("simrs-mass-print-host");
+          if (!printHost) {
+            printHost = document.createElement("div");
+            printHost.id = "simrs-mass-print-host";
+            document.body.appendChild(printHost);
+          }
+
+          const patientPayload = {
+            noMr: noMr,
+            norm: noMr,
+            nama: namaPasien,
+            namaPasien: namaPasien,
+            tglLahir: pObj.tglLahir || "",
+            kelamin: pObj.kelamin || "",
+            dokterDpjp: pObj.dokterDpjp || pObj.dpjp || pObj.namaDokter || "",
+            dpjp: pObj.dokterDpjp || pObj.dpjp || pObj.namaDokter || "",
+            tglInput: pObj.tglInput || pObj.tglMasuk || "",
+            tglMasuk: pObj.tglInput || pObj.tglMasuk || "",
+            poli: pObj.poli || "",
+            poliNama: pObj.poliNama || ""
+          };
+
+          let combinedHtml = "";
+          for (let i = 0; i < selectedDocs.length; i++) {
+            const doc = selectedDocs[i];
+            combinedHtml += doc.render(patientPayload, doc.data);
+          }
+
+          printHost.innerHTML = combinedHtml;
+          printHost.classList.add("has-docs");
+
+          const imgs = Array.from(printHost.querySelectorAll("img"));
+          await Promise.all(
+            imgs.map((img) => {
+              if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+              if (typeof img.decode === "function") {
+                return img.decode().catch(() => {});
+              }
+              return new Promise((resolve) => {
+                img.onload = () => resolve();
+                img.onerror = () => resolve();
+                setTimeout(resolve, 800);
+              });
+            })
+          );
+
+          if (document.fonts && document.fonts.ready) {
+            try {
+              await document.fonts.ready;
+            } catch (e) {}
+          }
+
+          const isLandscape = !printHost.querySelector('.surat-document, .surat-page') && !!printHost.querySelector('.surat-document-landscape, .surat-page-landscape');
+          if (forceChromePrintStyles) {
+            forceChromePrintStyles(isLandscape);
+          }
+
+          document.body.classList.add("simrs-printing-mass");
+
+          const cleanup = () => {
+            document.body.classList.remove("simrs-printing-mass");
+            if (printHost) {
+              printHost.innerHTML = "";
+              printHost.classList.remove("has-docs");
+            }
+            window.removeEventListener("afterprint", cleanup);
+            printNativeBtn.disabled = false;
+            printNativeBtn.innerHTML = origText;
+          };
+
+          window.addEventListener("afterprint", cleanup);
+
+          setTimeout(() => {
+            window.print();
+            setTimeout(cleanup, 2500);
+          }, 300);
+        } catch (err) {
+          alert("Gagal menyiapkan cetakan: " + err.message);
+          printNativeBtn.disabled = false;
+          printNativeBtn.innerHTML = origText;
+        }
       });
     }
 
@@ -458,13 +573,11 @@ class SimrsMassDownloader {
               box-sizing: border-box !important;
               width: 215.9mm !important;
               max-width: 215.9mm !important;
-              height: 1247px !important;
-              max-height: 1247px !important;
+              min-height: 1247px !important;
               margin: 0 auto !important;
               margin-bottom: 0 !important;
-              padding: 6mm !important;
+              padding: 5mm !important;
               box-shadow: none !important;
-              overflow: hidden !important;
               page-break-inside: avoid !important;
               break-inside: avoid !important;
               page-break-after: always !important;
@@ -480,13 +593,11 @@ class SimrsMassDownloader {
               box-sizing: border-box !important;
               width: 330.2mm !important;
               max-width: 330.2mm !important;
-              height: 815px !important;
-              max-height: 815px !important;
+              min-height: 809px !important;
               margin: 0 auto !important;
               margin-bottom: 0 !important;
               padding: 5mm !important;
               box-shadow: none !important;
-              overflow: hidden !important;
               page-break-inside: avoid !important;
               break-inside: avoid !important;
               page-break-after: always !important;
@@ -569,11 +680,40 @@ class SimrsMassDownloader {
             const isLandscape = !!renderHost.querySelector('.surat-document-landscape, .surat-page-landscape');
             renderHost.style.width = isLandscape ? '330.2mm' : '215.9mm';
 
+            const imgs = Array.from(renderHost.querySelectorAll("img"));
+            await Promise.all(
+              imgs.map((img) => {
+                if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+                if (typeof img.decode === "function") {
+                  return img.decode().catch(() => {});
+                }
+                return new Promise((resolve) => {
+                  img.onload = () => resolve();
+                  img.onerror = () => resolve();
+                  setTimeout(resolve, 800);
+                });
+              })
+            );
+
+            if (document.fonts && document.fonts.ready) {
+              try {
+                await document.fonts.ready;
+              } catch (e) {}
+            }
+
             const opt = {
               margin: [0, 0, 0, 0],
               filename: doc.filename,
-              image: { type: "jpeg", quality: 0.98 },
-              html2canvas: { scale: 2, useCORS: true, logging: false },
+              image: { type: "jpeg", quality: 1.0 },
+              html2canvas: {
+                scale: 2.5,
+                useCORS: true,
+                logging: false,
+                scrollX: 0,
+                scrollY: 0,
+                backgroundColor: "#ffffff",
+                letterRendering: true
+              },
               jsPDF: {
                 unit: "mm",
                 format: isLandscape ? [330.2, 215.9] : [215.9, 330.2],
@@ -590,6 +730,10 @@ class SimrsMassDownloader {
               saveBlobAs(pdfBlob, doc.filename);
               await new Promise((r) => setTimeout(r, 600));
             }
+          }
+
+          if (renderHost) {
+            renderHost.innerHTML = "";
           }
 
           progressBar.style.width = "100%";
