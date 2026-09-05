@@ -448,7 +448,7 @@ export async function downloadSuratAsPdf(targetElement, filename, isLandscape = 
     filename: filename || "dokumen.pdf",
     image: { type: "jpeg", quality: 1.0 },
     html2canvas: {
-      scale: 2.5,
+      scale: 3,
       useCORS: true,
       logging: false,
       scrollX: 0,
@@ -462,7 +462,7 @@ export async function downloadSuratAsPdf(targetElement, filename, isLandscape = 
       orientation: isLandscape ? "landscape" : "portrait"
     },
     pagebreak: {
-      mode: ["avoid-all", "css", "legacy"]
+      mode: ["css", "legacy"]
     }
   };
 

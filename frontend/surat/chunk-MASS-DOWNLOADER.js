@@ -868,7 +868,7 @@ class SimrsMassDownloader {
               filename: doc.filename,
               image: { type: "jpeg", quality: 1.0 },
               html2canvas: {
-                scale: 2.5,
+                scale: 3,
                 useCORS: true,
                 logging: false,
                 scrollX: 0,
@@ -881,7 +881,7 @@ class SimrsMassDownloader {
                 format: isLandscape ? [330.2, 215.9] : [215.9, 330.2],
                 orientation: isLandscape ? "landscape" : "portrait"
               },
-              pagebreak: { mode: ["avoid-all", "css", "legacy"] }
+              pagebreak: { mode: ["css", "legacy"] }
             };
 
             const pdfBlob = await window.html2pdf().set(opt).from(renderHost).outputPdf("blob");
