@@ -9,16 +9,14 @@ let PemberianObatIgdComponent = null;
 let GeneralConsentComponent = null;
 let CpptPoliComponent = null;
 let EdukasiPoliComponent = null;
-let loadHtml2Pdf = null;
 let buildSuratPdfFilename = null;
 let getStandardGridCSS = null;
 let forceChromePrintStyles = null;
 let apiUrl = "";
 
 async function loadDependencies() {
-  if (!loadHtml2Pdf) {
+  if (!getStandardGridCSS) {
     const modLayout = await import("./chunk-SURAT-LAYOUT.js");
-    loadHtml2Pdf = modLayout.loadHtml2Pdf;
     buildSuratPdfFilename = modLayout.buildSuratPdfFilename;
     getStandardGridCSS = modLayout.getStandardGridCSS;
     forceChromePrintStyles = modLayout.forceChromePrintStyles;
@@ -74,17 +72,6 @@ async function loadDependencies() {
     } catch (e) {}
     if (!apiUrl) apiUrl = "http://36.66.36.106:1822";
   }
-}
-
-async function ensureJSZip() {
-  if (window.JSZip) return window.JSZip;
-  return new Promise((resolve, reject) => {
-    const s = document.createElement("script");
-    s.src = "assets/js/jszip.min.js";
-    s.onload = () => resolve(window.JSZip);
-    s.onerror = () => reject(new Error("Gagal memuat jszip.min.js"));
-    document.head.appendChild(s);
-  });
 }
 
 function saveBlobAs(blob, filename) {
@@ -885,7 +872,7 @@ class SimrsMassDownloader {
       <div class="alert alert-info py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
         <i class="bi bi-info-circle-fill fs-5 text-primary flex-shrink-0"></i>
         <div>
-          <strong>Hasil Kualitas Cetak Asli:</strong> Gunakan tombol <strong>"Cetak / Simpan PDF Asli"</strong> untuk membuka jendela Cetak browser dengan ketajaman vector 100% dan pilih <em>Simpan sebagai PDF</em>.
+          <strong>Hasil Cetak Vektor Asli:</strong> Berkas ZIP akan dirender langsung oleh mesin Chromium backend agar 100% identik dengan hasil cetak asli. Atau gunakan <strong>"Cetak / Simpan PDF Asli"</strong> untuk mencetak langsung di browser.
         </div>
       </div>
       <div class="d-flex justify-content-between align-items-center mb-2">
@@ -896,25 +883,6 @@ class SimrsMassDownloader {
         </div>
       </div>
       <ul class="list-group mb-3">${itemsHtml}</ul>
-      <div class="p-3 bg-light rounded-3 border">
-        <div class="fw-semibold small text-muted mb-2">FORMAT UNDUHAN:</div>
-        <div class="d-flex gap-4">
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="mass-download-format" id="fmt-zip" value="zip" checked>
-            <label class="form-check-label fw-bold" for="fmt-zip">
-              <i class="bi bi-file-earmark-zip text-primary me-1"></i> Paket ZIP (.zip)
-              <div class="small text-muted fw-normal">Semua dokumen dibundel dalam 1 file ZIP</div>
-            </label>
-          </div>
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="mass-download-format" id="fmt-pdf" value="pdf">
-            <label class="form-check-label fw-bold" for="fmt-pdf">
-              <i class="bi bi-file-earmark-pdf text-danger me-1"></i> File Terpisah (.pdf)
-              <div class="small text-muted fw-normal">Masing-masing file PDF diunduh berurutan</div>
-            </label>
-          </div>
-        </div>
-      </div>
       <div id="mass-download-progress-box" class="mt-3 d-none">
         <div class="progress mb-2" style="height: 10px;">
           <div id="mass-download-progressbar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 0%"></div>
@@ -931,7 +899,7 @@ class SimrsMassDownloader {
             <i class="bi bi-printer-fill me-1"></i> Cetak / Simpan PDF Asli
           </button>
           <button type="button" id="btn-exec-mass-download" class="btn btn-primary px-3 fw-bold">
-            <i class="bi bi-cloud-arrow-down-fill me-1"></i> Unduh File (ZIP / PDF)
+            <i class="bi bi-file-earmark-zip-fill me-1"></i> Unduh Berkas ZIP
           </button>
         </div>
       </div>
@@ -1073,7 +1041,6 @@ class SimrsMassDownloader {
         }
 
         const selectedDocs = checkedIndices.map((idx) => results[idx]);
-        const isZip = modalBody.querySelector("#fmt-zip").checked;
 
         execBtn.disabled = true;
         const progressBox = modalBody.querySelector("#mass-download-progress-box");
@@ -1082,13 +1049,6 @@ class SimrsMassDownloader {
         progressBox.classList.remove("d-none");
 
         try {
-          await loadHtml2Pdf();
-          let zip = null;
-          if (isZip) {
-            const JSZip = await ensureJSZip();
-            zip = new JSZip();
-          }
-
           let renderHost = document.getElementById("simrs-mass-render-host");
           if (!renderHost) {
             renderHost = document.createElement("div");
@@ -1099,13 +1059,14 @@ class SimrsMassDownloader {
 
           const allSuratCss = `
             ${getStandardGridCSS ? getStandardGridCSS() : ''}
-            #simrs-mass-render-host .surat-document,
-            #simrs-mass-render-host .surat-page {
+            @page { size: 215.9mm 330.2mm; margin: 0; }
+            @page surat-landscape { size: 330.2mm 215.9mm; margin: 0; }
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0; padding: 0; background: #fff; }
+            .surat-document, .surat-page {
               box-sizing: border-box !important;
               width: 215.9mm !important;
               max-width: 215.9mm !important;
-              margin: 0 !important;
-              margin-bottom: 0 !important;
+              margin: 0 auto !important;
               padding: 5mm !important;
               box-shadow: none !important;
               page-break-inside: avoid !important;
@@ -1113,27 +1074,24 @@ class SimrsMassDownloader {
               page-break-after: always !important;
               break-after: page !important;
             }
-            #simrs-mass-render-host .surat-document:last-child,
-            #simrs-mass-render-host .surat-page:last-child {
+            .surat-document:last-child, .surat-page:last-child {
               page-break-after: avoid !important;
               break-after: avoid !important;
             }
-            #simrs-mass-render-host .surat-document-landscape,
-            #simrs-mass-render-host .surat-page-landscape {
+            .surat-document-landscape, .surat-page-landscape {
               box-sizing: border-box !important;
               width: 330.2mm !important;
               max-width: 330.2mm !important;
-              margin: 0 !important;
-              margin-bottom: 0 !important;
+              margin: 0 auto !important;
               padding: 5mm !important;
               box-shadow: none !important;
               page-break-inside: avoid !important;
               break-inside: avoid !important;
               page-break-after: always !important;
               break-after: page !important;
+              page: surat-landscape !important;
             }
-            #simrs-mass-render-host .surat-document-landscape:last-child,
-            #simrs-mass-render-host .surat-page-landscape:last-child {
+            .surat-document-landscape:last-child, .surat-page-landscape:last-child {
               page-break-after: avoid !important;
               break-after: avoid !important;
             }
@@ -1234,20 +1192,18 @@ class SimrsMassDownloader {
             poliNama: pObj.poliNama || ""
           };
 
+          const documentsPayload = [];
+
           for (let i = 0; i < selectedDocs.length; i++) {
             const doc = selectedDocs[i];
-            const percent = Math.round(((i) / selectedDocs.length) * 100);
+            const percent = Math.round(((i + 1) / (selectedDocs.length + 1)) * 40);
             progressBar.style.width = `${percent}%`;
-            statusText.textContent = `Memproses (${i + 1}/${selectedDocs.length}): ${doc.title}...`;
+            statusText.textContent = `Menyiapkan formulir (${i + 1}/${selectedDocs.length}): ${doc.title}...`;
 
-            const fullHtml = doc.render(patientPayload, doc.data);
-            renderHost.innerHTML = `<style>${allSuratCss}</style>` + fullHtml;
+            const rawHtml = doc.render(patientPayload, doc.data);
+            renderHost.innerHTML = rawHtml;
 
-            const isLandscape = !!renderHost.querySelector('.surat-document-landscape, .surat-page-landscape');
-            renderHost.style.width = isLandscape ? '330.2mm' : '215.9mm';
-            renderHost.style.margin = '0';
-            renderHost.style.padding = '0';
-            renderHost.style.boxSizing = 'border-box';
+            const isLandscape = !renderHost.querySelector('.surat-document, .surat-page') && !!renderHost.querySelector('.surat-document-landscape, .surat-page-landscape');
 
             const imgs = Array.from(renderHost.querySelectorAll("img"));
             await Promise.all(
@@ -1264,63 +1220,73 @@ class SimrsMassDownloader {
               })
             );
 
-            if (document.fonts && document.fonts.ready) {
-              try {
-                await document.fonts.ready;
-              } catch (e) {}
+            for (const img of imgs) {
+              if (img.src && !img.src.startsWith("data:")) {
+                try {
+                  const canvas = document.createElement("canvas");
+                  canvas.width = img.naturalWidth || img.width || 100;
+                  canvas.height = img.naturalHeight || img.height || 100;
+                  const ctx = canvas.getContext("2d");
+                  ctx.drawImage(img, 0, 0);
+                  img.src = canvas.toDataURL("image/png");
+                } catch (e) {}
+              }
             }
 
-            const docWidthMm = isLandscape ? 330.2 : 215.9;
-            const docWidthPx = Math.round((docWidthMm / 25.4) * 96);
+            const standaloneHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    ${allSuratCss}
+  </style>
+</head>
+<body style="margin:0;padding:0;background:#fff;">
+  ${renderHost.innerHTML}
+</body>
+</html>`;
 
-            const opt = {
-              margin: [0, 0, 0, 0],
+            documentsPayload.push({
               filename: doc.filename,
-              image: { type: "jpeg", quality: 1.0 },
-              html2canvas: {
-                scale: 3,
-                useCORS: true,
-                logging: false,
-                scrollX: 0,
-                scrollY: 0,
-                x: 0,
-                y: 0,
-                windowWidth: docWidthPx,
-                backgroundColor: "#ffffff",
-                letterRendering: true
-              },
-              jsPDF: {
-                unit: "mm",
-                format: isLandscape ? [330.2, 215.9] : [215.9, 330.2],
-                orientation: isLandscape ? "landscape" : "portrait"
-              },
-              pagebreak: { mode: ["css", "legacy"] }
-            };
-
-            const pdfBlob = await window.html2pdf().set(opt).from(renderHost).outputPdf("blob");
-
-            if (isZip) {
-              zip.file(doc.filename, pdfBlob);
-            } else {
-              saveBlobAs(pdfBlob, doc.filename);
-              await new Promise((r) => setTimeout(r, 600));
-            }
+              html: standaloneHtml,
+              landscape: isLandscape
+            });
           }
 
           if (renderHost) {
             renderHost.innerHTML = "";
           }
 
-          progressBar.style.width = "100%";
-          if (isZip) {
-            statusText.textContent = "Mengompres berkas ke dalam ZIP...";
-            const unitTag = activeUnit;
-            const zipFilename = `DOKUMEN_${unitTag}_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.zip`;
-            const zipBlob = await zip.generateAsync({ type: "blob" });
-            saveBlobAs(zipBlob, zipFilename);
+          progressBar.style.width = "60%";
+          statusText.textContent = "Server sedang merender PDF vektor dengan Chromium...";
+
+          const unitTag = activeUnit;
+          const zipFilename = `DOKUMEN_${unitTag}_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.zip`;
+
+          const response = await fetch(`${baseApi}/simrsba/export-pdf-zip`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              zipFilename,
+              documents: documentsPayload
+            })
+          });
+
+          if (!response.ok) {
+            const errData = await response.json().catch(() => null);
+            throw new Error((errData && errData.message) || `HTTP ${response.status}: Gagal mengunduh ZIP`);
           }
 
-          statusText.innerHTML = '<span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i> Pengunduhan berkas selesai!</span>';
+          progressBar.style.width = "90%";
+          statusText.textContent = "Mengunduh file ZIP...";
+
+          const zipBlob = await response.blob();
+          saveBlobAs(zipBlob, zipFilename);
+
+          progressBar.style.width = "100%";
+          statusText.innerHTML = '<span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i> Pengunduhan berkas ZIP selesai!</span>';
           execBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i> Selesai';
           execBtn.classList.replace("btn-primary", "btn-success");
 

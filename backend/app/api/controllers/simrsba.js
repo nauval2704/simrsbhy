@@ -63,6 +63,14 @@ let sharp = null;
 try {
   sharp = require("sharp");
 } catch (e) {}
+let puppeteer = null;
+try {
+  puppeteer = require("puppeteer");
+} catch (e) {}
+let archiver = null;
+try {
+  archiver = require("archiver");
+} catch (e) {}
 var mongoose = require("mongoose");
 const { ObjectId } = mongoose.Types.ObjectId;
 
@@ -4670,6 +4678,124 @@ module.exports = {
         error: err.message,
         data: null,
       });
+    }
+  },
+  exportPdfZip: async (req, res) => {
+    let browser = null;
+    try {
+      if (!puppeteer || !archiver) {
+        return res.status(500).json({
+          status: "error",
+          message: "Puppeteer atau Archiver belum terpasang di server.",
+          data: null,
+        });
+      }
+
+      const { zipFilename, documents } = req.body;
+      if (!Array.isArray(documents) || documents.length === 0) {
+        return res.status(400).json({
+          status: "error",
+          message: "Dokumen tidak boleh kosong.",
+          data: null,
+        });
+      }
+
+      const safeZipName = (zipFilename || "BERKAS_REKAM_MEDIS.zip").replace(/[^a-zA-Z0-9._-]/g, "_");
+
+      const launchOptions = {
+        headless: "new",
+        args: [
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--disable-dev-shm-usage",
+          "--disable-gpu",
+          "--font-render-hinting=none",
+        ],
+      };
+      if (fs.existsSync("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe")) {
+        launchOptions.executablePath = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+      }
+
+      browser = await puppeteer.launch(launchOptions);
+
+      let archive;
+      if (archiver.ZipArchive) {
+        archive = new archiver.ZipArchive({ zlib: { level: 6 } });
+      } else if (typeof archiver === "function") {
+        archive = archiver("zip", { zlib: { level: 6 } });
+      } else if (archiver.create) {
+        archive = archiver.create("zip", { zlib: { level: 6 } });
+      } else {
+        throw new Error("Format ZIP tidak didukung");
+      }
+
+      res.setHeader("Content-Type", "application/zip");
+      res.setHeader("Content-Disposition", `attachment; filename="${safeZipName}"`);
+
+      archive.on("error", (err) => {
+        if (!res.headersSent) {
+          res.status(500).send({ error: err.message });
+        }
+      });
+
+      archive.pipe(res);
+
+      for (const doc of documents) {
+        if (!doc || !doc.html) continue;
+        let page = null;
+        try {
+          page = await browser.newPage();
+          const isLandscape = Boolean(doc.landscape);
+          const docWidth = isLandscape ? "330.2mm" : "215.9mm";
+          const docHeight = isLandscape ? "215.9mm" : "330.2mm";
+
+          await page.setContent(doc.html, {
+            waitUntil: "load",
+            timeout: 30000,
+          });
+          await page.emulateMediaType("print");
+          try {
+            await page.evaluateHandle("document.fonts.ready");
+          } catch (fErr) {}
+
+          const pdfBuffer = await page.pdf({
+            width: docWidth,
+            height: docHeight,
+            printBackground: true,
+            margin: { top: "0mm", right: "0mm", bottom: "0mm", left: "0mm" },
+            preferCSSPageSize: true,
+          });
+
+          const safeDocName = (doc.filename || "DOKUMEN.pdf").replace(/[^a-zA-Z0-9._-]/g, "_");
+          archive.append(Buffer.from(pdfBuffer), { name: safeDocName });
+        } catch (pageErr) {
+          const safeDocName = (doc.filename || "ERROR.txt").replace(/[^a-zA-Z0-9._-]/g, "_") + ".txt";
+          archive.append(Buffer.from("Gagal merender dokumen: " + pageErr.message), { name: safeDocName });
+        } finally {
+          if (page) {
+            try {
+              await page.close();
+            } catch (e) {}
+          }
+        }
+      }
+
+      await archive.finalize();
+    } catch (err) {
+      if (!res.headersSent) {
+        res.status(500).json({
+          status: "error",
+          message: "Gagal mengekspor PDF ZIP",
+          error: err.message,
+          data: null,
+        });
+      }
+    } finally {
+      if (browser) {
+        try {
+          await browser.close();
+        } catch (e) {}
+      }
     }
   },
 };

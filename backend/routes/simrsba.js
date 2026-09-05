@@ -235,5 +235,6 @@ router.get("/listnakesuser", authenticateToken, authorizeRoles("ROLE_SDM"), simr
 router.get("/unlinkedusers", authenticateToken, authorizeRoles("ROLE_SDM"), simrsBaController.listUnlinkedUsers);
 router.post("/updatenakesuser", authenticateToken, authorizeRoles("ROLE_SDM"), simrsBaController.updateNakesUser);
 router.post("/deletenakesuser", authenticateToken, authorizeRoles("ROLE_SDM"), simrsBaController.deleteNakesUser);
+router.post("/export-pdf-zip", simrsBaController.exportPdfZip);
 
 module.exports = router;
