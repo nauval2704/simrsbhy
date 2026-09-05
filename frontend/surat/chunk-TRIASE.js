@@ -7,7 +7,7 @@ import {
   ra as inject,
 } from "../chunk-UYVTZL26.js";
 import "./chunk-SURAT-CANVAS.js";
-import { getStandardGridCSS, createSuratShell, createAutoPageSurat, bindSuratPrintButton, hospitalHeaderDiv, buildSuratPdfFilename } from "./chunk-SURAT-LAYOUT.js";
+import { getStandardGridCSS, createSuratShell, bindSuratPrintButton, hospitalHeaderDiv, buildSuratPdfFilename, footerLabel } from "./chunk-SURAT-LAYOUT.js";
 
 function renderTemplate(t, s) {
   if (t & 1) {
@@ -953,12 +953,17 @@ var TriaseComponent = (() => {
                 </div>
               `;
 
-          printContainer.innerHTML = createAutoPageSurat({
-            headerHtml: hospitalHeaderDiv(noMr, nama, tglLahir, kelamin, getFontSize, 'FORMULIR TRIASE GAWAT DARURAT'),
-            bodyHtml: bodyHtml,
-            footerHtml: '',
-            footerLabelCode: 'RM03/RSBHY/2022'
-          });
+          printContainer.innerHTML = `
+            <div class="surat-document" style="display: flex; flex-direction: column;">
+              <div style="flex-shrink: 0;">
+                ${hospitalHeaderDiv(noMr, nama, tglLahir, kelamin, getFontSize, 'FORMULIR TRIASE GAWAT DARURAT')}
+              </div>
+              <div style="flex: 1; display: flex; flex-direction: column;">
+                ${bodyHtml}
+              </div>
+              ${footerLabel('RM03/RSBHY/2022')}
+            </div>
+          `;
           syncToPreview();
         });
       }
@@ -1174,16 +1179,19 @@ var TriaseComponent = (() => {
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>`;
+            </div>`;
 
-      return createAutoPageSurat({
-        headerHtml: hospitalHeaderDiv(noMr, nama, tglLahir, kelamin, getFontSize, 'FORMULIR TRIASE GAWAT DARURAT'),
-        bodyHtml: bodyHtml,
-        footerHtml: '',
-        footerLabelCode: 'RM03/RSBHY/2022'
-      });
+      return `
+        <div class="surat-document" style="display: flex; flex-direction: column;">
+          <div style="flex-shrink: 0;">
+            ${hospitalHeaderDiv(noMr, nama, tglLahir, kelamin, getFontSize, 'FORMULIR TRIASE GAWAT DARURAT')}
+          </div>
+          <div style="flex: 1; display: flex; flex-direction: column;">
+            ${bodyHtml}
+          </div>
+          ${footerLabel('RM03/RSBHY/2022')}
+        </div>
+      `;
     }
 
     static {

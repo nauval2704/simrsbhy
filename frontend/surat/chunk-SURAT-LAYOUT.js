@@ -134,17 +134,19 @@ export function getStandardGridCSS() {
   .tab-pane:not(:has(.surat-document)):not(:has(.surat-document-landscape)):not(:has(.surat-page)):not(:has(.surat-page-landscape)), .card:not(:has(.surat-document)):not(:has(.surat-document-landscape)):not(:has(.surat-page)):not(:has(.surat-page-landscape)), .alert:not(:has(.surat-document)):not(:has(.surat-document-landscape)):not(:has(.surat-page)):not(:has(.surat-page-landscape)), .tab-content > *:not(:has(.surat-document)):not(:has(.surat-document-landscape)):not(:has(.surat-page)):not(:has(.surat-page-landscape)), .f-group, .form-group, .form-control, .form-select { display: none !important; }
   html, body, app-root, app-pasien-details, .content-wrapper, .container-fluid, .container, .main-content, .card:has(.surat-document), .card:has(.surat-document-landscape), .card:has(.surat-page), .card:has(.surat-page-landscape), .card-body:has(.surat-document), .card-body:has(.surat-document-landscape), .card-body:has(.surat-page), .card-body:has(.surat-page-landscape), .tab-content:has(.surat-document), .tab-content:has(.surat-page), .tab-pane:has(.surat-document), .tab-pane:has(.surat-document-landscape), .tab-pane:has(.surat-page), .tab-pane:has(.surat-page-landscape), .row, [class*="col-"]:not(.simrs-sidebar-col) { width: 100% !important; max-width: 100% !important; height: auto !important; min-height: 0 !important; max-height: none !important; overflow: visible !important; position: static !important; padding: 0 !important; margin: 0 !important; float: none !important; display: block !important; box-sizing: border-box !important; }
   .surat-print-bg { background: transparent !important; padding: 0 !important; margin: 0 !important; width: 100% !important; display: block !important; box-sizing: border-box !important; }
-  .surat-document, .surat-page {box-sizing:border-box !important;width:215.9mm !important;max-width:215.9mm !important;padding: 5mm !important;overflow:hidden !important;page-break-inside:avoid !important;break-inside:avoid !important;min-height:330.2mm !important;box-shadow:none !important;margin:0 auto !important;page-break-after:always;break-after:page;}
-  .surat-document-landscape, .surat-page-landscape {box-sizing:border-box !important;width:330.2mm !important;max-width:330.2mm !important;padding: 5mm !important;overflow:hidden !important;page-break-inside:avoid !important;break-inside:avoid !important;min-height:214mm !important;box-shadow:none !important;margin:0 auto !important;page-break-after:auto !important;break-after:auto !important;page:surat-landscape;}
-  .surat-document:last-child, .surat-page:last-child, .surat-document-landscape:last-child, .surat-page-landscape:last-child {page-break-after:auto !important;break-after:auto !important;}
+  .surat-document, .surat-page {box-sizing:border-box !important;width:215.9mm !important;max-width:215.9mm !important;padding: 5mm !important;overflow:hidden !important;page-break-inside:avoid !important;break-inside:avoid !important;box-shadow:none !important;margin:0 auto !important;page-break-after:always;break-after:page;}
+  .surat-document-landscape, .surat-page-landscape {box-sizing:border-box !important;width:330.2mm !important;max-width:330.2mm !important;padding: 5mm !important;overflow:hidden !important;page-break-inside:avoid !important;break-inside:avoid !important;box-shadow:none !important;margin:0 auto !important;page-break-after:auto !important;break-after:auto !important;page:surat-landscape;}
+  .surat-document:last-child, .surat-page:last-child, .surat-document-landscape:last-child, .surat-page-landscape:last-child {page-break-after:avoid !important;break-after:avoid !important;}
   .pap-master-grid, table.master-grid, table.t-border, table.fpo-table, table.pap-inner-align, table { width: 100% !important; max-width: 100% !important; margin: 0 auto !important; box-sizing: border-box !important; }
+  body.simrs-printing-mass > *:not(#simrs-mass-print-host) { display: none !important; visibility: hidden !important; height: 0 !important; width: 0 !important; opacity: 0 !important; overflow: hidden !important; position: absolute !important; left: -9999px !important; top: -9999px !important; }
+  body.simrs-printing-mass #simrs-mass-downloader-modal, body.simrs-printing-mass .modal, body.simrs-printing-mass .modal-backdrop { display: none !important; visibility: hidden !important; opacity: 0 !important; }
   body.simrs-printing-mass app-root { display: none !important; }
   body.simrs-printing-mass #simrs-mass-print-host { display: block !important; width: 100% !important; margin: 0 auto !important; padding: 0 !important; background: transparent !important; }
   #simrs-mass-print-host:not(.has-docs) { display: none !important; }
   body.simrs-printing-mass #simrs-mass-print-host .surat-document, body.simrs-printing-mass #simrs-mass-print-host .surat-page { box-sizing: border-box !important; width: 215.9mm !important; max-width: 215.9mm !important; padding: 5mm !important; margin: 0 auto !important; box-shadow: none !important; page-break-after: always !important; break-after: page !important; page-break-inside: avoid !important; break-inside: avoid !important; }
-  body.simrs-printing-mass #simrs-mass-print-host .surat-document:last-child, body.simrs-printing-mass #simrs-mass-print-host .surat-page:last-child { page-break-after: auto !important; break-after: auto !important; }
+  body.simrs-printing-mass #simrs-mass-print-host .surat-document:last-child, body.simrs-printing-mass #simrs-mass-print-host .surat-page:last-child { page-break-after: avoid !important; break-after: avoid !important; }
   body.simrs-printing-mass #simrs-mass-print-host .surat-document-landscape, body.simrs-printing-mass #simrs-mass-print-host .surat-page-landscape { box-sizing: border-box !important; width: 330.2mm !important; max-width: 330.2mm !important; padding: 5mm !important; margin: 0 auto !important; box-shadow: none !important; page-break-after: always !important; break-after: page !important; page-break-inside: avoid !important; break-inside: avoid !important; page: surat-landscape !important; }
-  body.simrs-printing-mass #simrs-mass-print-host .surat-document-landscape:last-child, body.simrs-printing-mass #simrs-mass-print-host .surat-page-landscape:last-child { page-break-after: auto !important; break-after: auto !important; }
+  body.simrs-printing-mass #simrs-mass-print-host .surat-document-landscape:last-child, body.simrs-printing-mass #simrs-mass-print-host .surat-page-landscape:last-child { page-break-after: avoid !important; break-after: avoid !important; }
 }
 `;
 }
@@ -274,6 +276,42 @@ export function forceChromePrintStyles(isLandscape = false) {
         padding: 5mm !important;
         box-shadow: none !important;
         box-sizing: border-box !important;
+      }
+      .surat-document:last-child, .surat-page:last-child, .surat-document-landscape:last-child, .surat-page-landscape:last-child {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      body.simrs-printing-mass > *:not(#simrs-mass-print-host) {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        width: 0 !important;
+        overflow: hidden !important;
+        position: absolute !important;
+        left: -9999px !important;
+        top: -9999px !important;
+        opacity: 0 !important;
+      }
+      body.simrs-printing-mass #simrs-mass-downloader-modal,
+      body.simrs-printing-mass .modal,
+      body.simrs-printing-mass .modal-backdrop {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+      }
+      body.simrs-printing-mass #simrs-mass-print-host {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
+        background: transparent !important;
+      }
+      body.simrs-printing-mass #simrs-mass-print-host .surat-document:last-child,
+      body.simrs-printing-mass #simrs-mass-print-host .surat-page:last-child,
+      body.simrs-printing-mass #simrs-mass-print-host .surat-document-landscape:last-child,
+      body.simrs-printing-mass #simrs-mass-print-host .surat-page-landscape:last-child {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
       }
     }
   `;

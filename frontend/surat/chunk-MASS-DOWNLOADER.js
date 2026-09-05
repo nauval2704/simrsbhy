@@ -661,9 +661,14 @@ class SimrsMassDownloader {
             forceChromePrintStyles(isLandscape);
           }
 
+          modalEl.style.setProperty("display", "none", "important");
           document.body.classList.add("simrs-printing-mass");
 
+          let cleanedUp = false;
           const cleanup = () => {
+            if (cleanedUp) return;
+            cleanedUp = true;
+            modalEl.style.setProperty("display", "block", "important");
             document.body.classList.remove("simrs-printing-mass");
             if (printHost) {
               printHost.innerHTML = "";
