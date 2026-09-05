@@ -1156,7 +1156,10 @@ class SimrsMassDownloader {
 
           if (!response.ok) {
             const errData = await response.json().catch(() => null);
-            throw new Error((errData && errData.message) || `HTTP ${response.status}: Gagal mengunduh ZIP`);
+            const msg = (errData && errData.error && errData.error !== errData.message)
+              ? `${errData.message} (${errData.error})`
+              : ((errData && errData.message) || `HTTP ${response.status}: Gagal mengunduh ZIP`);
+            throw new Error(msg);
           }
 
           progressBar.style.width = "90%";

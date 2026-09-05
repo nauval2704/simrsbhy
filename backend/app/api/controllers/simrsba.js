@@ -4806,7 +4806,7 @@ module.exports = {
       if (!res.headersSent) {
         res.status(500).json({
           status: "error",
-          message: "Gagal mengekspor PDF ZIP",
+          message: "Gagal mengekspor PDF ZIP: " + (err.message || String(err)),
           error: err.message,
           data: null,
         });
