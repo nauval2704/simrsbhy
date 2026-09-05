@@ -737,7 +737,7 @@ class SimrsMassDownloader {
               box-sizing: border-box !important;
               width: 215.9mm !important;
               max-width: 215.9mm !important;
-              margin: 0 auto !important;
+              margin: 0 !important;
               margin-bottom: 0 !important;
               padding: 5mm !important;
               box-shadow: none !important;
@@ -756,7 +756,7 @@ class SimrsMassDownloader {
               box-sizing: border-box !important;
               width: 330.2mm !important;
               max-width: 330.2mm !important;
-              margin: 0 auto !important;
+              margin: 0 !important;
               margin-bottom: 0 !important;
               padding: 5mm !important;
               box-shadow: none !important;
@@ -841,6 +841,9 @@ class SimrsMassDownloader {
 
             const isLandscape = !!renderHost.querySelector('.surat-document-landscape, .surat-page-landscape');
             renderHost.style.width = isLandscape ? '330.2mm' : '215.9mm';
+            renderHost.style.margin = '0';
+            renderHost.style.padding = '0';
+            renderHost.style.boxSizing = 'border-box';
 
             const imgs = Array.from(renderHost.querySelectorAll("img"));
             await Promise.all(
@@ -863,6 +866,9 @@ class SimrsMassDownloader {
               } catch (e) {}
             }
 
+            const docWidthMm = isLandscape ? 330.2 : 215.9;
+            const docWidthPx = Math.round((docWidthMm / 25.4) * 96);
+
             const opt = {
               margin: [0, 0, 0, 0],
               filename: doc.filename,
@@ -873,6 +879,9 @@ class SimrsMassDownloader {
                 logging: false,
                 scrollX: 0,
                 scrollY: 0,
+                x: 0,
+                y: 0,
+                windowWidth: docWidthPx,
                 backgroundColor: "#ffffff",
                 letterRendering: true
               },

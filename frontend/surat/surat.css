@@ -526,7 +526,7 @@
   .surat-body {
     overflow-x: hidden;
   }
-  .surat-document {
+  .surat-document:not(.surat-exporting-pdf) {
     zoom: calc(100vw / 860);
     margin: 10px 0;
   }
@@ -548,5 +548,44 @@
 
 surat-canvas[data-width] .surat-content,
 .surat-document.multi-page-doc .surat-content {
+  padding: 0 !important;
+}
+
+.surat-exporting-pdf,
+.surat-exporting-pdf * {
+  zoom: 1 !important;
+  -moz-transform: none !important;
+  transform: none !important;
+}
+.html2pdf__overlay {
+  position: fixed !important;
+  left: 0 !important;
+  right: 0 !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+.html2pdf__container {
+  position: absolute !important;
+  left: 0 !important;
+  right: auto !important;
+  top: 0 !important;
+  bottom: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  box-sizing: border-box !important;
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+.html2pdf__container #simrs-mass-render-host {
+  position: relative !important;
+  left: 0 !important;
+  top: 0 !important;
+  margin: 0 !important;
   padding: 0 !important;
 }

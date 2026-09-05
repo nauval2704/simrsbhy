@@ -121,11 +121,15 @@ export function getStandardGridCSS() {
 .surat-document-landscape, .surat-page-landscape { box-sizing:border-box !important; padding: 6mm !important; width:1247px !important; height:816px !important; overflow:hidden !important; position:relative !important; margin:0 auto 20px auto !important; background:#fff; box-shadow:0 0 10px rgba(0,0,0,0.1); text-align:left; display:flex; flex-direction:column; }
 .surat-content{position:relative !important;height:auto !important;overflow:visible !important;padding: 6mm !important;box-sizing:border-box !important;}
 .surat-print-bg{padding:20px 10px;background-color:#525659;text-align:center;border-radius:4px;overflow:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-.surat-exporting-pdf, .surat-print-bg.surat-exporting-pdf, .surat-exporting-pdf.surat-print-bg { background: #ffffff !important; background-color: #ffffff !important; padding: 0 !important; margin: 0 auto !important; box-shadow: none !important; border: none !important; border-radius: 0 !important; width: 215.9mm !important; max-width: 215.9mm !important; }
+.surat-exporting-pdf, .surat-exporting-pdf * { zoom: 1 !important; -moz-transform: none !important; transform: none !important; }
+.html2pdf__overlay { position: fixed !important; left: 0 !important; right: 0 !important; top: 0 !important; bottom: 0 !important; margin: 0 !important; padding: 0 !important; overflow: hidden !important; background-color: #ffffff !important; background: #ffffff !important; }
+.html2pdf__container { position: absolute !important; left: 0 !important; right: auto !important; top: 0 !important; bottom: auto !important; margin: 0 !important; padding: 0 !important; border: none !important; box-sizing: border-box !important; background-color: #ffffff !important; background: #ffffff !important; }
+.html2pdf__container #simrs-mass-render-host { position: relative !important; left: 0 !important; top: 0 !important; margin: 0 !important; padding: 0 !important; }
+.surat-exporting-pdf, .surat-print-bg.surat-exporting-pdf, .surat-exporting-pdf.surat-print-bg { background: #ffffff !important; background-color: #ffffff !important; padding: 0 !important; margin: 0 !important; box-shadow: none !important; border: none !important; border-radius: 0 !important; width: 215.9mm !important; max-width: 215.9mm !important; box-sizing: border-box !important; }
 .surat-exporting-pdf.surat-landscape, .surat-print-bg.surat-exporting-pdf.surat-landscape { width: 330.2mm !important; max-width: 330.2mm !important; }
-.surat-exporting-pdf .surat-document, .surat-exporting-pdf.surat-document, .surat-exporting-pdf .surat-page, .surat-exporting-pdf.surat-page { box-sizing: border-box !important; width: 215.9mm !important; max-width: 215.9mm !important; margin: 0 auto !important; margin-bottom: 0 !important; padding: 5mm !important; box-shadow: none !important; overflow: hidden !important; page-break-inside: avoid !important; break-inside: avoid !important; page-break-after: always !important; break-after: page !important; }
+.surat-exporting-pdf .surat-document, .surat-exporting-pdf.surat-document, .surat-exporting-pdf .surat-page, .surat-exporting-pdf.surat-page { box-sizing: border-box !important; width: 215.9mm !important; max-width: 215.9mm !important; margin: 0 !important; margin-bottom: 0 !important; padding: 5mm !important; box-shadow: none !important; overflow: hidden !important; page-break-inside: avoid !important; break-inside: avoid !important; page-break-after: always !important; break-after: page !important; }
 .surat-exporting-pdf .surat-document:last-child, .surat-exporting-pdf.surat-document:last-child, .surat-exporting-pdf .surat-page:last-child, .surat-exporting-pdf.surat-page:last-child { page-break-after: avoid !important; break-after: avoid !important; }
-.surat-exporting-pdf .surat-document-landscape, .surat-exporting-pdf.surat-document-landscape, .surat-exporting-pdf .surat-page-landscape, .surat-exporting-pdf.surat-page-landscape { box-sizing: border-box !important; width: 330.2mm !important; max-width: 330.2mm !important; margin: 0 auto !important; margin-bottom: 0 !important; padding: 5mm !important; box-shadow: none !important; overflow: hidden !important; page-break-inside: avoid !important; break-inside: avoid !important; page-break-after: always !important; break-after: page !important; }
+.surat-exporting-pdf .surat-document-landscape, .surat-exporting-pdf.surat-document-landscape, .surat-exporting-pdf .surat-page-landscape, .surat-exporting-pdf.surat-page-landscape { box-sizing: border-box !important; width: 330.2mm !important; max-width: 330.2mm !important; margin: 0 !important; margin-bottom: 0 !important; padding: 5mm !important; box-shadow: none !important; overflow: hidden !important; page-break-inside: avoid !important; break-inside: avoid !important; page-break-after: always !important; break-after: page !important; }
 .surat-exporting-pdf .surat-document-landscape:last-child, .surat-exporting-pdf.surat-document-landscape:last-child, .surat-exporting-pdf .surat-page-landscape:last-child, .surat-exporting-pdf.surat-page-landscape:last-child { page-break-after: avoid !important; break-after: avoid !important; }
 @media print{.no-print{display:none !important;}}
 @page{size: 215.9mm 330.2mm; margin: 0;}
@@ -380,17 +384,19 @@ export async function downloadSuratAsPdf(targetElement, filename, isLandscape = 
     boxShadow: targetElement.style.boxShadow,
     borderRadius: targetElement.style.borderRadius,
     width: targetElement.style.width,
-    maxWidth: targetElement.style.maxWidth
+    maxWidth: targetElement.style.maxWidth,
+    boxSizing: targetElement.style.boxSizing
   };
 
   targetElement.style.setProperty("background", "#ffffff", "important");
   targetElement.style.setProperty("background-color", "#ffffff", "important");
   targetElement.style.setProperty("padding", "0", "important");
-  targetElement.style.setProperty("margin", "0 auto", "important");
+  targetElement.style.setProperty("margin", "0", "important");
   targetElement.style.setProperty("box-shadow", "none", "important");
   targetElement.style.setProperty("border-radius", "0", "important");
   targetElement.style.setProperty("width", isLandscape ? "330.2mm" : "215.9mm", "important");
   targetElement.style.setProperty("max-width", isLandscape ? "330.2mm" : "215.9mm", "important");
+  targetElement.style.setProperty("box-sizing", "border-box", "important");
 
   const docOrigStyles = [];
   const targetDocList = isTargetDoc ? [targetElement] : (docs.length > 0 ? docs : [targetElement]);
@@ -401,15 +407,18 @@ export async function downloadSuratAsPdf(targetElement, filename, isLandscape = 
       width: d.style.width,
       maxWidth: d.style.maxWidth,
       padding: d.style.padding,
+      zoom: d.style.zoom,
+      boxSizing: d.style.boxSizing,
       pageBreakAfter: d.style.pageBreakAfter,
       breakAfter: d.style.breakAfter
     });
-    d.style.setProperty("margin", "0 auto", "important");
+    d.style.setProperty("margin", "0", "important");
     d.style.setProperty("box-shadow", "none", "important");
     d.style.setProperty("box-sizing", "border-box", "important");
     d.style.setProperty("width", isLandscape ? "330.2mm" : "215.9mm", "important");
     d.style.setProperty("max-width", isLandscape ? "330.2mm" : "215.9mm", "important");
     d.style.setProperty("padding", "5mm", "important");
+    d.style.setProperty("zoom", "1", "important");
     if (idx < targetDocList.length - 1) {
       d.style.setProperty("page-break-after", "always", "important");
       d.style.setProperty("break-after", "page", "important");
@@ -443,6 +452,9 @@ export async function downloadSuratAsPdf(targetElement, filename, isLandscape = 
     } catch (e) {}
   }
 
+  const docWidthMm = isLandscape ? 330.2 : 215.9;
+  const docWidthPx = Math.round((docWidthMm / 25.4) * 96);
+
   const opt = {
     margin: [0, 0, 0, 0],
     filename: filename || "dokumen.pdf",
@@ -453,6 +465,9 @@ export async function downloadSuratAsPdf(targetElement, filename, isLandscape = 
       logging: false,
       scrollX: 0,
       scrollY: 0,
+      x: 0,
+      y: 0,
+      windowWidth: docWidthPx,
       backgroundColor: "#ffffff",
       letterRendering: true
     },
@@ -480,6 +495,7 @@ export async function downloadSuratAsPdf(targetElement, filename, isLandscape = 
     targetElement.style.borderRadius = origTargetStyles.borderRadius;
     targetElement.style.width = origTargetStyles.width;
     targetElement.style.maxWidth = origTargetStyles.maxWidth;
+    targetElement.style.boxSizing = origTargetStyles.boxSizing;
 
     targetDocList.forEach((d, idx) => {
       const s = docOrigStyles[idx];
@@ -489,6 +505,8 @@ export async function downloadSuratAsPdf(targetElement, filename, isLandscape = 
         d.style.width = s.width;
         d.style.maxWidth = s.maxWidth;
         d.style.padding = s.padding;
+        d.style.zoom = s.zoom;
+        d.style.boxSizing = s.boxSizing;
         d.style.pageBreakAfter = s.pageBreakAfter;
         d.style.breakAfter = s.breakAfter;
       }
