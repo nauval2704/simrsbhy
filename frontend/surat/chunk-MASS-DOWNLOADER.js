@@ -95,9 +95,11 @@ function hideModal(modalEl) {
 class SimrsMassDownloader {
   constructor() {
     this.initNetworkInterceptor();
+    this.initDropdownObserver();
   }
 
   initNetworkInterceptor() {
+    if (typeof XMLHttpRequest === "undefined") return;
     const origOpen = XMLHttpRequest.prototype.open;
     const origSend = XMLHttpRequest.prototype.send;
     XMLHttpRequest.prototype.open = function(method, url) {
@@ -119,6 +121,160 @@ class SimrsMassDownloader {
       });
       return origSend.apply(this, arguments);
     };
+  }
+
+  initDropdownObserver() {
+    if (typeof document === "undefined") return;
+
+    let lastClickedPatient = null;
+    let lastModule = "IGD";
+
+    const detectPatientFromRow = (tr) => {
+      if (!tr) return null;
+
+      const nodes = [tr, ...Array.from(tr.querySelectorAll("button, td, th"))];
+      for (const node of nodes) {
+        const ctx = node.__ngContext__;
+        if (!ctx) continue;
+        if (Array.isArray(ctx)) {
+          for (let i = ctx.length - 1; i >= 0; i--) {
+            const item = ctx[i];
+            if (item && typeof item === "object") {
+              if (item.$implicit && (item.$implicit.noMr || item.$implicit.norm || item.$implicit.noCheckin)) {
+                return item.$implicit;
+              }
+              if (item.noMr || item.norm || item.noCheckin || item.nocheckin) {
+                return item;
+              }
+            }
+          }
+        } else if (typeof ctx === "object") {
+          if (ctx.$implicit && (ctx.$implicit.noMr || ctx.$implicit.norm || ctx.$implicit.noCheckin)) {
+            return ctx.$implicit;
+          }
+          if (ctx.noMr || ctx.norm || ctx.noCheckin || ctx.nocheckin) {
+            return ctx;
+          }
+        }
+      }
+
+      const rowText = tr.textContent || "";
+      if (window._simrsCurrentPatientList && Array.isArray(window._simrsCurrentPatientList)) {
+        const found = window._simrsCurrentPatientList.find((p) => {
+          const rm = String(p.noMr || p.norm || "").trim();
+          const chk = String(p.noCheckin || p.nocheckin || "").trim();
+          const nm = String(p.nama || p.namaPasien || "").trim();
+          return (rm && rowText.includes(rm)) || (chk && rowText.includes(chk)) || (nm && nm.length > 3 && rowText.includes(nm));
+        });
+        if (found) return found;
+      }
+
+      const cells = Array.from(tr.querySelectorAll("td, th")).map((c) => c.textContent.trim());
+      let noMr = "";
+      let nama = "";
+      let noCheckin = "";
+      for (const c of cells) {
+        if (!noCheckin && /^\d{6,}$/.test(c)) noCheckin = c;
+        if (!noMr && /^\d{2}\.\d{2}\.\d{2}$/.test(c)) noMr = c;
+        if (!noMr && /^\d{6}$/.test(c) && !noCheckin) noMr = c;
+        if (!nama && /^[A-Z\s,.'-]{4,}$/i.test(c) && !c.includes("ACTIONS") && !c.includes("PRINT") && !c.includes("BPJS") && !c.includes("UMUM") && !c.includes("CHECKIN")) {
+          nama = c;
+        }
+      }
+      return {
+        noMr: noMr,
+        norm: noMr,
+        nama: nama,
+        namaPasien: nama,
+        noCheckin: noCheckin,
+        nocheckin: noCheckin
+      };
+    };
+
+    const attachToMenu = (menuEl, targetTr) => {
+      if (!menuEl) return;
+      const allBtns = Array.from(menuEl.querySelectorAll("button, a"));
+      const isPatientActions = allBtns.some((b) =>
+        b.textContent.includes("Print Gelang") ||
+        b.textContent.includes("Print Status") ||
+        b.textContent.includes("Input Pelayanan") ||
+        b.textContent.includes("Cetak Billing")
+      );
+      if (!isPatientActions) return;
+
+      const hasUnduh = allBtns.some((b) => b.textContent.includes("Unduh Dokumen Terisi"));
+      if (hasUnduh) return;
+
+      const tr = targetTr || menuEl.closest("tr");
+      const pt = (tr && detectPatientFromRow(tr)) || lastClickedPatient;
+      const currentPath = window.location.pathname.toLowerCase();
+      const mod = (currentPath.includes("/poli") || (pt && pt.poli)) ? "POLI" : "IGD";
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "dropdown-item btn-action-unduh-dokumen";
+      btn.textContent = " Unduh Dokumen Terisi ";
+      btn.addEventListener("click", (evt) => {
+        evt.preventDefault();
+        menuEl.classList.remove("show");
+        const container = menuEl.closest(".btn-group, [ngbdropdown], div");
+        if (container) {
+          container.classList.remove("show");
+          const toggle = container.querySelector("[ngbdropdowntoggle], .dropdown-toggle");
+          if (toggle) toggle.setAttribute("aria-expanded", "false");
+        }
+        this.open(pt, mod);
+      });
+      menuEl.appendChild(btn);
+    };
+
+    document.addEventListener("click", (e) => {
+      const actionsBtn = e.target.closest("button");
+      if (!actionsBtn || !actionsBtn.textContent.includes("Actions")) return;
+
+      const tr = actionsBtn.closest("tr");
+      if (tr) {
+        lastClickedPatient = detectPatientFromRow(tr);
+        const currentPath = window.location.pathname.toLowerCase();
+        lastModule = (currentPath.includes("/poli") || (lastClickedPatient && lastClickedPatient.poli)) ? "POLI" : "IGD";
+      }
+
+      setTimeout(() => {
+        const container = actionsBtn.closest(".btn-group, [ngbdropdown], div") || tr;
+        const menu = (container && container.querySelector(".dropdown-menu, [ngbdropdownmenu]")) || document.querySelector(".dropdown-menu.show");
+        if (menu) attachToMenu(menu, tr);
+      }, 10);
+      setTimeout(() => {
+        const container = actionsBtn.closest(".btn-group, [ngbdropdown], div") || tr;
+        const menu = (container && container.querySelector(".dropdown-menu, [ngbdropdownmenu]")) || document.querySelector(".dropdown-menu.show");
+        if (menu) attachToMenu(menu, tr);
+      }, 80);
+    }, true);
+
+    const observer = new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        if (m.type === "attributes" && m.attributeName === "class") {
+          const t = m.target;
+          if (t && t.classList && t.classList.contains("dropdown-menu") && t.classList.contains("show")) {
+            attachToMenu(t);
+          }
+        }
+        for (const node of m.addedNodes) {
+          if (node.nodeType !== Node.ELEMENT_NODE) continue;
+          if (node.matches && (node.matches(".dropdown-menu") || node.matches("[ngbdropdownmenu]"))) {
+            attachToMenu(node);
+          } else if (node.querySelector) {
+            const sub = node.querySelector(".dropdown-menu, [ngbdropdownmenu]");
+            if (sub) attachToMenu(sub);
+          }
+        }
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
+
+    const openMenu = document.querySelector(".dropdown-menu.show, .dropdown-menu[data-bs-popper]");
+    if (openMenu) attachToMenu(openMenu);
   }
 
   getModalElement() {
