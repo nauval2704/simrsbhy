@@ -121,31 +121,57 @@ class SimrsMassDownloader {
   constructor() {
     this.initNetworkInterceptor();
     this.initDropdownObserver();
+    this.initRekapTableObserver();
   }
 
   initNetworkInterceptor() {
-    if (typeof XMLHttpRequest === "undefined") return;
-    const origOpen = XMLHttpRequest.prototype.open;
-    const origSend = XMLHttpRequest.prototype.send;
-    XMLHttpRequest.prototype.open = function(method, url) {
-      this._url = url;
-      return origOpen.apply(this, arguments);
-    };
-    XMLHttpRequest.prototype.send = function() {
-      this.addEventListener("load", () => {
-        if (this._url && this._url.includes("/simrsba/caripasien")) {
-          try {
-            const json = JSON.parse(this.responseText);
-            if (Array.isArray(json)) {
-              window._simrsCurrentPatientList = json;
-            } else if (json && Array.isArray(json.data)) {
-              window._simrsCurrentPatientList = json.data;
-            }
-          } catch (e) {}
-        }
-      });
-      return origSend.apply(this, arguments);
-    };
+    if (typeof XMLHttpRequest !== "undefined") {
+      const origOpen = XMLHttpRequest.prototype.open;
+      const origSend = XMLHttpRequest.prototype.send;
+      XMLHttpRequest.prototype.open = function(method, url) {
+        this._url = url;
+        return origOpen.apply(this, arguments);
+      };
+      XMLHttpRequest.prototype.send = function() {
+        this.addEventListener("load", () => {
+          if (this._url && (this._url.includes("/simrsba/caripasien") || this._url.includes("/simrsba/laporan/"))) {
+            try {
+              const json = JSON.parse(this.responseText);
+              const list = Array.isArray(json) ? json : (json && Array.isArray(json.data) ? json.data : null);
+              if (list) {
+                window._simrsCurrentPatientList = list;
+                if (this._url.includes("/simrsba/laporan/")) {
+                  window._simrsCurrentLaporanList = list;
+                }
+              }
+            } catch (e) {}
+          }
+        });
+        return origSend.apply(this, arguments);
+      };
+    }
+    if (typeof window !== "undefined" && window.fetch) {
+      const origFetch = window.fetch;
+      window.fetch = async function(...args) {
+        const res = await origFetch.apply(this, args);
+        try {
+          const url = typeof args[0] === "string" ? args[0] : (args[0] && args[0].url ? args[0].url : "");
+          if (url && (url.includes("/simrsba/caripasien") || url.includes("/simrsba/laporan/"))) {
+            const clone = res.clone();
+            clone.json().then((json) => {
+              const list = Array.isArray(json) ? json : (json && Array.isArray(json.data) ? json.data : null);
+              if (list) {
+                window._simrsCurrentPatientList = list;
+                if (url.includes("/simrsba/laporan/")) {
+                  window._simrsCurrentLaporanList = list;
+                }
+              }
+            }).catch(() => {});
+          }
+        } catch (e) {}
+        return res;
+      };
+    }
   }
 
   initDropdownObserver() {
@@ -306,6 +332,176 @@ class SimrsMassDownloader {
 
     const openMenu = document.querySelector(".dropdown-menu.show, .dropdown-menu[data-bs-popper]");
     if (openMenu) attachToMenu(openMenu);
+  }
+
+  initRekapTableObserver() {
+    if (typeof document === "undefined") return;
+
+    const processRekapTable = (table) => {
+      if (!table) return;
+
+      const theadTr = table.querySelector("thead tr");
+      if (theadTr && !theadTr.querySelector(".th-mass-downloader")) {
+        const th = document.createElement("th");
+        th.className = "th-mass-downloader text-center text-nowrap";
+        th.setAttribute("scope", "col");
+        th.style.cssText = "vertical-align:middle; min-width:120px; background-color:#212529; color:#fff;";
+        th.textContent = "Aksi";
+        theadTr.appendChild(th);
+      }
+
+      const tbodyRows = table.querySelectorAll("tbody tr");
+      tbodyRows.forEach((tr) => {
+        if (tr.querySelector(".td-mass-downloader")) return;
+
+        const firstTd = tr.querySelector("td");
+        if (firstTd && firstTd.hasAttribute("colspan")) {
+          const currentSpan = parseInt(firstTd.getAttribute("colspan"), 10) || 18;
+          if (!tr.dataset.spanAdjusted) {
+            firstTd.setAttribute("colspan", String(currentSpan + 1));
+            tr.dataset.spanAdjusted = "1";
+          }
+          return;
+        }
+
+        const td = document.createElement("td");
+        td.className = "td-mass-downloader text-center text-nowrap";
+        td.style.cssText = "vertical-align:middle; min-width:120px;";
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn btn-sm btn-primary text-nowrap py-1 px-2";
+        btn.style.cssText = "font-size:11px; font-weight:600; line-height:1.4;";
+        btn.innerHTML = '<i class="bi bi-file-earmark-arrow-down-fill me-1"></i> Unduh Berkas';
+
+        btn.addEventListener("click", (evt) => {
+          evt.preventDefault();
+          evt.stopPropagation();
+
+          let pt = null;
+          const ctxNodes = [tr, ...Array.from(tr.querySelectorAll("td"))];
+          for (const node of ctxNodes) {
+            const ctx = node.__ngContext__;
+            if (!ctx) continue;
+            if (Array.isArray(ctx)) {
+              for (let i = ctx.length - 1; i >= 0; i--) {
+                const item = ctx[i];
+                if (item && typeof item === "object") {
+                  if (item.$implicit && (item.$implicit.noMr || item.$implicit.norm || item.$implicit.noCheckin)) {
+                    pt = item.$implicit;
+                    break;
+                  }
+                  if (item.noMr || item.norm || item.noCheckin || item.nocheckin) {
+                    pt = item;
+                    break;
+                  }
+                }
+              }
+            } else if (typeof ctx === "object") {
+              if (ctx.$implicit && (ctx.$implicit.noMr || ctx.$implicit.norm || ctx.$implicit.noCheckin)) {
+                pt = ctx.$implicit;
+              } else if (ctx.noMr || ctx.norm || ctx.noCheckin || ctx.nocheckin) {
+                pt = ctx;
+              }
+            }
+            if (pt) break;
+          }
+
+          const cells = Array.from(tr.querySelectorAll("td")).map((c) => c.textContent.trim());
+          let cellNorm = "";
+          let cellNama = "";
+          let cellCheckin = "";
+          for (const c of cells) {
+            if (!cellCheckin && /^\d{6,}$/.test(c)) cellCheckin = c;
+            if (!cellNorm && /^\d{2}\.\d{2}\.\d{2}$/.test(c)) cellNorm = c;
+            if (!cellNorm && /^\d{6}$/.test(c) && !cellCheckin) cellNorm = c;
+            if (!cellNama && /^[A-Z\s,.'-]{4,}$/i.test(c) && !c.includes("ACTIONS") && !c.includes("PRINT") && !c.includes("BPJS") && !c.includes("UMUM") && !c.includes("CHECKIN") && !c.includes("UNDUH")) {
+              cellNama = c;
+            }
+          }
+          if (!cellNorm && cells[4]) cellNorm = cells[4];
+          if (!cellNama && cells[5]) cellNama = cells[5];
+          if (!cellCheckin && cells[1] && /^\d/.test(cells[1])) cellCheckin = cells[1];
+
+          const patientList = window._simrsCurrentLaporanList || window._simrsCurrentPatientList;
+          if (patientList && Array.isArray(patientList)) {
+            const found = patientList.find((p) => {
+              const rm = String(p.noMr || p.norm || "").trim();
+              const chk = String(p.noCheckin || p.nocheckin || "").trim();
+              const nm = String(p.nama || p.namaPasien || "").trim();
+              return (cellNorm && rm === cellNorm) || (cellCheckin && chk === cellCheckin) || (cellNama && nm.length > 3 && cellNama.includes(nm));
+            });
+            if (found) {
+              pt = pt ? Object.assign({}, found, pt) : found;
+            }
+          }
+
+          if (!pt) {
+            pt = {
+              noMr: cellNorm,
+              norm: cellNorm,
+              nama: cellNama,
+              namaPasien: cellNama,
+              noCheckin: cellCheckin,
+              nocheckin: cellCheckin
+            };
+          }
+
+          const currentPath = window.location.pathname.toLowerCase();
+          const poliStr = String((pt && (pt.poli || pt.poliNama || pt.ruangan)) || "").toUpperCase();
+          const isIgd = currentPath.includes("igd") || 
+                        poliStr.includes("IGD") || 
+                        poliStr.includes("DARURAT") || 
+                        poliStr.includes("GAWAT");
+          const isGigi = !isIgd && (
+            currentPath.includes("gigi") || 
+            poliStr.includes("GIGI")
+          );
+          const mod = isIgd ? "IGD" : (isGigi ? "POLI_GIGI" : "POLI");
+
+          this.open(pt, mod);
+        });
+
+        td.appendChild(btn);
+        tr.appendChild(td);
+      });
+
+      const cardBody = table.closest(".card-body, div");
+      const excelBtn = cardBody ? cardBody.querySelector("button.btn-success") : null;
+      if (excelBtn && !excelBtn.dataset.excelHooked) {
+        excelBtn.dataset.excelHooked = "1";
+        excelBtn.addEventListener("click", () => {
+          const injected = table.querySelectorAll(".th-mass-downloader, .td-mass-downloader");
+          injected.forEach((el) => {
+            el.style.display = "none";
+          });
+          setTimeout(() => {
+            injected.forEach((el) => {
+              el.style.display = "";
+            });
+          }, 400);
+        }, true);
+      }
+    };
+
+    const scanAndAttach = () => {
+      const tables = document.querySelectorAll("#laporanIgd-table, table.table-striped");
+      tables.forEach((t) => {
+        const theadText = (t.querySelector("thead") ? t.querySelector("thead").textContent : "").toLowerCase();
+        if (theadText.includes("radiologi") || theadText.includes("checkin") || t.id === "laporanIgd-table") {
+          processRekapTable(t);
+        }
+      });
+    };
+
+    const obs = new MutationObserver(() => {
+      scanAndAttach();
+    });
+
+    obs.observe(document.body, { childList: true, subtree: true });
+
+    setInterval(scanAndAttach, 800);
+    scanAndAttach();
   }
 
   getModalElement() {
