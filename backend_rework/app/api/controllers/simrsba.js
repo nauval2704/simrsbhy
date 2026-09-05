@@ -64,13 +64,19 @@ try {
   sharp = require("sharp");
 } catch (e) {}
 let puppeteer = null;
+let puppeteerLoadErr = null;
 try {
   puppeteer = require("puppeteer");
-} catch (e) {}
+} catch (e) {
+  puppeteerLoadErr = e.message;
+}
 let archiver = null;
+let archiverLoadErr = null;
 try {
   archiver = require("archiver");
-} catch (e) {}
+} catch (e) {
+  archiverLoadErr = e.message;
+}
 var mongoose = require("mongoose");
 const { ObjectId } = mongoose.Types.ObjectId;
 
@@ -4684,9 +4690,12 @@ module.exports = {
     let browser = null;
     try {
       if (!puppeteer || !archiver) {
+        let errMsg = "Puppeteer atau Archiver belum terpasang di server.";
+        if (puppeteerLoadErr) errMsg += ` (Puppeteer: ${puppeteerLoadErr})`;
+        if (archiverLoadErr) errMsg += ` (Archiver: ${archiverLoadErr})`;
         return res.status(500).json({
           status: "error",
-          message: "Puppeteer atau Archiver belum terpasang di server.",
+          message: errMsg,
           data: null,
         });
       }
@@ -4712,19 +4721,31 @@ module.exports = {
           "--font-render-hinting=none",
         ],
       };
-      if (fs.existsSync("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe")) {
-        launchOptions.executablePath = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+      const possibleChromePaths = [
+        "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+        "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+        "/usr/bin/google-chrome-stable",
+        "/usr/bin/google-chrome",
+        "/usr/bin/chromium-browser",
+        "/usr/bin/chromium",
+        "/snap/bin/chromium"
+      ];
+      for (const p of possibleChromePaths) {
+        if (fs.existsSync(p)) {
+          launchOptions.executablePath = p;
+          break;
+        }
       }
 
       browser = await puppeteer.launch(launchOptions);
 
       let archive;
-      if (archiver.ZipArchive) {
-        archive = new archiver.ZipArchive({ zlib: { level: 6 } });
-      } else if (typeof archiver === "function") {
+      if (typeof archiver === "function") {
         archive = archiver("zip", { zlib: { level: 6 } });
       } else if (archiver.create) {
         archive = archiver.create("zip", { zlib: { level: 6 } });
+      } else if (archiver.ZipArchive) {
+        archive = new archiver.ZipArchive({ zlib: { level: 6 } });
       } else {
         throw new Error("Format ZIP tidak didukung");
       }
