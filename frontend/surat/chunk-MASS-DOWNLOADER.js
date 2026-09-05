@@ -11,7 +11,6 @@ let CpptPoliComponent = null;
 let EdukasiPoliComponent = null;
 let buildSuratPdfFilename = null;
 let getStandardGridCSS = null;
-let forceChromePrintStyles = null;
 let apiUrl = "";
 
 async function loadDependencies() {
@@ -19,7 +18,6 @@ async function loadDependencies() {
     const modLayout = await import("./chunk-SURAT-LAYOUT.js");
     buildSuratPdfFilename = modLayout.buildSuratPdfFilename;
     getStandardGridCSS = modLayout.getStandardGridCSS;
-    forceChromePrintStyles = modLayout.forceChromePrintStyles;
   }
   if (!TriaseComponent) {
     const modTriase = await import("./chunk-TRIASE.js");
@@ -872,7 +870,7 @@ class SimrsMassDownloader {
       <div class="alert alert-info py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
         <i class="bi bi-info-circle-fill fs-5 text-primary flex-shrink-0"></i>
         <div>
-          <strong>Hasil Cetak Vektor Asli:</strong> Berkas ZIP akan dirender langsung oleh mesin Chromium backend agar 100% identik dengan hasil cetak asli. Atau gunakan <strong>"Cetak / Simpan PDF Asli"</strong> untuk mencetak langsung di browser.
+          <strong>Hasil Cetak Vektor Asli:</strong> Seluruh berkas rekam medis yang dipilih akan dirender langsung oleh mesin Chromium backend ke dalam format PDF vektor murni dan dibundel ke berkas ZIP.
         </div>
       </div>
       <div class="d-flex justify-content-between align-items-center mb-2">
@@ -894,14 +892,9 @@ class SimrsMassDownloader {
     modalFooter.innerHTML = `
       <div class="d-flex justify-content-between align-items-center w-100 flex-wrap gap-2">
         <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">Batal</button>
-        <div class="d-flex gap-2">
-          <button type="button" id="btn-print-native-mass" class="btn btn-outline-dark px-3 fw-bold">
-            <i class="bi bi-printer-fill me-1"></i> Cetak / Simpan PDF Asli
-          </button>
-          <button type="button" id="btn-exec-mass-download" class="btn btn-primary px-3 fw-bold">
-            <i class="bi bi-file-earmark-zip-fill me-1"></i> Unduh Berkas ZIP
-          </button>
-        </div>
+        <button type="button" id="btn-exec-mass-download" class="btn btn-primary px-3 fw-bold">
+          <i class="bi bi-file-earmark-zip-fill me-1"></i> Unduh Berkas ZIP
+        </button>
       </div>
     `;
 
@@ -915,119 +908,6 @@ class SimrsMassDownloader {
     if (btnDeselectAll) {
       btnDeselectAll.addEventListener("click", () => {
         modalBody.querySelectorAll(".mass-doc-item:not([disabled])").forEach((chk) => (chk.checked = false));
-      });
-    }
-
-    const printNativeBtn = modalFooter.querySelector("#btn-print-native-mass");
-    if (printNativeBtn) {
-      printNativeBtn.addEventListener("click", async () => {
-        const checkedIndices = Array.from(modalBody.querySelectorAll(".mass-doc-item:checked")).map((chk) => parseInt(chk.value, 10));
-        if (checkedIndices.length === 0) {
-          alert("Pilih setidaknya 1 dokumen yang ingin dicetak!");
-          return;
-        }
-
-        const selectedDocs = checkedIndices.map((idx) => results[idx]);
-
-        printNativeBtn.disabled = true;
-        const origText = printNativeBtn.innerHTML;
-        printNativeBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1" role="status"></span> Menyiapkan cetakan...`;
-
-        try {
-          let printHost = document.getElementById("simrs-mass-print-host");
-          if (!printHost) {
-            printHost = document.createElement("div");
-            printHost.id = "simrs-mass-print-host";
-            document.body.appendChild(printHost);
-          }
-
-          const patientPayload = {
-            noMr: noMr,
-            norm: noMr,
-            nama: namaPasien,
-            namaPasien: namaPasien,
-            tglLahir: pObj.tglLahir || "",
-            kelamin: pObj.kelamin || "",
-            dokterDpjp: pObj.dokterDpjp || pObj.dpjp || pObj.namaDokter || "",
-            dpjp: pObj.dokterDpjp || pObj.dpjp || pObj.namaDokter || "",
-            tglInput: pObj.tglInput || pObj.tglMasuk || "",
-            tglMasuk: pObj.tglInput || pObj.tglMasuk || "",
-            poli: pObj.poli || "",
-            poliNama: pObj.poliNama || ""
-          };
-
-          let combinedHtml = "";
-          for (let i = 0; i < selectedDocs.length; i++) {
-            const doc = selectedDocs[i];
-            combinedHtml += doc.render(patientPayload, doc.data);
-          }
-
-          printHost.innerHTML = combinedHtml;
-          printHost.classList.add("has-docs");
-
-          const imgs = Array.from(printHost.querySelectorAll("img"));
-          await Promise.all(
-            imgs.map((img) => {
-              if (img.complete && img.naturalWidth > 0) return Promise.resolve();
-              if (typeof img.decode === "function") {
-                return img.decode().catch(() => {});
-              }
-              return new Promise((resolve) => {
-                img.onload = () => resolve();
-                img.onerror = () => resolve();
-                setTimeout(resolve, 800);
-              });
-            })
-          );
-
-          if (document.fonts && document.fonts.ready) {
-            try {
-              await document.fonts.ready;
-            } catch (e) {}
-          }
-
-          const isLandscape = !printHost.querySelector('.surat-document, .surat-page') && !!printHost.querySelector('.surat-document-landscape, .surat-page-landscape');
-          if (forceChromePrintStyles) {
-            forceChromePrintStyles(isLandscape);
-          }
-
-          const origTitle = document.title;
-          const unitTag = activeUnit;
-          document.title = `BERKAS_${unitTag}_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}`;
-
-          modalEl.style.setProperty("display", "none", "important");
-          document.querySelectorAll(".modal, .modal-backdrop").forEach((m) => {
-            m.style.setProperty("display", "none", "important");
-          });
-          document.body.classList.add("simrs-printing-mass");
-
-          let cleanedUp = false;
-          const cleanup = () => {
-            if (cleanedUp) return;
-            cleanedUp = true;
-            document.title = origTitle;
-            modalEl.style.setProperty("display", "block", "important");
-            document.body.classList.remove("simrs-printing-mass");
-            if (printHost) {
-              printHost.innerHTML = "";
-              printHost.classList.remove("has-docs");
-            }
-            window.removeEventListener("afterprint", cleanup);
-            printNativeBtn.disabled = false;
-            printNativeBtn.innerHTML = origText;
-          };
-
-          window.addEventListener("afterprint", cleanup, { once: true });
-
-          setTimeout(() => {
-            window.print();
-            setTimeout(cleanup, 60000);
-          }, 300);
-        } catch (err) {
-          alert("Gagal menyiapkan cetakan: " + err.message);
-          printNativeBtn.disabled = false;
-          printNativeBtn.innerHTML = origText;
-        }
       });
     }
 
