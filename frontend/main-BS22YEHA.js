@@ -57603,11 +57603,13 @@ function BN(t, s) {
       E("click", function () {
         C(e);
         let o = h().$implicit;
+        let pU = String(o && (o.poli || o.poliNama || o.ruangan || "")).toUpperCase();
+        let m = (pU.includes("DARURAT") || pU.includes("IGD") || pU.includes("GAWAT")) ? "IGD" : (pU.includes("GIGI") ? "POLI_GIGI" : "POLI");
         if (window.SimrsMassDownloader) {
-          window.SimrsMassDownloader.open(o, "POLI");
+          window.SimrsMassDownloader.open(o, m);
         } else {
           import("./surat/chunk-MASS-DOWNLOADER.js").then(() => {
-            if (window.SimrsMassDownloader) window.SimrsMassDownloader.open(o, "POLI");
+            if (window.SimrsMassDownloader) window.SimrsMassDownloader.open(o, m);
           });
         }
       }),

@@ -233,10 +233,10 @@ class SimrsMassDownloader {
       const tr = targetTr || menuEl.closest("tr");
       const pt = (tr && detectPatientFromRow(tr)) || lastClickedPatient;
       const currentPath = window.location.pathname.toLowerCase();
-      const poliStr = (pt && (pt.poli || pt.poliNama || "")) ? String(pt.poli || pt.poliNama).toUpperCase() : "";
-      const isGigi = currentPath.includes("gigi") || poliStr.includes("GIGI");
-      const isPoli = isGigi || currentPath.includes("/poli") || (pt && pt.poli && pt.poli !== "IGD");
-      const mod = isGigi ? "POLI_GIGI" : (isPoli ? "POLI" : "IGD");
+      const poliStr = (pt && (pt.poli || pt.poliNama || pt.ruangan || "")) ? String(pt.poli || pt.poliNama || pt.ruangan).toUpperCase() : "";
+      const isIgd = poliStr.includes("IGD") || poliStr.includes("DARURAT") || currentPath.includes("/igd");
+      const isGigi = !isIgd && (currentPath.includes("gigi") || poliStr.includes("GIGI"));
+      const mod = isIgd ? "IGD" : (isGigi ? "POLI_GIGI" : "POLI");
 
       const btn = document.createElement("button");
       btn.type = "button";
@@ -264,10 +264,10 @@ class SimrsMassDownloader {
       if (tr) {
         lastClickedPatient = detectPatientFromRow(tr);
         const currentPath = window.location.pathname.toLowerCase();
-        const poliStr = (lastClickedPatient && (lastClickedPatient.poli || lastClickedPatient.poliNama || "")) ? String(lastClickedPatient.poli || lastClickedPatient.poliNama).toUpperCase() : "";
-        const isGigi = currentPath.includes("gigi") || poliStr.includes("GIGI");
-        const isPoli = isGigi || currentPath.includes("/poli") || (lastClickedPatient && lastClickedPatient.poli && lastClickedPatient.poli !== "IGD");
-        lastModule = isGigi ? "POLI_GIGI" : (isPoli ? "POLI" : "IGD");
+        const poliStr = (lastClickedPatient && (lastClickedPatient.poli || lastClickedPatient.poliNama || lastClickedPatient.ruangan || "")) ? String(lastClickedPatient.poli || lastClickedPatient.poliNama || lastClickedPatient.ruangan).toUpperCase() : "";
+        const isIgd = poliStr.includes("IGD") || poliStr.includes("DARURAT") || currentPath.includes("/igd");
+        const isGigi = !isIgd && (currentPath.includes("gigi") || poliStr.includes("GIGI"));
+        lastModule = isIgd ? "IGD" : (isGigi ? "POLI_GIGI" : "POLI");
       }
 
       setTimeout(() => {
@@ -391,13 +391,14 @@ class SimrsMassDownloader {
       } catch (err) {}
     }
 
-    if (!noMr && noCheckin) {
+    if (noCheckin) {
       try {
         const resPt = await fetch(`${baseApi}/simrsba/caripasiennocheckin/${encodeURIComponent(noCheckin)}`);
         if (resPt.ok) {
           const ptData = await resPt.json();
           const pFound = Array.isArray(ptData) ? ptData[0] : (ptData.data || ptData);
           if (pFound) {
+            pObj = Object.assign({}, pFound, pObj);
             if (!noMr) noMr = pFound.noMr || pFound.norm || "";
             if (!namaPasien) namaPasien = pFound.nama || "";
           }
@@ -405,626 +406,566 @@ class SimrsMassDownloader {
       } catch (e) {}
     }
 
-    const poliStr = (pObj.poli || pObj.poliNama || "").toUpperCase();
+    const poliStr = String(pObj.poli || pObj.poliNama || pObj.ruangan || "").toUpperCase();
     const currentPath = typeof window !== "undefined" ? window.location.pathname.toLowerCase() : "";
-    const isPoliGigi = moduleType === "POLI_GIGI" || poliStr.includes("GIGI") || currentPath.includes("gigi");
-    const isPoli = moduleType === "POLI" || isPoliGigi || currentPath.includes("/poli") || (pObj.poli && pObj.poli !== "IGD");
-    const unitLabel = isPoliGigi ? "POLI GIGI" : (isPoli ? (pObj.poliNama || pObj.poli || "POLIKLINIK") : "IGD");
+    const isIgd = poliStr.includes("IGD") || 
+                  poliStr.includes("DARURAT") || 
+                  poliStr.includes("GAWAT") || 
+                  (!poliStr && moduleType === "IGD") || 
+                  (!poliStr && currentPath.includes("/igd"));
+    const isPoliGigi = !isIgd && (
+      poliStr.includes("GIGI") || 
+      (!poliStr && moduleType === "POLI_GIGI") || 
+      (!poliStr && currentPath.includes("gigi"))
+    );
+    let activeUnit = isIgd ? "IGD" : (isPoliGigi ? "POLI_GIGI" : "POLI");
 
-    const docDefinitions = [];
-    if (isPoliGigi) {
-      docDefinitions.push({
-        id: "poli-gigi",
-        title: "PRMRJ Poli Gigi",
-        filename: `PRMRJ_POLI_GIGI_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
-        endpoint: `${baseApi}/simrsba/poli-gigi/${encodeURIComponent(noMr)}`,
-        checkFilled: (data) => data && Array.isArray(data.entries) && data.entries.length > 0,
-        render: (pt, data) => PoliGigiComponent.getPrintHtml(pt, data)
-      });
-      docDefinitions.push({
-        id: "cppt-poli",
-        title: "CPPT Poliklinik Rawat Jalan",
-        filename: `CPPT_POLI_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
-        endpoint: `${baseApi}/simrsba/cppt-poli/${encodeURIComponent(noCheckin)}`,
-        checkFilled: (data) => {
-          const d = (data && data.formData) ? data.formData : data;
-          return d && Array.isArray(d.entries) && d.entries.length > 0;
-        },
-        render: (pt, data) => {
-          const fd = (data && data.formData) ? data.formData : (data || { entries: [] });
-          return CpptPoliComponent.getPrintHtml(pt, fd);
-        }
-      });
-      docDefinitions.push({
-        id: "edukasi-poli",
-        title: "Edukasi Pasien Poliklinik",
-        filename: `EDUKASI_POLI_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
-        endpoint: `${baseApi}/simrsba/edukasi-poli/${encodeURIComponent(noCheckin)}`,
-        checkFilled: (data) => {
-          const entries = (data && data.entries) ? data.entries : ((data && data.formData && data.formData.entries) ? data.formData.entries : []);
-          return entries.some(e => e && (e.tglDate || e.tglTime || e.sasaranTtd || e.edukatorTtd || (e.pemahaman && Object.values(e.pemahaman).some(Boolean)) || (e.evaluasi && Object.values(e.evaluasi).some(Boolean))));
-        },
-        render: (pt, data) => {
-          const fd = (data && data.entries) ? data : ((data && data.formData) ? data.formData : { entries: [] });
-          return EdukasiPoliComponent.getPrintHtml(pt, fd);
-        }
-      });
-      docDefinitions.push({
-        id: "general-consent",
-        title: "General Consent (Persetujuan Umum)",
-        filename: `GENERAL_CONSENT_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
-        endpoint: `${baseApi}/simrsba/general-consent/${encodeURIComponent(noCheckin)}`,
-        checkFilled: (data) => data && (data.namaWali || data.sigPasien || data.sigPetugas || data.tglConsent || data.preAdmisi || data.hubunganWali || data.namaPetugas),
-        render: (pt, data) => GeneralConsentComponent.getPrintHtml(pt, (data && data.data) ? Object.assign({}, data.data, data) : data)
-      });
-      docDefinitions.push({
-        id: "prmrj",
-        title: "PRMRJ (Profil Ringkas Medis Rawat Jalan)",
-        filename: `PRMRJ_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
-        endpoint: `${baseApi}/simrsba/prmrj/${encodeURIComponent(noMr)}`,
-        checkFilled: (data) => data && Array.isArray(data.entries) && data.entries.length > 0,
-        render: (pt, data) => PrmrjComponent.getPrintHtml(pt, data)
-      });
-    } else if (isPoli) {
-      docDefinitions.push({
-        id: "pengkajian-awal-poli",
-        title: "Pengkajian Awal Poliklinik Rawat Jalan",
-        filename: `PENGKAJIAN_AWAL_POLI_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
-        endpoint: `${baseApi}/simrsba/pengkajian-awal-poli/${encodeURIComponent(noCheckin)}`,
-        checkFilled: (data) => data && (data.keluhanUtama || data.td || data.diagnosaMedis || data.tglMasukDate),
-        render: (pt, data) => PengkajianAwalPoliComponent.getPrintHtml(pt, data)
-      });
-      docDefinitions.push({
-        id: "cppt-poli",
-        title: "CPPT Poliklinik Rawat Jalan",
-        filename: `CPPT_POLI_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
-        endpoint: `${baseApi}/simrsba/cppt-poli/${encodeURIComponent(noCheckin)}`,
-        checkFilled: (data) => {
-          const d = (data && data.formData) ? data.formData : data;
-          return d && Array.isArray(d.entries) && d.entries.length > 0;
-        },
-        render: (pt, data) => {
-          const fd = (data && data.formData) ? data.formData : (data || { entries: [] });
-          return CpptPoliComponent.getPrintHtml(pt, fd);
-        }
-      });
-      docDefinitions.push({
-        id: "edukasi-poli",
-        title: "Edukasi Pasien Poliklinik",
-        filename: `EDUKASI_POLI_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
-        endpoint: `${baseApi}/simrsba/edukasi-poli/${encodeURIComponent(noCheckin)}`,
-        checkFilled: (data) => {
-          const entries = (data && data.entries) ? data.entries : ((data && data.formData && data.formData.entries) ? data.formData.entries : []);
-          return entries.some(e => e && (e.tglDate || e.tglTime || e.sasaranTtd || e.edukatorTtd || (e.pemahaman && Object.values(e.pemahaman).some(Boolean)) || (e.evaluasi && Object.values(e.evaluasi).some(Boolean))));
-        },
-        render: (pt, data) => {
-          const fd = (data && data.entries) ? data : ((data && data.formData) ? data.formData : { entries: [] });
-          return EdukasiPoliComponent.getPrintHtml(pt, fd);
-        }
-      });
-      docDefinitions.push({
-        id: "general-consent",
-        title: "General Consent (Persetujuan Umum)",
-        filename: `GENERAL_CONSENT_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
-        endpoint: `${baseApi}/simrsba/general-consent/${encodeURIComponent(noCheckin)}`,
-        checkFilled: (data) => data && (data.namaWali || data.sigPasien || data.sigPetugas || data.tglConsent || data.preAdmisi || data.hubunganWali || data.namaPetugas),
-        render: (pt, data) => GeneralConsentComponent.getPrintHtml(pt, (data && data.data) ? Object.assign({}, data.data, data) : data)
-      });
-      docDefinitions.push({
-        id: "prmrj",
-        title: "PRMRJ (Profil Ringkas Medis Rawat Jalan)",
-        filename: `PRMRJ_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
-        endpoint: `${baseApi}/simrsba/prmrj/${encodeURIComponent(noMr)}`,
-        checkFilled: (data) => data && Array.isArray(data.entries) && data.entries.length > 0,
-        render: (pt, data) => PrmrjComponent.getPrintHtml(pt, data)
-      });
+    let unitLabel = "INSTALASI GAWAT DARURAT";
+    if (pObj.poli || pObj.poliNama) {
+      unitLabel = String(pObj.poliNama || pObj.poli);
+    } else if (activeUnit === "IGD") {
+      unitLabel = "INSTALASI GAWAT DARURAT";
+    } else if (activeUnit === "POLI_GIGI") {
+      unitLabel = "POLIKLINIK GIGI";
     } else {
-      docDefinitions.push({
-        id: "triase",
-        title: "Formulir Triase Gawat Darurat",
-        filename: `TRIASE_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
-        endpoint: `${baseApi}/simrsba/triase/${encodeURIComponent(noCheckin)}`,
-        checkFilled: (data) => data && (data.triageColor || data.td || data.suhu || data.canvasImage || data.pukulPemeriksaan || data.keluhan),
-        render: (pt, data) => TriaseComponent.getPrintHtml(pt, data)
-      });
-      docDefinitions.push({
-        id: "pengkajian-awal-igd",
-        title: "Pengkajian Awal IGD",
-        filename: `PENGKAJIAN_AWAL_IGD_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
-        endpoint: `${baseApi}/simrsba/pengkajian-awal-igd/${encodeURIComponent(noCheckin)}`,
-        checkFilled: (data) => data && (data.keluhanUtama || data.td || data.diagnosa || data.diagnosisKerja || data.anamnesis || data.tglMasukDate || data.canvasAnatomi),
-        render: (pt, data) => PengkajianAwalIgdComponent.getPrintHtml(pt, data)
-      });
-      docDefinitions.push({
-        id: "cppt-igd",
-        title: "CPPT Gawat Darurat (IGD)",
-        filename: `CPPT_IGD_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
-        endpoint: `${baseApi}/simrsba/cppt-igd/${encodeURIComponent(noCheckin)}`,
-        checkFilled: (data) => {
-          const d = (data && data.formData) ? data.formData : data;
-          return d && Array.isArray(d.entries) && d.entries.length > 0;
-        },
-        render: (pt, data) => {
-          const fd = (data && data.formData) ? data.formData : (data || { entries: [] });
-          return CpptIgdComponent.getPrintHtml(pt, fd);
-        }
-      });
-      docDefinitions.push({
-        id: "pemberian-obat-igd",
-        title: "Formulir Pemberian Obat IGD",
-        filename: `PEMBERIAN_OBAT_IGD_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
-        endpoint: `${baseApi}/simrsba/pemberian-obat-igd/${encodeURIComponent(noCheckin)}`,
-        checkFilled: (data) => data && ((Array.isArray(data.entries) && data.entries.length > 0 && data.entries.some(e => e && (e.namaObat || e.dosis))) || data.tgl1),
-        render: (pt, data) => PemberianObatIgdComponent.getPrintHtml(pt, data)
-      });
-      docDefinitions.push({
-        id: "ringkasan-pulang",
-        title: "Ringkasan Pulang IGD",
-        filename: `RINGKASAN_PULANG_IGD_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
-        endpoint: `${baseApi}/simrsba/ringkasan-pulang/${encodeURIComponent(noCheckin)}`,
-        checkFilled: (data) => data && (data.keluhanUtama || data.indikasiMasuk || data.diagnosisKerja || data.tglJamMasuk || data.terapiPulang),
-        render: (pt, data) => RingkasanPulangComponent.getPrintHtml(pt, data)
-      });
-      docDefinitions.push({
-        id: "general-consent",
-        title: "General Consent (Persetujuan Umum)",
-        filename: `GENERAL_CONSENT_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
-        endpoint: `${baseApi}/simrsba/general-consent/${encodeURIComponent(noCheckin)}`,
-        checkFilled: (data) => data && (data.namaWali || data.sigPasien || data.sigPetugas || data.tglConsent || data.preAdmisi || data.hubunganWali || data.namaPetugas),
-        render: (pt, data) => GeneralConsentComponent.getPrintHtml(pt, (data && data.data) ? Object.assign({}, data.data, data) : data)
-      });
-      docDefinitions.push({
-        id: "prmrj",
-        title: "PRMRJ (Profil Ringkas Medis Rawat Jalan)",
-        filename: `PRMRJ_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
-        endpoint: `${baseApi}/simrsba/prmrj/${encodeURIComponent(noMr)}`,
-        checkFilled: (data) => data && Array.isArray(data.entries) && data.entries.length > 0,
-        render: (pt, data) => PrmrjComponent.getPrintHtml(pt, data)
-      });
+      unitLabel = "POLIKLINIK RAWAT JALAN";
     }
 
-    const results = await Promise.all(
-      docDefinitions.map(async (doc) => {
-        try {
-          const res = await fetch(doc.endpoint);
-          if (!res.ok) return { ...doc, isFilled: false, data: null };
-          const json = await res.json();
-          const docData = json.data || (json._id ? json : null);
-          const filled = Boolean(doc.checkFilled(docData));
-          return { ...doc, isFilled: filled, data: docData };
-        } catch (err) {
-          return { ...doc, isFilled: false, data: null };
-        }
-      })
-    );
+    const getDocsForUnit = (unit) => {
+      const defs = [];
+      if (unit === "IGD") {
+        defs.push({
+          id: "triase",
+          title: "Formulir Triase Gawat Darurat",
+          filename: `IGD_TRIASE_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+          endpoint: `${baseApi}/simrsba/triase/${encodeURIComponent(noCheckin)}`,
+          checkFilled: (data) => data && (data.triageColor || data.td || data.suhu || data.canvasImage || data.pukulPemeriksaan || data.keluhan),
+          render: (pt, data) => TriaseComponent.getPrintHtml(pt, data)
+        });
+        defs.push({
+          id: "pengkajian-awal-igd",
+          title: "Pengkajian Awal IGD",
+          filename: `IGD_PENGKAJIAN_AWAL_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+          endpoint: `${baseApi}/simrsba/pengkajian-awal-igd/${encodeURIComponent(noCheckin)}`,
+          checkFilled: (data) => data && (data.keluhanUtama || data.td || data.diagnosa || data.diagnosisKerja || data.anamnesis || data.tglMasukDate || data.canvasAnatomi),
+          render: (pt, data) => PengkajianAwalIgdComponent.getPrintHtml(pt, data)
+        });
+        defs.push({
+          id: "cppt-igd",
+          title: "CPPT Gawat Darurat (IGD)",
+          filename: `IGD_CPPT_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+          endpoint: `${baseApi}/simrsba/cppt-igd/${encodeURIComponent(noCheckin)}`,
+          checkFilled: (data) => {
+            const d = (data && data.formData) ? data.formData : data;
+            return d && Array.isArray(d.entries) && d.entries.length > 0;
+          },
+          render: (pt, data) => {
+            const fd = (data && data.formData) ? data.formData : (data || { entries: [] });
+            return CpptIgdComponent.getPrintHtml(pt, fd);
+          }
+        });
+        defs.push({
+          id: "pemberian-obat-igd",
+          title: "Formulir Pemberian Obat IGD",
+          filename: `IGD_PEMBERIAN_OBAT_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+          endpoint: `${baseApi}/simrsba/pemberian-obat-igd/${encodeURIComponent(noCheckin)}`,
+          checkFilled: (data) => data && ((Array.isArray(data.entries) && data.entries.length > 0 && data.entries.some(e => e && (e.namaObat || e.dosis))) || data.tgl1),
+          render: (pt, data) => PemberianObatIgdComponent.getPrintHtml(pt, data)
+        });
+        defs.push({
+          id: "ringkasan-pulang",
+          title: "Ringkasan Pulang IGD",
+          filename: `IGD_RINGKASAN_PULANG_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+          endpoint: `${baseApi}/simrsba/ringkasan-pulang/${encodeURIComponent(noCheckin)}`,
+          checkFilled: (data) => data && (data.keluhanUtama || data.indikasiMasuk || data.diagnosisKerja || data.tglJamMasuk || data.terapiPulang),
+          render: (pt, data) => RingkasanPulangComponent.getPrintHtml(pt, data)
+        });
+        defs.push({
+          id: "general-consent",
+          title: "General Consent (Persetujuan Umum)",
+          filename: `IGD_GENERAL_CONSENT_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+          endpoint: `${baseApi}/simrsba/general-consent/${encodeURIComponent(noCheckin)}`,
+          checkFilled: (data) => data && (data.namaWali || data.sigPasien || data.sigPetugas || data.tglConsent || data.preAdmisi || data.hubunganWali || data.namaPetugas),
+          render: (pt, data) => GeneralConsentComponent.getPrintHtml(pt, (data && data.data) ? Object.assign({}, data.data, data) : data)
+        });
+        defs.push({
+          id: "prmrj",
+          title: "PRMRJ (Profil Ringkas Medis Rawat Jalan)",
+          filename: `IGD_PRMRJ_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+          endpoint: `${baseApi}/simrsba/prmrj/${encodeURIComponent(noMr)}`,
+          checkFilled: (data) => data && Array.isArray(data.entries) && data.entries.length > 0,
+          render: (pt, data) => PrmrjComponent.getPrintHtml(pt, data)
+        });
+      } else if (unit === "POLI_GIGI") {
+        defs.push({
+          id: "poli-gigi",
+          title: "PRMRJ Poli Gigi",
+          filename: `POLI_GIGI_PRMRJ_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+          endpoint: `${baseApi}/simrsba/poli-gigi/${encodeURIComponent(noMr)}`,
+          checkFilled: (data) => data && Array.isArray(data.entries) && data.entries.length > 0,
+          render: (pt, data) => PoliGigiComponent.getPrintHtml(pt, data)
+        });
+        defs.push({
+          id: "cppt-poli",
+          title: "CPPT Poliklinik Rawat Jalan",
+          filename: `POLI_GIGI_CPPT_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+          endpoint: `${baseApi}/simrsba/cppt-poli/${encodeURIComponent(noCheckin)}`,
+          checkFilled: (data) => {
+            const d = (data && data.formData) ? data.formData : data;
+            return d && Array.isArray(d.entries) && d.entries.length > 0;
+          },
+          render: (pt, data) => {
+            const fd = (data && data.formData) ? data.formData : (data || { entries: [] });
+            return CpptPoliComponent.getPrintHtml(pt, fd);
+          }
+        });
+        defs.push({
+          id: "edukasi-poli",
+          title: "Edukasi Pasien Poliklinik",
+          filename: `POLI_GIGI_EDUKASI_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+          endpoint: `${baseApi}/simrsba/edukasi-poli/${encodeURIComponent(noCheckin)}`,
+          checkFilled: (data) => {
+            const entries = (data && data.entries) ? data.entries : ((data && data.formData && data.formData.entries) ? data.formData.entries : []);
+            return entries.some(e => e && (e.tglDate || e.tglTime || e.sasaranTtd || e.edukatorTtd || (e.pemahaman && Object.values(e.pemahaman).some(Boolean)) || (e.evaluasi && Object.values(e.evaluasi).some(Boolean))));
+          },
+          render: (pt, data) => {
+            const fd = (data && data.entries) ? data : ((data && data.formData) ? data.formData : { entries: [] });
+            return EdukasiPoliComponent.getPrintHtml(pt, fd);
+          }
+        });
+        defs.push({
+          id: "general-consent",
+          title: "General Consent (Persetujuan Umum)",
+          filename: `POLI_GIGI_GENERAL_CONSENT_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+          endpoint: `${baseApi}/simrsba/general-consent/${encodeURIComponent(noCheckin)}`,
+          checkFilled: (data) => data && (data.namaWali || data.sigPasien || data.sigPetugas || data.tglConsent || data.preAdmisi || data.hubunganWali || data.namaPetugas),
+          render: (pt, data) => GeneralConsentComponent.getPrintHtml(pt, (data && data.data) ? Object.assign({}, data.data, data) : data)
+        });
+        defs.push({
+          id: "prmrj",
+          title: "PRMRJ (Profil Ringkas Medis Rawat Jalan)",
+          filename: `POLI_GIGI_PRMRJ_UMUM_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+          endpoint: `${baseApi}/simrsba/prmrj/${encodeURIComponent(noMr)}`,
+          checkFilled: (data) => data && Array.isArray(data.entries) && data.entries.length > 0,
+          render: (pt, data) => PrmrjComponent.getPrintHtml(pt, data)
+        });
+      } else {
+        defs.push({
+          id: "pengkajian-awal-poli",
+          title: "Pengkajian Awal Poliklinik Rawat Jalan",
+          filename: `POLI_PENGKAJIAN_AWAL_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+          endpoint: `${baseApi}/simrsba/pengkajian-awal-poli/${encodeURIComponent(noCheckin)}`,
+          checkFilled: (data) => data && (data.keluhanUtama || data.td || data.diagnosaMedis || data.tglMasukDate),
+          render: (pt, data) => PengkajianAwalPoliComponent.getPrintHtml(pt, data)
+        });
+        defs.push({
+          id: "cppt-poli",
+          title: "CPPT Poliklinik Rawat Jalan",
+          filename: `POLI_CPPT_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+          endpoint: `${baseApi}/simrsba/cppt-poli/${encodeURIComponent(noCheckin)}`,
+          checkFilled: (data) => {
+            const d = (data && data.formData) ? data.formData : data;
+            return d && Array.isArray(d.entries) && d.entries.length > 0;
+          },
+          render: (pt, data) => {
+            const fd = (data && data.formData) ? data.formData : (data || { entries: [] });
+            return CpptPoliComponent.getPrintHtml(pt, fd);
+          }
+        });
+        defs.push({
+          id: "edukasi-poli",
+          title: "Edukasi Pasien Poliklinik",
+          filename: `POLI_EDUKASI_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+          endpoint: `${baseApi}/simrsba/edukasi-poli/${encodeURIComponent(noCheckin)}`,
+          checkFilled: (data) => {
+            const entries = (data && data.entries) ? data.entries : ((data && data.formData && data.formData.entries) ? data.formData.entries : []);
+            return entries.some(e => e && (e.tglDate || e.tglTime || e.sasaranTtd || e.edukatorTtd || (e.pemahaman && Object.values(e.pemahaman).some(Boolean)) || (e.evaluasi && Object.values(e.evaluasi).some(Boolean))));
+          },
+          render: (pt, data) => {
+            const fd = (data && data.entries) ? data : ((data && data.formData) ? data.formData : { entries: [] });
+            return EdukasiPoliComponent.getPrintHtml(pt, fd);
+          }
+        });
+        defs.push({
+          id: "general-consent",
+          title: "General Consent (Persetujuan Umum)",
+          filename: `POLI_GENERAL_CONSENT_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+          endpoint: `${baseApi}/simrsba/general-consent/${encodeURIComponent(noCheckin)}`,
+          checkFilled: (data) => data && (data.namaWali || data.sigPasien || data.sigPetugas || data.tglConsent || data.preAdmisi || data.hubunganWali || data.namaPetugas),
+          render: (pt, data) => GeneralConsentComponent.getPrintHtml(pt, (data && data.data) ? Object.assign({}, data.data, data) : data)
+        });
+        defs.push({
+          id: "prmrj",
+          title: "PRMRJ (Profil Ringkas Medis Rawat Jalan)",
+          filename: `POLI_PRMRJ_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+          endpoint: `${baseApi}/simrsba/prmrj/${encodeURIComponent(noMr)}`,
+          checkFilled: (data) => data && Array.isArray(data.entries) && data.entries.length > 0,
+          render: (pt, data) => PrmrjComponent.getPrintHtml(pt, data)
+        });
+      }
+      return defs;
+    };
 
-    const filledDocs = results.filter((d) => d.isFilled);
-    const filledCount = filledDocs.length;
+    const allSuratCss = `
+      ${getStandardGridCSS ? getStandardGridCSS() : ''}
+      #simrs-mass-render-host .surat-document,
+      #simrs-mass-render-host .surat-page {
+        box-sizing: border-box !important;
+        width: 215.9mm !important;
+        max-width: 215.9mm !important;
+        margin: 0 !important;
+        margin-bottom: 0 !important;
+        padding: 5mm !important;
+        box-shadow: none !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        page-break-after: always !important;
+        break-after: page !important;
+      }
+      #simrs-mass-render-host .surat-document:last-child,
+      #simrs-mass-render-host .surat-page:last-child {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      #simrs-mass-render-host .surat-document-landscape,
+      #simrs-mass-render-host .surat-page-landscape {
+        box-sizing: border-box !important;
+        width: 330.2mm !important;
+        max-width: 330.2mm !important;
+        margin: 0 !important;
+        margin-bottom: 0 !important;
+        padding: 5mm !important;
+        box-shadow: none !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        page-break-after: always !important;
+        break-after: page !important;
+      }
+      #simrs-mass-render-host .surat-document-landscape:last-child,
+      #simrs-mass-render-host .surat-page-landscape:last-child {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .master-grid { width: 100%; border-collapse: collapse; border: 2px solid black; font-family: 'Times New Roman', Times, serif; }
+      .master-grid th, .master-grid td { border: 1px solid black; padding: 4px 6px; font-size: 10px !important; line-height: 1.3; vertical-align: top; }
+      .master-grid tr { page-break-inside: avoid; }
+      .inner-align { width: 100%; border-collapse: collapse; }
+      .inner-align td { border: none; padding: 1px; font-size: 10px !important; }
+      .title-row { text-align: center; font-weight: bold; font-size: 14px !important; background-color: #f2f2f2; padding: 6px !important; }
+      .cb { display: inline-block; width: 13px; height: 13px; border: 1px solid black; text-align: center; line-height: 11px; font-size: 11px !important; font-weight: bold; margin-right: 4px; vertical-align: middle; overflow: hidden; }
+      .cb-checked::after { content: "✓"; }
+      .rounded-meta { border: 1px solid black; border-radius: 10px; padding: 5px; width: 100%; }
+      .footer-id { text-align: right; font-size: 9px !important; margin-top: 5px; font-style: italic; }
+      .t-border{box-sizing:border-box; width:100%; border:2px solid black; border-top:none; display:flex;flex-direction:column;flex:1;font-family:'Times New Roman',Times,serif; background:white;}
+      .t-border *{font-size:11px !important;line-height:1.25 !important;box-sizing:border-box;margin:0;padding:0;}
+      .t-border h3{font-size:13px !important;font-weight:bold;}
+      .t-row{display:flex;border-bottom:1px solid black; break-inside: avoid; page-break-inside: avoid;}
+      .t-inner-row{display:flex;border-bottom:1px solid black;}
+      .t-inner-row:last-child{border-bottom:none;}
+      .t-inner-col{box-sizing:border-box;padding:3px 4px;border-right:1px solid black;}
+      .t-inner-col:last-child{border-right:none;}
+      .t-row:last-child{border-bottom:none;}
+      .t-col{box-sizing:border-box; padding:4px;border-right:1px solid black;}
+      .t-col:last-child{border-right:none;}
+      .t-f1{flex:1;}.t-f2{flex:2;}.t-f3{flex:3;}.t-f4{flex:4;}
+      .t-sq{display:inline-block;width:13px;height:13px;border:1px solid black;margin-right:4px;flex-shrink:0;vertical-align:middle;text-align:center;line-height:11px;font-size:11px !important;font-weight:bold;overflow:hidden;}
+      .t-level{font-weight:bold !important;padding:4px;border-bottom:1px solid black;background-color:#f2f2f2;text-align:center;}
+      .t-sq.cb::after { content: "✓"; font-size: 11px !important; line-height: 11px; display: block; text-align: center; }
+      .t-arrow{text-align:center;padding:2px 0;border-bottom:1px solid black;}
+      .t-vgrid{display:grid;grid-template-columns:1fr 1fr 1fr;width:100%;gap:2px;}
+      .t-cbox{width:20px;height:10px;display:inline-block;border:1px solid black;}
+      .t-red{background-color:#f44336;}.t-yellow{background-color:#ffeb3b;}.t-green{background-color:#4caf50;}.t-blk{background-color:#212121;}
+      .t-white{color:white !important;}
+      .p-val{font-weight:bold;min-width:12px;display:inline-block;border-bottom:1px dotted #999;padding:0 2px;}
+      .prmrj-table { width: 100%; border-collapse: collapse; font-family: 'Times New Roman', Times, serif; flex: 1; height: 100%; table-layout: fixed; }
+      .prmrj-table th { border: 1px solid black; padding: 5px 4px; vertical-align: middle; font-size: 11px !important; text-align: center; background-color: #f2f2f2; font-weight: bold; }
+      .prmrj-table tbody td { border-top: none !important; border-bottom: none !important; border-left: 1px solid black !important; border-right: 1px solid black !important; padding: 6px 6px; vertical-align: top; font-size: 11px !important; }
+      .prmrj-table tbody td:first-child { border-left: none !important; }
+      .prmrj-table tbody td:last-child { border-right: none !important; }
+      .prmrj-table tbody tr:last-child td { border-bottom: none !important; }
+      .gigi-table { width: 100%; border-collapse: collapse; font-family: 'Times New Roman', Times, serif; flex: 1; height: 100%; table-layout: fixed; }
+      .gigi-table th { border: 1px solid black; padding: 5px 4px; vertical-align: middle; font-size: 11px !important; text-align: center; background-color: #f2f2f2; font-weight: bold; }
+      .gigi-table tbody td { border-top: none !important; border-bottom: none !important; border-left: 1px solid black !important; border-right: 1px solid black !important; padding: 6px 6px; vertical-align: top; font-size: 11px !important; }
+      .gigi-table tbody td:first-child { border-left: none !important; }
+      .gigi-table tbody td:last-child { border-right: none !important; }
+      .gigi-table tbody tr:last-child td { border-bottom: none !important; }
+      .cppt-table { width: 100%; border-collapse: collapse; font-family: 'Times New Roman', Times, serif; flex: 1; height: 100%; table-layout: fixed; }
+      .cppt-table th { border: 1px solid black; padding: 5px 4px; vertical-align: middle; font-size: 11px !important; text-align: center; background-color: #f2f2f2; font-weight: bold; }
+      .cppt-table tbody td { border-top: none !important; border-bottom: none !important; border-left: 1px solid black !important; border-right: 1px solid black !important; padding: 6px 6px; vertical-align: top; font-size: 11px !important; }
+      .cppt-table tbody td:first-child { border-left: none !important; }
+      .cppt-table tbody td:last-child { border-right: none !important; }
+      .cppt-table tbody tr:last-child td { border-bottom: none !important; }
+      .fpo-admission-context { display: flex; justify-content: space-between; padding: 8px; border-bottom: 2px solid black; font-size: 12px; background-color: #fafafa; flex-shrink: 0; }
+      .fpo-context-col { width: 32%; display: flex; flex-direction: column; gap: 4px; }
+      .fpo-context-row { display: flex; }
+      .fpo-context-label { width: 110px; }
+      .fpo-context-value { font-weight: bold; }
+      .fpo-table { width: 100%; border-collapse: collapse; table-layout: fixed; flex: 1; font-family: 'Times New Roman', Times, serif; }
+      .fpo-table th, .fpo-table td { border: 1px solid black; text-align: center; vertical-align: middle; padding: 3px; font-size: 10.5px !important; box-sizing: border-box; }
+      .fpo-c-no { width: 3% !important; }
+      .fpo-c-nama-obat { width: 15% !important; }
+      .fpo-c-time-slot { width: 2.1% !important; font-size: 8px !important; }
+      .fpo-med-row { break-inside: avoid; page-break-inside: avoid; }
+      .fpo-med-row td { height: 35px; }
+      .edu-table { width: 100%; height: 100%; border-collapse: collapse; font-size: 10px; font-family: 'Times New Roman', Times, serif; table-layout: fixed; }
+      .edu-table th, .edu-table td { border: 1px solid black; padding: 3px; vertical-align: top; }
+      .edu-table th { text-align: center; vertical-align: middle; font-size: 9px; background-color: #f9f9f9; font-weight: bold; }
+      .col-no { width: 2%; text-align: center; }
+      .col-date { width: 5%; }
+      .col-time { width: 4%; }
+      .col-materi { width: 18%; }
+      .col-pemahaman { width: 10%; }
+      .col-metode { width: 10%; }
+      .col-diberikan { width: 7%; }
+      .col-sarana { width: 8%; }
+      .col-leaflet { width: 6%; }
+      .col-sasaran { width: 10%; }
+      .col-edukator { width: 10%; }
+      .col-eval { width: 10%; }
+      ul.cb-list { list-style: none; padding-left: 0; margin: 0; }
+      ul.cb-list li { margin-bottom: 2px; display: flex; align-items: flex-start; font-size: 9px; }
+      .cb { display: inline-block; width: 10px; height: 10px; border: 1px solid black; margin-right: 4px; margin-top: 1px; flex-shrink: 0; text-align: center; line-height: 9px; font-size: 9px; font-weight: bold; }
+      .cb.checked::after { content: "✓"; }
+    `;
 
-    let itemsHtml = "";
-    results.forEach((r, idx) => {
-      const isChecked = r.isFilled ? "checked" : "";
-      const isDisabled = r.isFilled ? "" : "disabled";
-      const badge = r.isFilled
-        ? `<span class="badge bg-success"><i class="bi bi-check2 me-1"></i>Terisi</span>`
-        : `<span class="badge bg-secondary">Belum Diisi</span>`;
-      const textClass = r.isFilled ? "fw-bold text-dark" : "text-muted text-decoration-line-through";
+    const renderUnitView = async (targetUnit) => {
+      activeUnit = targetUnit;
 
-      itemsHtml += `
-        <li class="list-group-item d-flex justify-content-between align-items-center py-3">
-          <div class="form-check d-flex align-items-center gap-2 m-0">
-            <input class="form-check-input mass-doc-item" type="checkbox" value="${idx}" id="chk-doc-${idx}" ${isChecked} ${isDisabled}>
-            <label class="form-check-label ${textClass} ms-1" for="chk-doc-${idx}">
-              ${r.title}
-            </label>
-          </div>
-          <div>${badge}</div>
-        </li>
+      modalBody.innerHTML = `
+        <div class="text-center py-4">
+          <div class="spinner-border text-primary" role="status"></div>
+          <div class="mt-2 text-muted fw-semibold">Memeriksa berkas ${activeUnit === "IGD" ? "IGD" : (activeUnit === "POLI_GIGI" ? "Poli Gigi" : "Poliklinik")}...</div>
+        </div>
       `;
-    });
 
-    const infoPatientHtml = `
-      <div class="card bg-light border-0 mb-3">
-        <div class="card-body p-3">
-          <div class="row g-2">
-            <div class="col-sm-6">
-              <span class="text-muted small">Nama Pasien:</span>
-              <div class="fw-bold fs-6">${namaPasien || "-"}</div>
+      const docDefinitions = getDocsForUnit(activeUnit);
+      const results = await Promise.all(
+        docDefinitions.map(async (doc) => {
+          try {
+            const res = await fetch(doc.endpoint);
+            if (!res.ok) return { ...doc, isFilled: false, data: null };
+            const json = await res.json();
+            const docData = json.data || (json._id ? json : null);
+            const filled = Boolean(doc.checkFilled(docData));
+            return { ...doc, isFilled: filled, data: docData };
+          } catch (err) {
+            return { ...doc, isFilled: false, data: null };
+          }
+        })
+      );
+
+      const filledDocs = results.filter((d) => d.isFilled);
+      const filledCount = filledDocs.length;
+
+      let itemsHtml = "";
+      results.forEach((r, idx) => {
+        const isChecked = r.isFilled ? "checked" : "";
+        const isDisabled = r.isFilled ? "" : "disabled";
+        const badge = r.isFilled
+          ? `<span class="badge bg-success"><i class="bi bi-check2 me-1"></i>Terisi</span>`
+          : `<span class="badge bg-secondary">Belum Diisi</span>`;
+        const textClass = r.isFilled ? "fw-bold text-dark" : "text-muted text-decoration-line-through";
+
+        itemsHtml += `
+          <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+            <div class="form-check d-flex align-items-center gap-2 m-0">
+              <input class="form-check-input mass-doc-item" type="checkbox" value="${idx}" id="chk-doc-${idx}" ${isChecked} ${isDisabled}>
+              <label class="form-check-label ${textClass} ms-1" for="chk-doc-${idx}">
+                ${r.title}
+              </label>
             </div>
-            <div class="col-sm-3">
-              <span class="text-muted small">No. RM:</span>
-              <div class="fw-bold fs-6">${noMr || "-"}</div>
-            </div>
-            <div class="col-sm-3">
-              <span class="text-muted small">Unit:</span>
-              <div class="fw-bold fs-6">${unitLabel}</div>
+            <div>${badge}</div>
+          </li>
+        `;
+      });
+
+      const infoPatientHtml = `
+        <div class="card bg-light border-0 mb-3">
+          <div class="card-body p-3">
+            <div class="row g-2">
+              <div class="col-sm-6">
+                <span class="text-muted small">Nama Pasien:</span>
+                <div class="fw-bold fs-6">${namaPasien || "-"}</div>
+              </div>
+              <div class="col-sm-3">
+                <span class="text-muted small">No. RM:</span>
+                <div class="fw-bold fs-6">${noMr || "-"}</div>
+              </div>
+              <div class="col-sm-3">
+                <span class="text-muted small">Unit Kunjungan:</span>
+                <div class="fw-bold fs-6">${unitLabel}</div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    `;
+      `;
 
-    if (filledCount === 0) {
+      const unitSwitcherHtml = `
+        <div class="mb-3">
+          <div class="btn-group w-100" role="group" id="mass-unit-switch-group">
+            <button type="button" class="btn btn-sm ${activeUnit === 'IGD' ? 'btn-danger active text-white fw-bold' : 'btn-outline-danger'}" data-unit="IGD">
+              <i class="bi bi-heart-pulse-fill me-1"></i> Berkas IGD
+            </button>
+            <button type="button" class="btn btn-sm ${activeUnit === 'POLI' ? 'btn-primary active text-white fw-bold' : 'btn-outline-primary'}" data-unit="POLI">
+              <i class="bi bi-hospital-fill me-1"></i> Berkas Poliklinik
+            </button>
+            <button type="button" class="btn btn-sm ${activeUnit === 'POLI_GIGI' ? 'btn-success active text-white fw-bold' : 'btn-outline-success'}" data-unit="POLI_GIGI">
+              <i class="bi bi-emoji-smile-fill me-1"></i> Berkas Poli Gigi
+            </button>
+          </div>
+        </div>
+      `;
+
+      if (filledCount === 0) {
+        modalBody.innerHTML = `
+          ${infoPatientHtml}
+          ${unitSwitcherHtml}
+          <div class="alert alert-warning d-flex align-items-center mb-0 py-3" role="alert">
+            <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+            <div>
+              <strong>Belum ada dokumen yang terisi</strong> untuk berkas ${activeUnit === "IGD" ? "IGD" : (activeUnit === "POLI_GIGI" ? "Poli Gigi" : "Poliklinik")} ini.
+              <div class="small text-muted mt-1">Silakan isi formulir rekam medis terlebih dahulu atau pilih tab unit lain di atas jika pasien terdaftar di unit berbeda.</div>
+            </div>
+          </div>
+          <ul class="list-group mt-3">${itemsHtml}</ul>
+        `;
+        modalFooter.innerHTML = `<button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">Tutup</button>`;
+
+        modalBody.querySelectorAll("#mass-unit-switch-group button[data-unit]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const u = btn.getAttribute("data-unit");
+            if (u !== activeUnit) renderUnitView(u);
+          });
+        });
+        return;
+      }
+
       modalBody.innerHTML = `
         ${infoPatientHtml}
-        <div class="alert alert-warning d-flex align-items-center mb-0 py-3" role="alert">
-          <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+        ${unitSwitcherHtml}
+        <div class="alert alert-info py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
+          <i class="bi bi-info-circle-fill fs-5 text-primary flex-shrink-0"></i>
           <div>
-            <strong>Belum ada dokumen yang terisi</strong> untuk kunjungan pasien ini.
-            <div class="small text-muted mt-1">Silakan isi formulir rekam medis terlebih dahulu sebelum mengunduh berkas.</div>
+            <strong>Hasil Kualitas Cetak Asli:</strong> Gunakan tombol <strong>"Cetak / Simpan PDF Asli"</strong> untuk membuka jendela Cetak browser dengan ketajaman vector 100% dan pilih <em>Simpan sebagai PDF</em>.
           </div>
         </div>
-        <ul class="list-group mt-3">${itemsHtml}</ul>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="fw-semibold text-muted small">DOKUMEN TERSEDIA (${filledCount} DARI ${results.length})</span>
+          <div class="small">
+            <a href="javascript:void(0)" id="btn-select-all-mass" class="text-decoration-none me-2">Pilih Semua</a>
+            <a href="javascript:void(0)" id="btn-deselect-all-mass" class="text-decoration-none text-muted">Batal Pilih</a>
+          </div>
+        </div>
+        <ul class="list-group mb-3">${itemsHtml}</ul>
+        <div class="p-3 bg-light rounded-3 border">
+          <div class="fw-semibold small text-muted mb-2">FORMAT UNDUHAN:</div>
+          <div class="d-flex gap-4">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="mass-download-format" id="fmt-zip" value="zip" checked>
+              <label class="form-check-label fw-bold" for="fmt-zip">
+                <i class="bi bi-file-earmark-zip text-primary me-1"></i> Paket ZIP (.zip)
+                <div class="small text-muted fw-normal">Semua dokumen dibundel dalam 1 file ZIP</div>
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="mass-download-format" id="fmt-pdf" value="pdf">
+              <label class="form-check-label fw-bold" for="fmt-pdf">
+                <i class="bi bi-file-earmark-pdf text-danger me-1"></i> File Terpisah (.pdf)
+                <div class="small text-muted fw-normal">Masing-masing file PDF diunduh berurutan</div>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div id="mass-download-progress-box" class="mt-3 d-none">
+          <div class="progress mb-2" style="height: 10px;">
+            <div id="mass-download-progressbar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 0%"></div>
+          </div>
+          <div id="mass-download-status-text" class="small text-muted text-center">Memproses...</div>
+        </div>
       `;
-      modalFooter.innerHTML = `<button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">Tutup</button>`;
-      return;
-    }
 
-    modalBody.innerHTML = `
-      ${infoPatientHtml}
-      <div class="alert alert-info py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
-        <i class="bi bi-info-circle-fill fs-5 text-primary flex-shrink-0"></i>
-        <div>
-          <strong>Hasil Kualitas Cetak Asli:</strong> Gunakan tombol <strong>"Cetak / Simpan PDF Asli"</strong> untuk membuka jendela Cetak browser dengan ketajaman vector 100% dan pilih <em>Simpan sebagai PDF</em>.
-        </div>
-      </div>
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <span class="fw-semibold text-muted small">DOKUMEN TERSEDIA (${filledCount} DARI ${results.length})</span>
-        <div class="small">
-          <a href="javascript:void(0)" id="btn-select-all-mass" class="text-decoration-none me-2">Pilih Semua</a>
-          <a href="javascript:void(0)" id="btn-deselect-all-mass" class="text-decoration-none text-muted">Batal Pilih</a>
-        </div>
-      </div>
-      <ul class="list-group mb-3">${itemsHtml}</ul>
-      <div class="p-3 bg-light rounded-3 border">
-        <div class="fw-semibold small text-muted mb-2">FORMAT UNDUHAN:</div>
-        <div class="d-flex gap-4">
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="mass-download-format" id="fmt-zip" value="zip" checked>
-            <label class="form-check-label fw-bold" for="fmt-zip">
-              <i class="bi bi-file-earmark-zip text-primary me-1"></i> Paket ZIP (.zip)
-              <div class="small text-muted fw-normal">Semua dokumen dibundel dalam 1 file ZIP</div>
-            </label>
-          </div>
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="mass-download-format" id="fmt-pdf" value="pdf">
-            <label class="form-check-label fw-bold" for="fmt-pdf">
-              <i class="bi bi-file-earmark-pdf text-danger me-1"></i> File Terpisah (.pdf)
-              <div class="small text-muted fw-normal">Masing-masing file PDF diunduh berurutan</div>
-            </label>
+      modalFooter.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center w-100 flex-wrap gap-2">
+          <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">Batal</button>
+          <div class="d-flex gap-2">
+            <button type="button" id="btn-print-native-mass" class="btn btn-outline-dark px-3 fw-bold">
+              <i class="bi bi-printer-fill me-1"></i> Cetak / Simpan PDF Asli
+            </button>
+            <button type="button" id="btn-exec-mass-download" class="btn btn-primary px-3 fw-bold">
+              <i class="bi bi-cloud-arrow-down-fill me-1"></i> Unduh File (ZIP / PDF)
+            </button>
           </div>
         </div>
-      </div>
-      <div id="mass-download-progress-box" class="mt-3 d-none">
-        <div class="progress mb-2" style="height: 10px;">
-          <div id="mass-download-progressbar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 0%"></div>
-        </div>
-        <div id="mass-download-status-text" class="small text-muted text-center">Memproses...</div>
-      </div>
-    `;
+      `;
 
-    modalFooter.innerHTML = `
-      <div class="d-flex justify-content-between align-items-center w-100 flex-wrap gap-2">
-        <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">Batal</button>
-        <div class="d-flex gap-2">
-          <button type="button" id="btn-print-native-mass" class="btn btn-outline-dark px-3 fw-bold">
-            <i class="bi bi-printer-fill me-1"></i> Cetak / Simpan PDF Asli
-          </button>
-          <button type="button" id="btn-exec-mass-download" class="btn btn-primary px-3 fw-bold">
-            <i class="bi bi-cloud-arrow-down-fill me-1"></i> Unduh File (ZIP / PDF)
-          </button>
-        </div>
-      </div>
-    `;
-
-    const btnSelectAll = modalBody.querySelector("#btn-select-all-mass");
-    const btnDeselectAll = modalBody.querySelector("#btn-deselect-all-mass");
-    if (btnSelectAll) {
-      btnSelectAll.addEventListener("click", () => {
-        modalBody.querySelectorAll(".mass-doc-item:not([disabled])").forEach((chk) => (chk.checked = true));
+      modalBody.querySelectorAll("#mass-unit-switch-group button[data-unit]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const u = btn.getAttribute("data-unit");
+          if (u !== activeUnit) renderUnitView(u);
+        });
       });
-    }
-    if (btnDeselectAll) {
-      btnDeselectAll.addEventListener("click", () => {
-        modalBody.querySelectorAll(".mass-doc-item:not([disabled])").forEach((chk) => (chk.checked = false));
-      });
-    }
 
-    const printNativeBtn = modalFooter.querySelector("#btn-print-native-mass");
-    if (printNativeBtn) {
-      printNativeBtn.addEventListener("click", async () => {
-        const checkedIndices = Array.from(modalBody.querySelectorAll(".mass-doc-item:checked")).map((chk) => parseInt(chk.value, 10));
-        if (checkedIndices.length === 0) {
-          alert("Pilih setidaknya 1 dokumen yang ingin dicetak!");
-          return;
-        }
+      const btnSelectAll = modalBody.querySelector("#btn-select-all-mass");
+      const btnDeselectAll = modalBody.querySelector("#btn-deselect-all-mass");
+      if (btnSelectAll) {
+        btnSelectAll.addEventListener("click", () => {
+          modalBody.querySelectorAll(".mass-doc-item:not([disabled])").forEach((chk) => (chk.checked = true));
+        });
+      }
+      if (btnDeselectAll) {
+        btnDeselectAll.addEventListener("click", () => {
+          modalBody.querySelectorAll(".mass-doc-item:not([disabled])").forEach((chk) => (chk.checked = false));
+        });
+      }
 
-        const selectedDocs = checkedIndices.map((idx) => results[idx]);
-
-        printNativeBtn.disabled = true;
-        const origText = printNativeBtn.innerHTML;
-        printNativeBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1" role="status"></span> Menyiapkan cetakan...`;
-
-        try {
-          let printHost = document.getElementById("simrs-mass-print-host");
-          if (!printHost) {
-            printHost = document.createElement("div");
-            printHost.id = "simrs-mass-print-host";
-            document.body.appendChild(printHost);
+      const printNativeBtn = modalFooter.querySelector("#btn-print-native-mass");
+      if (printNativeBtn) {
+        printNativeBtn.addEventListener("click", async () => {
+          const checkedIndices = Array.from(modalBody.querySelectorAll(".mass-doc-item:checked")).map((chk) => parseInt(chk.value, 10));
+          if (checkedIndices.length === 0) {
+            alert("Pilih setidaknya 1 dokumen yang ingin dicetak!");
+            return;
           }
 
-          const patientPayload = {
-            noMr: noMr,
-            norm: noMr,
-            nama: namaPasien,
-            namaPasien: namaPasien,
-            tglLahir: pObj.tglLahir || "",
-            kelamin: pObj.kelamin || "",
-            dokterDpjp: pObj.dokterDpjp || pObj.dpjp || pObj.namaDokter || "",
-            dpjp: pObj.dokterDpjp || pObj.dpjp || pObj.namaDokter || "",
-            tglInput: pObj.tglInput || pObj.tglMasuk || "",
-            tglMasuk: pObj.tglInput || pObj.tglMasuk || "",
-            poli: pObj.poli || "",
-            poliNama: pObj.poliNama || ""
-          };
+          const selectedDocs = checkedIndices.map((idx) => results[idx]);
 
-          let combinedHtml = "";
-          for (let i = 0; i < selectedDocs.length; i++) {
-            const doc = selectedDocs[i];
-            combinedHtml += doc.render(patientPayload, doc.data);
-          }
+          printNativeBtn.disabled = true;
+          const origText = printNativeBtn.innerHTML;
+          printNativeBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1" role="status"></span> Menyiapkan cetakan...`;
 
-          printHost.innerHTML = combinedHtml;
-          printHost.classList.add("has-docs");
-
-          const imgs = Array.from(printHost.querySelectorAll("img"));
-          await Promise.all(
-            imgs.map((img) => {
-              if (img.complete && img.naturalWidth > 0) return Promise.resolve();
-              if (typeof img.decode === "function") {
-                return img.decode().catch(() => {});
-              }
-              return new Promise((resolve) => {
-                img.onload = () => resolve();
-                img.onerror = () => resolve();
-                setTimeout(resolve, 800);
-              });
-            })
-          );
-
-          if (document.fonts && document.fonts.ready) {
-            try {
-              await document.fonts.ready;
-            } catch (e) {}
-          }
-
-          const isLandscape = !printHost.querySelector('.surat-document, .surat-page') && !!printHost.querySelector('.surat-document-landscape, .surat-page-landscape');
-          if (forceChromePrintStyles) {
-            forceChromePrintStyles(isLandscape);
-          }
-
-          modalEl.style.setProperty("display", "none", "important");
-          document.querySelectorAll(".modal, .modal-backdrop").forEach((m) => {
-            m.style.setProperty("display", "none", "important");
-          });
-          document.body.classList.add("simrs-printing-mass");
-
-          let cleanedUp = false;
-          const cleanup = () => {
-            if (cleanedUp) return;
-            cleanedUp = true;
-            modalEl.style.setProperty("display", "block", "important");
-            document.body.classList.remove("simrs-printing-mass");
-            if (printHost) {
-              printHost.innerHTML = "";
-              printHost.classList.remove("has-docs");
+          try {
+            let printHost = document.getElementById("simrs-mass-print-host");
+            if (!printHost) {
+              printHost = document.createElement("div");
+              printHost.id = "simrs-mass-print-host";
+              document.body.appendChild(printHost);
             }
-            window.removeEventListener("afterprint", cleanup);
-            printNativeBtn.disabled = false;
-            printNativeBtn.innerHTML = origText;
-          };
 
-          window.addEventListener("afterprint", cleanup, { once: true });
+            const patientPayload = {
+              noMr: noMr,
+              norm: noMr,
+              nama: namaPasien,
+              namaPasien: namaPasien,
+              tglLahir: pObj.tglLahir || "",
+              kelamin: pObj.kelamin || "",
+              dokterDpjp: pObj.dokterDpjp || pObj.dpjp || pObj.namaDokter || "",
+              dpjp: pObj.dokterDpjp || pObj.dpjp || pObj.namaDokter || "",
+              tglInput: pObj.tglInput || pObj.tglMasuk || "",
+              tglMasuk: pObj.tglInput || pObj.tglMasuk || "",
+              poli: pObj.poli || "",
+              poliNama: pObj.poliNama || ""
+            };
 
-          setTimeout(() => {
-            window.print();
-            setTimeout(cleanup, 60000);
-          }, 300);
-        } catch (err) {
-          alert("Gagal menyiapkan cetakan: " + err.message);
-          printNativeBtn.disabled = false;
-          printNativeBtn.innerHTML = origText;
-        }
-      });
-    }
-
-    const execBtn = modalFooter.querySelector("#btn-exec-mass-download");
-    if (execBtn) {
-      execBtn.addEventListener("click", async () => {
-        const checkedIndices = Array.from(modalBody.querySelectorAll(".mass-doc-item:checked")).map((chk) => parseInt(chk.value, 10));
-        if (checkedIndices.length === 0) {
-          alert("Pilih setidaknya 1 dokumen yang ingin diunduh!");
-          return;
-        }
-
-        const selectedDocs = checkedIndices.map((idx) => results[idx]);
-        const isZip = modalBody.querySelector("#fmt-zip").checked;
-
-        execBtn.disabled = true;
-        const progressBox = modalBody.querySelector("#mass-download-progress-box");
-        const progressBar = modalBody.querySelector("#mass-download-progressbar");
-        const statusText = modalBody.querySelector("#mass-download-status-text");
-        progressBox.classList.remove("d-none");
-
-        try {
-          await loadHtml2Pdf();
-          let zip = null;
-          if (isZip) {
-            const JSZip = await ensureJSZip();
-            zip = new JSZip();
-          }
-
-          let renderHost = document.getElementById("simrs-mass-render-host");
-          if (!renderHost) {
-            renderHost = document.createElement("div");
-            renderHost.id = "simrs-mass-render-host";
-            renderHost.style.cssText = "position:fixed; left:-9999px; top:0; width:215.9mm; background:white; z-index:-9999; margin:0; padding:0;";
-            document.body.appendChild(renderHost);
-          }
-
-          const allSuratCss = `
-            ${getStandardGridCSS ? getStandardGridCSS() : ''}
-            #simrs-mass-render-host .surat-document,
-            #simrs-mass-render-host .surat-page {
-              box-sizing: border-box !important;
-              width: 215.9mm !important;
-              max-width: 215.9mm !important;
-              margin: 0 !important;
-              margin-bottom: 0 !important;
-              padding: 5mm !important;
-              box-shadow: none !important;
-              page-break-inside: avoid !important;
-              break-inside: avoid !important;
-              page-break-after: always !important;
-              break-after: page !important;
+            let combinedHtml = "";
+            for (let i = 0; i < selectedDocs.length; i++) {
+              const doc = selectedDocs[i];
+              combinedHtml += doc.render(patientPayload, doc.data);
             }
-            #simrs-mass-render-host .surat-document:last-child,
-            #simrs-mass-render-host .surat-page:last-child {
-              page-break-after: avoid !important;
-              break-after: avoid !important;
-            }
-            #simrs-mass-render-host .surat-document-landscape,
-            #simrs-mass-render-host .surat-page-landscape {
-              box-sizing: border-box !important;
-              width: 330.2mm !important;
-              max-width: 330.2mm !important;
-              margin: 0 !important;
-              margin-bottom: 0 !important;
-              padding: 5mm !important;
-              box-shadow: none !important;
-              page-break-inside: avoid !important;
-              break-inside: avoid !important;
-              page-break-after: always !important;
-              break-after: page !important;
-            }
-            #simrs-mass-render-host .surat-document-landscape:last-child,
-            #simrs-mass-render-host .surat-page-landscape:last-child {
-              page-break-after: avoid !important;
-              break-after: avoid !important;
-            }
-            .master-grid { width: 100%; border-collapse: collapse; border: 2px solid black; font-family: 'Times New Roman', Times, serif; }
-            .master-grid th, .master-grid td { border: 1px solid black; padding: 4px 6px; font-size: 10px !important; line-height: 1.3; vertical-align: top; }
-            .master-grid tr { page-break-inside: avoid; }
-            .inner-align { width: 100%; border-collapse: collapse; }
-            .inner-align td { border: none; padding: 1px; font-size: 10px !important; }
-            .title-row { text-align: center; font-weight: bold; font-size: 14px !important; background-color: #f2f2f2; padding: 6px !important; }
-            .cb { display: inline-block; width: 13px; height: 13px; border: 1px solid black; text-align: center; line-height: 11px; font-size: 11px !important; font-weight: bold; margin-right: 4px; vertical-align: middle; overflow: hidden; }
-            .cb-checked::after { content: "✓"; }
-            .rounded-meta { border: 1px solid black; border-radius: 10px; padding: 5px; width: 100%; }
-            .footer-id { text-align: right; font-size: 9px !important; margin-top: 5px; font-style: italic; }
-            .t-border{box-sizing:border-box; width:100%; border:2px solid black; border-top:none; display:flex;flex-direction:column;flex:1;font-family:'Times New Roman',Times,serif; background:white;}
-            .t-border *{font-size:11px !important;line-height:1.25 !important;box-sizing:border-box;margin:0;padding:0;}
-            .t-border h3{font-size:13px !important;font-weight:bold;}
-            .t-row{display:flex;border-bottom:1px solid black; break-inside: avoid; page-break-inside: avoid;}
-            .t-inner-row{display:flex;border-bottom:1px solid black;}
-            .t-inner-row:last-child{border-bottom:none;}
-            .t-inner-col{box-sizing:border-box;padding:3px 4px;border-right:1px solid black;}
-            .t-inner-col:last-child{border-right:none;}
-            .t-row:last-child{border-bottom:none;}
-            .t-col{box-sizing:border-box; padding:4px;border-right:1px solid black;}
-            .t-col:last-child{border-right:none;}
-            .t-f1{flex:1;}.t-f2{flex:2;}.t-f3{flex:3;}.t-f4{flex:4;}
-            .t-sq{display:inline-block;width:13px;height:13px;border:1px solid black;margin-right:4px;flex-shrink:0;vertical-align:middle;text-align:center;line-height:11px;font-size:11px !important;font-weight:bold;overflow:hidden;}
-            .t-level{font-weight:bold !important;padding:4px;border-bottom:1px solid black;background-color:#f2f2f2;text-align:center;}
-            .t-sq.cb::after { content: "✓"; font-size: 11px !important; line-height: 11px; display: block; text-align: center; }
-            .t-arrow{text-align:center;padding:2px 0;border-bottom:1px solid black;}
-            .t-vgrid{display:grid;grid-template-columns:1fr 1fr 1fr;width:100%;gap:2px;}
-            .t-cbox{width:20px;height:10px;display:inline-block;border:1px solid black;}
-            .t-red{background-color:#f44336;}.t-yellow{background-color:#ffeb3b;}.t-green{background-color:#4caf50;}.t-blk{background-color:#212121;}
-            .t-white{color:white !important;}
-            .p-val{font-weight:bold;min-width:12px;display:inline-block;border-bottom:1px dotted #999;padding:0 2px;}
-            .prmrj-table { width: 100%; border-collapse: collapse; font-family: 'Times New Roman', Times, serif; flex: 1; height: 100%; table-layout: fixed; }
-            .prmrj-table th { border: 1px solid black; padding: 5px 4px; vertical-align: middle; font-size: 11px !important; text-align: center; background-color: #f2f2f2; font-weight: bold; }
-            .prmrj-table tbody td { border-top: none !important; border-bottom: none !important; border-left: 1px solid black !important; border-right: 1px solid black !important; padding: 6px 6px; vertical-align: top; font-size: 11px !important; }
-            .prmrj-table tbody td:first-child { border-left: none !important; }
-            .prmrj-table tbody td:last-child { border-right: none !important; }
-            .prmrj-table tbody tr:last-child td { border-bottom: none !important; }
-            .gigi-table { width: 100%; border-collapse: collapse; font-family: 'Times New Roman', Times, serif; flex: 1; height: 100%; table-layout: fixed; }
-            .gigi-table th { border: 1px solid black; padding: 5px 4px; vertical-align: middle; font-size: 11px !important; text-align: center; background-color: #f2f2f2; font-weight: bold; }
-            .gigi-table tbody td { border-top: none !important; border-bottom: none !important; border-left: 1px solid black !important; border-right: 1px solid black !important; padding: 6px 6px; vertical-align: top; font-size: 11px !important; }
-            .gigi-table tbody td:first-child { border-left: none !important; }
-            .gigi-table tbody td:last-child { border-right: none !important; }
-            .gigi-table tbody tr:last-child td { border-bottom: none !important; }
-            .cppt-table { width: 100%; border-collapse: collapse; font-family: 'Times New Roman', Times, serif; flex: 1; height: 100%; table-layout: fixed; }
-            .cppt-table th { border: 1px solid black; padding: 5px 4px; vertical-align: middle; font-size: 11px !important; text-align: center; background-color: #f2f2f2; font-weight: bold; }
-            .cppt-table tbody td { border-top: none !important; border-bottom: none !important; border-left: 1px solid black !important; border-right: 1px solid black !important; padding: 6px 6px; vertical-align: top; font-size: 11px !important; }
-            .cppt-table tbody td:first-child { border-left: none !important; }
-            .cppt-table tbody td:last-child { border-right: none !important; }
-            .cppt-table tbody tr:last-child td { border-bottom: none !important; }
-            .fpo-admission-context { display: flex; justify-content: space-between; padding: 8px; border-bottom: 2px solid black; font-size: 12px; background-color: #fafafa; flex-shrink: 0; }
-            .fpo-context-col { width: 32%; display: flex; flex-direction: column; gap: 4px; }
-            .fpo-context-row { display: flex; }
-            .fpo-context-label { width: 110px; }
-            .fpo-context-value { font-weight: bold; }
-            .fpo-table { width: 100%; border-collapse: collapse; table-layout: fixed; flex: 1; font-family: 'Times New Roman', Times, serif; }
-            .fpo-table th, .fpo-table td { border: 1px solid black; text-align: center; vertical-align: middle; padding: 3px; font-size: 10.5px !important; box-sizing: border-box; }
-            .fpo-c-no { width: 3% !important; }
-            .fpo-c-nama-obat { width: 15% !important; }
-            .fpo-c-time-slot { width: 2.1% !important; font-size: 8px !important; }
-            .fpo-med-row { break-inside: avoid; page-break-inside: avoid; }
-            .fpo-med-row td { height: 35px; }
-            .edu-table { width: 100%; height: 100%; border-collapse: collapse; font-size: 10px; font-family: 'Times New Roman', Times, serif; table-layout: fixed; }
-            .edu-table th, .edu-table td { border: 1px solid black; padding: 3px; vertical-align: top; }
-            .edu-table th { text-align: center; vertical-align: middle; font-size: 9px; background-color: #f9f9f9; font-weight: bold; }
-            .col-no { width: 2%; text-align: center; }
-            .col-date { width: 5%; }
-            .col-time { width: 4%; }
-            .col-materi { width: 18%; }
-            .col-pemahaman { width: 10%; }
-            .col-metode { width: 10%; }
-            .col-diberikan { width: 7%; }
-            .col-sarana { width: 8%; }
-            .col-leaflet { width: 6%; }
-            .col-sasaran { width: 10%; }
-            .col-edukator { width: 10%; }
-            .col-eval { width: 10%; }
-            ul.cb-list { list-style: none; padding-left: 0; margin: 0; }
-            ul.cb-list li { margin-bottom: 2px; display: flex; align-items: flex-start; font-size: 9px; }
-            .cb { display: inline-block; width: 10px; height: 10px; border: 1px solid black; margin-right: 4px; margin-top: 1px; flex-shrink: 0; text-align: center; line-height: 9px; font-size: 9px; font-weight: bold; }
-            .cb.checked::after { content: "✓"; }
-          `;
 
-          const patientPayload = {
-            noMr: noMr,
-            norm: noMr,
-            nama: namaPasien,
-            namaPasien: namaPasien,
-            tglLahir: pObj.tglLahir || "",
-            kelamin: pObj.kelamin || "",
-            dokterDpjp: pObj.dokterDpjp || pObj.dpjp || pObj.namaDokter || "",
-            dpjp: pObj.dokterDpjp || pObj.dpjp || pObj.namaDokter || "",
-            tglInput: pObj.tglInput || pObj.tglMasuk || "",
-            tglMasuk: pObj.tglInput || pObj.tglMasuk || "",
-            poli: pObj.poli || "",
-            poliNama: pObj.poliNama || ""
-          };
+            printHost.innerHTML = combinedHtml;
+            printHost.classList.add("has-docs");
 
-          for (let i = 0; i < selectedDocs.length; i++) {
-            const doc = selectedDocs[i];
-            const percent = Math.round(((i) / selectedDocs.length) * 100);
-            progressBar.style.width = `${percent}%`;
-            statusText.textContent = `Memproses (${i + 1}/${selectedDocs.length}): ${doc.title}...`;
-
-            const fullHtml = doc.render(patientPayload, doc.data);
-            renderHost.innerHTML = `<style>${allSuratCss}</style>` + fullHtml;
-
-            const isLandscape = !!renderHost.querySelector('.surat-document-landscape, .surat-page-landscape');
-            renderHost.style.width = isLandscape ? '330.2mm' : '215.9mm';
-            renderHost.style.margin = '0';
-            renderHost.style.padding = '0';
-            renderHost.style.boxSizing = 'border-box';
-
-            const imgs = Array.from(renderHost.querySelectorAll("img"));
+            const imgs = Array.from(printHost.querySelectorAll("img"));
             await Promise.all(
               imgs.map((img) => {
                 if (img.complete && img.naturalWidth > 0) return Promise.resolve();
@@ -1045,68 +986,202 @@ class SimrsMassDownloader {
               } catch (e) {}
             }
 
-            const docWidthMm = isLandscape ? 330.2 : 215.9;
-            const docWidthPx = Math.round((docWidthMm / 25.4) * 96);
+            const isLandscape = !printHost.querySelector('.surat-document, .surat-page') && !!printHost.querySelector('.surat-document-landscape, .surat-page-landscape');
+            if (forceChromePrintStyles) {
+              forceChromePrintStyles(isLandscape);
+            }
 
-            const opt = {
-              margin: [0, 0, 0, 0],
-              filename: doc.filename,
-              image: { type: "jpeg", quality: 1.0 },
-              html2canvas: {
-                scale: 3,
-                useCORS: true,
-                logging: false,
-                scrollX: 0,
-                scrollY: 0,
-                x: 0,
-                y: 0,
-                windowWidth: docWidthPx,
-                backgroundColor: "#ffffff",
-                letterRendering: true
-              },
-              jsPDF: {
-                unit: "mm",
-                format: isLandscape ? [330.2, 215.9] : [215.9, 330.2],
-                orientation: isLandscape ? "landscape" : "portrait"
-              },
-              pagebreak: { mode: ["css", "legacy"] }
+            const origTitle = document.title;
+            const unitTag = activeUnit;
+            document.title = `BERKAS_${unitTag}_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}`;
+
+            modalEl.style.setProperty("display", "none", "important");
+            document.querySelectorAll(".modal, .modal-backdrop").forEach((m) => {
+              m.style.setProperty("display", "none", "important");
+            });
+            document.body.classList.add("simrs-printing-mass");
+
+            let cleanedUp = false;
+            const cleanup = () => {
+              if (cleanedUp) return;
+              cleanedUp = true;
+              document.title = origTitle;
+              modalEl.style.setProperty("display", "block", "important");
+              document.body.classList.remove("simrs-printing-mass");
+              if (printHost) {
+                printHost.innerHTML = "";
+                printHost.classList.remove("has-docs");
+              }
+              window.removeEventListener("afterprint", cleanup);
+              printNativeBtn.disabled = false;
+              printNativeBtn.innerHTML = origText;
             };
 
-            const pdfBlob = await window.html2pdf().set(opt).from(renderHost).outputPdf("blob");
+            window.addEventListener("afterprint", cleanup, { once: true });
 
+            setTimeout(() => {
+              window.print();
+              setTimeout(cleanup, 60000);
+            }, 300);
+          } catch (err) {
+            alert("Gagal menyiapkan cetakan: " + err.message);
+            printNativeBtn.disabled = false;
+            printNativeBtn.innerHTML = origText;
+          }
+        });
+      }
+
+      const execBtn = modalFooter.querySelector("#btn-exec-mass-download");
+      if (execBtn) {
+        execBtn.addEventListener("click", async () => {
+          const checkedIndices = Array.from(modalBody.querySelectorAll(".mass-doc-item:checked")).map((chk) => parseInt(chk.value, 10));
+          if (checkedIndices.length === 0) {
+            alert("Pilih setidaknya 1 dokumen yang ingin diunduh!");
+            return;
+          }
+
+          const selectedDocs = checkedIndices.map((idx) => results[idx]);
+          const isZip = modalBody.querySelector("#fmt-zip").checked;
+
+          execBtn.disabled = true;
+          const progressBox = modalBody.querySelector("#mass-download-progress-box");
+          const progressBar = modalBody.querySelector("#mass-download-progressbar");
+          const statusText = modalBody.querySelector("#mass-download-status-text");
+          progressBox.classList.remove("d-none");
+
+          try {
+            await loadHtml2Pdf();
+            let zip = null;
             if (isZip) {
-              zip.file(doc.filename, pdfBlob);
-            } else {
-              saveBlobAs(pdfBlob, doc.filename);
-              await new Promise((r) => setTimeout(r, 600));
+              const JSZip = await ensureJSZip();
+              zip = new JSZip();
             }
+
+            let renderHost = document.getElementById("simrs-mass-render-host");
+            if (!renderHost) {
+              renderHost = document.createElement("div");
+              renderHost.id = "simrs-mass-render-host";
+              renderHost.style.cssText = "position:fixed; left:-9999px; top:0; width:215.9mm; background:white; z-index:-9999; margin:0; padding:0;";
+              document.body.appendChild(renderHost);
+            }
+
+            const patientPayload = {
+              noMr: noMr,
+              norm: noMr,
+              nama: namaPasien,
+              namaPasien: namaPasien,
+              tglLahir: pObj.tglLahir || "",
+              kelamin: pObj.kelamin || "",
+              dokterDpjp: pObj.dokterDpjp || pObj.dpjp || pObj.namaDokter || "",
+              dpjp: pObj.dokterDpjp || pObj.dpjp || pObj.namaDokter || "",
+              tglInput: pObj.tglInput || pObj.tglMasuk || "",
+              tglMasuk: pObj.tglInput || pObj.tglMasuk || "",
+              poli: pObj.poli || "",
+              poliNama: pObj.poliNama || ""
+            };
+
+            for (let i = 0; i < selectedDocs.length; i++) {
+              const doc = selectedDocs[i];
+              const percent = Math.round(((i) / selectedDocs.length) * 100);
+              progressBar.style.width = `${percent}%`;
+              statusText.textContent = `Memproses (${i + 1}/${selectedDocs.length}): ${doc.title}...`;
+
+              const fullHtml = doc.render(patientPayload, doc.data);
+              renderHost.innerHTML = `<style>${allSuratCss}</style>` + fullHtml;
+
+              const isLandscape = !!renderHost.querySelector('.surat-document-landscape, .surat-page-landscape');
+              renderHost.style.width = isLandscape ? '330.2mm' : '215.9mm';
+              renderHost.style.margin = '0';
+              renderHost.style.padding = '0';
+              renderHost.style.boxSizing = 'border-box';
+
+              const imgs = Array.from(renderHost.querySelectorAll("img"));
+              await Promise.all(
+                imgs.map((img) => {
+                  if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+                  if (typeof img.decode === "function") {
+                    return img.decode().catch(() => {});
+                  }
+                  return new Promise((resolve) => {
+                    img.onload = () => resolve();
+                    img.onerror = () => resolve();
+                    setTimeout(resolve, 800);
+                  });
+                })
+              );
+
+              if (document.fonts && document.fonts.ready) {
+                try {
+                  await document.fonts.ready;
+                } catch (e) {}
+              }
+
+              const docWidthMm = isLandscape ? 330.2 : 215.9;
+              const docWidthPx = Math.round((docWidthMm / 25.4) * 96);
+
+              const opt = {
+                margin: [0, 0, 0, 0],
+                filename: doc.filename,
+                image: { type: "jpeg", quality: 1.0 },
+                html2canvas: {
+                  scale: 3,
+                  useCORS: true,
+                  logging: false,
+                  scrollX: 0,
+                  scrollY: 0,
+                  x: 0,
+                  y: 0,
+                  windowWidth: docWidthPx,
+                  backgroundColor: "#ffffff",
+                  letterRendering: true
+                },
+                jsPDF: {
+                  unit: "mm",
+                  format: isLandscape ? [330.2, 215.9] : [215.9, 330.2],
+                  orientation: isLandscape ? "landscape" : "portrait"
+                },
+                pagebreak: { mode: ["css", "legacy"] }
+              };
+
+              const pdfBlob = await window.html2pdf().set(opt).from(renderHost).outputPdf("blob");
+
+              if (isZip) {
+                zip.file(doc.filename, pdfBlob);
+              } else {
+                saveBlobAs(pdfBlob, doc.filename);
+                await new Promise((r) => setTimeout(r, 600));
+              }
+            }
+
+            if (renderHost) {
+              renderHost.innerHTML = "";
+            }
+
+            progressBar.style.width = "100%";
+            if (isZip) {
+              statusText.textContent = "Mengompres berkas ke dalam ZIP...";
+              const unitTag = activeUnit;
+              const zipFilename = `DOKUMEN_${unitTag}_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.zip`;
+              const zipBlob = await zip.generateAsync({ type: "blob" });
+              saveBlobAs(zipBlob, zipFilename);
+            }
+
+            statusText.innerHTML = '<span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i> Pengunduhan berkas selesai!</span>';
+            execBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i> Selesai';
+            execBtn.classList.replace("btn-primary", "btn-success");
+
+            setTimeout(() => {
+              hideModal(modalEl);
+            }, 2000);
+          } catch (err) {
+            statusText.innerHTML = `<span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill me-1"></i> Gagal: ${err.message}</span>`;
+            execBtn.disabled = false;
           }
+        });
+      }
+    };
 
-          if (renderHost) {
-            renderHost.innerHTML = "";
-          }
-
-          progressBar.style.width = "100%";
-          if (isZip) {
-            statusText.textContent = "Mengompres berkas ke dalam ZIP...";
-            const zipFilename = `DOKUMEN_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.zip`;
-            const zipBlob = await zip.generateAsync({ type: "blob" });
-            saveBlobAs(zipBlob, zipFilename);
-          }
-
-          statusText.innerHTML = '<span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i> Pengunduhan berkas selesai!</span>';
-          execBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i> Selesai';
-          execBtn.classList.replace("btn-primary", "btn-success");
-
-          setTimeout(() => {
-            hideModal(modalEl);
-          }, 2000);
-        } catch (err) {
-          statusText.innerHTML = `<span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill me-1"></i> Gagal: ${err.message}</span>`;
-          execBtn.disabled = false;
-        }
-      });
-    }
+    await renderUnitView(activeUnit);
   }
 }
 
