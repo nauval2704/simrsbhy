@@ -618,6 +618,157 @@ ul.cb-list li { margin-bottom: 2px; display: flex; align-items: flex-start; font
       </div>`;
     }
 
+    static getPrintHtml(patient, formData) {
+      const p = patient || {};
+      const noMr = p.noMr || p.norm || "-";
+      const nama = p.nama || p.namaPasien || "-";
+      const tglLahir = p.tglLahir || p.tanggal_lahir || "-";
+      const kelamin = p.kelamin || p.jenis_kelamin || "-";
+      const dpjp = p.dpjp || p.dokter || p.namaDokter || "-";
+      const fd = formData || { entries: [] };
+      const entries = fd.entries || [];
+
+      let rowsPrintHtml = "";
+      EDUKASI_TOPICS.forEach((topic, idx) => {
+        const ent = entries[idx] || {};
+        const pma = ent.pemahaman || {};
+        const mtd = ent.metode || {};
+        const dib = ent.diberikan || {};
+        const srn = ent.sarana || {};
+        const sub = ent.subItems || {};
+        const eva = ent.evaluasi || {};
+
+        let tglStr = "";
+        let jamStr = "";
+        if (ent.tglDate) {
+          const parts = ent.tglDate.split("-");
+          if (parts.length === 3) tglStr = `${parts[2]}/${parts[1]}/${parts[0]}`;
+          else tglStr = ent.tglDate;
+        }
+        if (ent.tglTime) jamStr = ent.tglTime;
+
+        let subPrintListHtml = "";
+        if (topic.sub && topic.sub.length > 0) {
+          subPrintListHtml = '<ul class="cb-list" style="margin-top:2px;">';
+          topic.sub.forEach((sItem, sIdx) => {
+            const isChecked = sub[`sub_${sIdx}`];
+            subPrintListHtml += `<li><span class="cb ${isChecked ? 'checked' : ''}"></span>${sItem}</li>`;
+          });
+          subPrintListHtml += '</ul>';
+        }
+
+        rowsPrintHtml += `
+        <tr>
+          <td style="text-align:center;">${topic.id}</td>
+          <td style="text-align:center;">${tglStr}</td>
+          <td style="text-align:center;">${jamStr}</td>
+          <td>
+            ${topic.title}
+            ${subPrintListHtml}
+          </td>
+          <td>
+            <ul class="cb-list">
+              <li><span class="cb ${pma.sudahMengerti ? 'checked' : ''}"></span>Sudah Mengerti</li>
+              <li><span class="cb ${pma.edukasiUlang ? 'checked' : ''}"></span>Edukasi Ulang</li>
+              <li><span class="cb ${pma.halBaru ? 'checked' : ''}"></span>Hal baru</li>
+            </ul>
+          </td>
+          <td>
+            <ul class="cb-list">
+              <li><span class="cb ${mtd.wawancara ? 'checked' : ''}"></span>Wawancara</li>
+              <li><span class="cb ${mtd.diskusi ? 'checked' : ''}"></span>Diskusi Kelompok</li>
+              <li><span class="cb ${mtd.ceramah ? 'checked' : ''}"></span>Ceramah</li>
+              <li><span class="cb ${mtd.demonstrasi ? 'checked' : ''}"></span>Demonstrasi</li>
+            </ul>
+          </td>
+          <td>
+            <ul class="cb-list">
+              <li><span class="cb ${dib.pasien ? 'checked' : ''}"></span>Pasien</li>
+              <li><span class="cb ${dib.keluarga ? 'checked' : ''}"></span>Keluarga</li>
+              <li><span class="cb ${dib.lainnya ? 'checked' : ''}"></span>Lainnya</li>
+            </ul>
+          </td>
+          <td>
+            <ul class="cb-list">
+              <li><span class="cb ${srn.leaflet ? 'checked' : ''}"></span>Leaflet</li>
+              <li><span class="cb ${srn.audiovisual ? 'checked' : ''}"></span>Audiovisual</li>
+              <li><span class="cb ${srn.lainnya ? 'checked' : ''}"></span>Lainnya</li>
+            </ul>
+          </td>
+          <td style="text-align:center;">${ent.leaflet || ''}</td>
+          <td style="text-align:center; vertical-align:bottom;">
+            ${ent.sasaranTtd ? `<img src="${ent.sasaranTtd}" style="max-height:35px; max-width:90%; display:block; margin:2px auto;">` : ''}
+            <div style="font-weight:bold; font-size:9px;">${ent.sasaranNama || ''}</div>
+          </td>
+          <td style="text-align:center; vertical-align:bottom;">
+            ${ent.edukatorTtd ? `<img src="${ent.edukatorTtd}" style="max-height:35px; max-width:90%; display:block; margin:2px auto;">` : ''}
+            <div style="font-weight:bold; font-size:9px;">${ent.edukatorNama || dpjp}</div>
+          </td>
+          <td>
+            <ul class="cb-list">
+              <li><span class="cb ${eva.reEdukasi ? 'checked' : ''}"></span>Re-edukasi</li>
+              <li><span class="cb ${eva.reDemonstrasi ? 'checked' : ''}"></span>Re-demonstrasi</li>
+              <li><span class="cb ${eva.sudahMengerti ? 'checked' : ''}"></span>Sudah Mengerti</li>
+            </ul>
+          </td>
+        </tr>`;
+      });
+
+      return `
+      <div class="surat-document-landscape">
+        <div class="main-border" style="border:2px solid black; width:100%; height:100%; display:flex; flex-direction:column; background:#fff;">
+          <div class="header-section" style="display:flex; border-bottom:2px solid black; height:80px; flex-shrink:0;">
+            <div class="logo-box" style="width:110px; display:flex; align-items:center; justify-content:center; border-right:1px solid black; text-align:center; flex-shrink:0;">
+              <img src="assets/img/1.png" alt="Logo" style="max-width:100%;max-height:75px;object-fit:contain;" onerror="this.style.display='none'">
+            </div>
+            <div class="title-box" style="flex:1; text-align:center; display:flex; flex-direction:column; justify-content:center; padding:5px;">
+              <h3 style="font-size:16px; margin-bottom:3px; font-weight:bold;">RUMAH SAKIT BHAYANGKARA<br>BANDA ACEH</h3>
+              <p style="font-size:11px;">Jln. Cut Nyak Dhien No. 23 Lamteumen Barat, Banda Aceh Telp. 0651-41355, 0651-41470</p>
+            </div>
+            <div class="meta-box" style="width:300px; padding:5px; border-left:1px solid black; display:flex; flex-direction:column; justify-content:center; flex-shrink:0;">
+              <div class="meta-inner" style="border:1px solid black; border-radius:8px; padding:4px; font-size:11px; line-height:1.3;">
+                <div style="display:flex;"><div style="width:90px;">NRM</div><div>: ${noMr}</div></div>
+                <div style="display:flex;"><div style="width:90px;">Nama</div><div>: ${nama}</div></div>
+                <div style="display:flex;"><div style="width:90px;">Tgl. Lahir</div><div>: ${tglLahir}</div></div>
+                <div style="display:flex;"><div style="width:90px;">Jenis Kelamin</div><div>: ${kelamin}</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="doc-title" style="text-align:center; font-weight:bold; font-size:13px; padding:6px; border-bottom:2px solid black; background-color:#e6e6e6; flex-shrink:0;">
+            EDUKASI PASIEN DAN KELUARGA TERINTEGRASI RAWAT JALAN
+          </div>
+
+          <div class="edu-table-wrap" style="flex:1; overflow:hidden;">
+            <table class="edu-table" style="width:100%; height:100%; border-collapse:collapse; font-size:10px; table-layout:fixed; font-family:'Times New Roman',Times,serif;">
+              <thead>
+                <tr>
+                  <th rowspan="2" class="col-no" style="width:2%;">NO</th>
+                  <th colspan="2" style="width:9%;">WAKTU PELAKSANAAN EDUKASI</th>
+                  <th rowspan="2" class="col-materi" style="width:18%;">MATERI EDUKASI</th>
+                  <th rowspan="2" class="col-pemahaman" style="width:10%;">TINGKAT PEMAHAMAN AWAL SEBELUM EDUKASI</th>
+                  <th rowspan="2" class="col-metode" style="width:10%;">METODE PEMBERIAN EDUKASI</th>
+                  <th rowspan="2" class="col-diberikan" style="width:7%;">DIBERIKAN KEPADA</th>
+                  <th rowspan="2" class="col-sarana" style="width:8%;">SARANA EDUKASI</th>
+                  <th rowspan="2" class="col-leaflet" style="width:6%;">NOMOR LEAFLET</th>
+                  <th rowspan="2" class="col-sasaran" style="width:10%;">SASARAN<br><br>NAMA &amp; TTD</th>
+                  <th rowspan="2" class="col-edukator" style="width:10%;">EDUKATOR<br><br>NAMA / PROFESI &amp; TTD</th>
+                  <th rowspan="2" class="col-eval" style="width:10%;">EVALUASI POST EDUKASI</th>
+                </tr>
+                <tr>
+                  <th class="col-date" style="width:5%;">TANGGAL</th>
+                  <th class="col-time" style="width:4%;">JAM</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rowsPrintHtml}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>`;
+    }
+
     static {
       this.ɵfac = function (a) {
         return new (a || t)();

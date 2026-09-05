@@ -888,6 +888,225 @@ export var GeneralConsentComponent = (() => {
 
       container.innerHTML = createMultiPageSurat(pages, 'RM01/Rev02/RSBHY/2026');
     }
+
+    static getPrintHtml(patient, formData) {
+      const p = patient || {};
+      const noMr = p.noMr || p.norm || "-";
+      const nama = p.nama || p.namaPasien || "-";
+      const tglLahir = p.tglLahir || p.tanggal_lahir || "-";
+      const kelamin = p.kelamin || p.jenis_kelamin || "-";
+      const d = formData || {};
+      const getCheck = (val, target) => val === target ? "✓" : "&nbsp;&nbsp;";
+
+      const headerHtml = `
+        <table class="pap-master-grid" style="border-bottom:none;">
+          <colgroup>
+            <col style="width: 16.66%;">
+            <col style="width: 16.66%;">
+            <col style="width: 16.66%;">
+            <col style="width: 16.66%;">
+            <col style="width: 16.66%;">
+            <col style="width: 16.66%;">
+          </colgroup>
+          <tbody>
+            ${hospitalHeaderRow(noMr, nama, tglLahir, kelamin)}
+          </tbody>
+        </table>
+      `;
+
+      const page1Body = `
+        <table class="pap-master-grid">
+          <colgroup>
+            <col style="width: 16.66%;">
+            <col style="width: 16.66%;">
+            <col style="width: 16.66%;">
+            <col style="width: 16.66%;">
+            <col style="width: 16.66%;">
+            <col style="width: 16.66%;">
+          </colgroup>
+          <tbody>
+            <tr>
+              <td colspan="6" style="background-color: #e0e0e0; text-align: center; font-weight: bold; font-size: 12px; padding: 6px;">
+                FORMULIR PERSETUJUAN UMUM (GENERAL CONSENT)<br>UNTUK MENERIMA PELAYANAN KESEHATAN
+              </td>
+            </tr>
+
+            <tr>
+              <td colspan="6" style="font-style: italic; text-align: center; background-color: #fafafa; font-size:11px;">
+                Pasien dan/atau Wali Harus Membaca, Memahami dan Mengisi Informasi Berikut:
+              </td>
+            </tr>
+
+            <tr>
+              <td colspan="6">
+                Yang bertanda tangan dibawah ini:<br>
+                <table class="pap-inner-align" style="margin-top: 4px; line-height: 1.8;">
+                  <tr><td style="width: 120px;">Nama</td><td style="width: 10px;">:</td><td style="font-weight:bold;">${d.namaWali || '....................................................'}</td></tr>
+                  <tr><td>Tanggal Lahir</td><td>:</td><td>${d.tglLahirWali || '....................................................'}</td></tr>
+                  <tr><td>Alamat</td><td>:</td><td>${d.alamatWali || '....................................................'}</td></tr>
+                  <tr><td>No. Telp/HP</td><td>:</td><td>${d.telpWali || '....................................................'}</td></tr>
+                </table>
+                <br>
+                Selaku Pasien/Wali dengan menyatakan persetujuan : <strong>( ${d.hubunganWali || 'Pasien'} )</strong>
+              </td>
+            </tr>
+
+            <tr>
+              <td colspan="6">
+                <div style="font-weight:bold;text-transform:uppercase;margin-bottom:3px;">I. PRE ADMISI</div>
+                Keyakinan, kepercayaan, dan budaya tentang: <em>(lingkari/pilih salah satu saja)</em>
+                <ol type="a" style="padding-left: 20px; margin-top: 4px;">
+                  <li>[ ${getCheck(d.preAdmisi, "Menolak melakukan transfusi darah")} ] Menolak melakukan transfusi darah</li>
+                  <li>[ ${getCheck(d.preAdmisi, "Vegetarian")} ] Vegetarian</li>
+                  <li>[ ${getCheck(d.preAdmisi, "Menolak obat dengan kecurigaan mengandung unsur babi")} ] Menolak obat dengan kecurigaan mengandung unsur babi</li>
+                  <li>[ ${getCheck(d.preAdmisi, "Tidak dirawat diruangan dengan angka tertentu")} ] Tidak dirawat diruangan dengan angka tertentu</li>
+                  <li>[ ${getCheck(d.preAdmisi, "Tidak ada")} ] Tidak ada</li>
+                </ol>
+              </td>
+            </tr>
+
+            <tr>
+              <td colspan="6">
+                <div style="font-weight:bold;text-transform:uppercase;margin-bottom:3px;">II. PERSETUJUAN UNTUK PERAWATAN DAN PENGOBATAN</div>
+                <ol type="a" style="padding-left: 20px;">
+                  <li style="margin-bottom:4px;text-align:justify;">Saya menyetujui untuk perawatan di Rumah Sakit Bhayangkara sebagai pasien rawat jalan atau rawat inap terhadap kebutuhan medis.</li>
+                  <li style="margin-bottom:4px;text-align:justify;">Pengobatan dapat meliputi pemeriksaan x-ray/radiology, tes darah, perawatan rutin, dan prosedur seperti cairan infus anti-suntikan dan evaluasi (contohnya wawancara dan pemeriksaan fisik).</li>
+                  <li style="margin-bottom:4px;text-align:justify;">Persetujuan yang saya berikan tidak termasuk persetujuan untuk prosedur/tindakan invasif (misalnya, operasi) atau tindakan yang mempunyai resiko tinggi.</li>
+                  <li style="margin-bottom:4px;text-align:justify;">Jika saya memutuskan untuk menghentikan perawatan medis untuk diri saya sendiri, Saya memahami dan menyadari Rumah Sakit Bhayangkara atau dokter tidak bertanggung jawab atas hasil yang mungkin terjadi saya bersedia menandatangani formulir dan surat berterima kasih menyatakan penolakan Tindakan.</li>
+                </ol>
+              </td>
+            </tr>
+
+            <tr>
+              <td colspan="6">
+                <div style="font-weight:bold;text-transform:uppercase;margin-bottom:3px;">III. PERSETUJUAN PELEPASAN INFORMASI DAN PRIVASI</div>
+                <ol type="a" style="padding-left: 20px;">
+                  <li style="margin-bottom:4px;text-align:justify;">Saya memahami informasi yang ada di dalam diri saya, termasuk Diagnosis hasil laboratorium dan hasil tes diagnostik yang akan digunakan untuk perawatan medis, Rumah Sakit Bhayangkara akan menjamin kerahasiaannya.</li>
+                  <li style="margin-bottom:4px;text-align:justify;">Saya memberikan wewenang kepada RS Bhayangkara untuk memberikan informasi tentang diagnosis, hasil pelayanan dan pengobatan yang diperlukan untuk memproses klaim asuransi/perusahaan dan/atau lembaga pemerintah/BPJS.</li>
+                  <li style="margin-bottom:4px;text-align:justify;">Saya memberikan wewenang kepada RS Bhayangkara untuk memberikan informasi tentang diagnosis, hasil pelayanan dan pengobatan saya kepada anggota keluarga saya kepada:
+                    <br>1. <strong>${d.keluarga1 || '....................................................'}</strong> (hubungan: <strong>${d.hubungan1 || '..................'}</strong>)
+                    <br>2. <strong>${d.keluarga2 || '....................................................'}</strong> (hubungan: <strong>${d.hubungan2 || '..................'}</strong>)
+                    <br>3. <strong>${d.keluarga3 || '....................................................'}</strong> (hubungan: <strong>${d.hubungan3 || '..................'}</strong>)
+                  </li>
+                  <li style="margin-bottom:4px;text-align:justify;">Saya <strong>${d.aksesPenjenguk || 'mengizinkan'}</strong> RS Bhayangkara memberi akses bagi keluarga atau orang-orang untuk menjenguk/memenuhi saya. <em>${d.catatanPenjenguk ? `(Catatan: ${d.catatanPenjenguk})` : ''}</em></li>
+                </ol>
+              </td>
+            </tr>
+
+            <tr>
+              <td colspan="6">
+                <div style="font-weight:bold;text-transform:uppercase;margin-bottom:3px;">IV. INFORMASI RAWAT INAP</div>
+                <ol type="a" style="padding-left: 20px;">
+                  <li style="margin-bottom:4px;text-align:justify;">Saya sudah diberi informasi untuk tidak diperkenankan membawa barang-barang berharga ke ruangan rawat inap jika ada anggota keluarga atau teman harus diizinkan membawa pulang atau dengan persetujuan oleh RS Bhayangkara jika barang tersebut tetap dibawa ke lingkungan RS Bhayangkara oleh saya atau pihak manapun, maka RS Bhayangkara tidak bertanggung jawab atas kehilangan, kerusakan atau pencurian atas barang tersebut.</li>
+                  <li style="margin-bottom:4px;text-align:justify;">Bila tidak ada anggota keluarga, Rumah Sakit menyediakan tempat penitipan barang milik pasien di tempat resmi yang telah disediakan oleh RS.</li>
+                  <li style="margin-bottom:4px;text-align:justify;">Saya telah menerima informasi tentang peraturan yang diberlakukan oleh Rumah Sakit dan saya beserta keluarga bersedia untuk mematuhinya, termasuk akan mematuhi: jam berkunjung pasien sesuai dengan aturan di rumah sakit.</li>
+                </ol>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      `;
+
+      const page2Body = `
+        <table class="pap-master-grid">
+          <colgroup>
+            <col style="width: 16.66%;">
+            <col style="width: 16.66%;">
+            <col style="width: 16.66%;">
+            <col style="width: 16.66%;">
+            <col style="width: 16.66%;">
+            <col style="width: 16.66%;">
+          </colgroup>
+          <tbody>
+            <tr>
+              <td colspan="6">
+                <div style="font-weight:bold;text-transform:uppercase;margin-bottom:3px;">V. PENGAJUAN KELUHAN</div>
+                <p style="text-align: justify; margin-bottom: 6px;">
+                  Saya dengan ini menyatakan bahwa saya telah menerima informasi dan telah mengerti tata cara pengajuan dan tindak lanjut bila ada keluhan saya sebagai pasien pelayanan yang diberikan. Saya setuju untuk mengikuti tata cara pengeluhan sesuai dengan prosedur yang ada. RS Bhayangkara tidak wajib menindak-lanjuti keluhan saya apabila tidak diajukan dengan prosedur yang berlaku, dan tidak wajib untuk bertanggung jawab atas setiap kerugian dalam bentuk apapun yang timbul dari atau sehubungan dengan keluhan yang tidak diajukan sesuai prosedur.
+                </p>
+                <p style="text-align: justify;">
+                  Mendukung hal tersebut, saya bersedia untuk selalu memakai tanda pengenal khusus yang diberikan oleh Rumah Sakit, dan demi keamanan seluruh pasien setiap keluarga dan siapapun yang akan mengunjungi saya di luar jam berkunjung, bersedia diminta/diperiksa Identitasnya dan memakai identitas yang diberikan oleh pihak Rumah Sakit.
+                </p>
+              </td>
+            </tr>
+
+            <tr>
+              <td colspan="6">
+                <div style="font-weight:bold;text-transform:uppercase;margin-bottom:3px;">VI. INFORMASI BIAYA</div>
+                Saya memahami tentang informasi biaya pengobatan atau biaya tindakan yang dijelaskan oleh petugas Rumah Sakit Bhayangkara.
+              </td>
+            </tr>
+
+            <tr>
+              <td colspan="6" style="background-color: #e0e0e0; text-align: center; font-weight: bold; font-size: 12px; padding: 6px;">
+                PERSETUJUAN UMUM UNTUK TINDAKAN KEDOKTERAN
+              </td>
+            </tr>
+
+            <tr>
+              <td colspan="6">
+                <ol type="1" style="padding-left: 20px;">
+                  <li style="margin-bottom:6px;">
+                    <strong>PERSETUJUAN ASUHAN KESEHATAN</strong>
+                    <p style="margin-top: 2px; text-align:justify;">Saya menyadari bahwa tindakan kedokteran adalah berisiko, meliputi tindakan medis berupa preventif, diagnostik, terapeutik atau rehabilitatif yang dilakukan oleh dokter atau dokter gigi terhadap Pasien.</p>
+                    <p style="margin-top: 2px; text-align:justify;">Saya menyetujui segala pelayanan medis di RS Bhayangkara sebagaimana sesuai dengan keadaan medis saya selama mendapatkan pelayanan medis (kecuali yang membutuhkan persetujuan khusus/tertulis).</p>
+                    <p style="margin-top: 2px; text-align:justify;">Saya dengan ini menyetujui kembali kepada RS Bhayangkara, dalam memberikan pelayanan medis, pemeriksaan fisik, yang dapat dilakukan oleh dokter atau perawat, dan melakukan prosedur diagnostik, atau terapi dan tatalaksana sesuai pertimbangan dokter yang diperlukan atau disarankan pada pelayanan medis untuk saya. Hal ini mencakup seluruh pemeriksaan dan prosedur diagnostik rutin, termasuk namun tidak terbatas pada x-ray, pemberian dan atau tindakan kedokteran serta penyuntikan (intramuskular, intravena dan prosedur invasif lainnya) produk farmasi dan obat-obatan, pemasangan alat medis, dan pengambilan darah untuk pemeriksaan laboratorium atau pemeriksaan patologi yang dibutuhkan untuk pengobatan medis saya.</p>
+                    <p style="margin-top: 2px; text-align:justify;">Saya mempercayakan kepada semua tenaga kesehatan rumah sakit untuk memberikan perawatan, diagnostik dan terapi kepada saya sebagai pasien rawat inap maupun rawat jalan atau Instalasi Gawat Darurat (IGD), termasuk semua pemeriksaan penunjang, yang dibutuhkan untuk pengobatan dan tindakan yang diperlukan.</p>
+                  </li>
+                  <li style="margin-bottom:6px;">
+                    <strong>KEJADIAN TIDAK TERDUGA/DIHARAPKAN</strong>
+                    <p style="margin-top: 2px; text-align:justify;">Saya mengerti dan menyadari bahwa dalam tindakan kedokteran dapat terjadi adanya kejadian tidak terduga/diharapkan (unanticipated outcome) yang merupakan efek samping dari tindakan kedokteran yang tidak dapat diduga sebelumnya (termasuk antara lain, namun tidak terbatas pada Steven Johnson Syndrome dan syok anafilaktik).</p>
+                    <p style="margin-top: 2px; text-align:justify;">Saya mengerti bahwa hasil asuhan dan pengobatan termasuk kejadian yang tidak terduga/diharapkan akan diberitahukan kepada saya dan keluarga oleh Dokter Penanggung Jawab Pasien (DPJP).</p>
+                  </li>
+                </ol>
+              </td>
+            </tr>
+
+            <tr>
+              <td colspan="6" style="text-align: center; font-weight: bold; background-color: #fafafa; padding: 8px;">
+                SAYA TELAH DIJELASKAN, MEMBACA, MEMAHAMI, dan SEPENUHNYA SETUJU terhadap pernyataan tersebut diatas.
+              </td>
+            </tr>
+
+            <tr>
+              <td colspan="6" style="padding-top: 15px; padding-bottom: 15px;">
+                <table class="pap-inner-align">
+                  <tr>
+                    <td style="width: 50%;"></td>
+                    <td style="width: 50%; text-align: center;">
+                      Banda Aceh, <strong>${d.tglConsent || '................................'}</strong>
+                    </td>
+                  </tr>
+                  <tr style="height: 90px;">
+                    <td style="text-align: center; vertical-align: top; padding-top: 5px;">
+                      <div>Yang menjelaskan (Petugas RS):</div>
+                      <div style="height:60px;display:flex;align-items:center;justify-content:center;">
+                        ${d.sigPetugas ? `<img src="${d.sigPetugas}" style="max-height:55px;">` : '<br><br>'}
+                      </div>
+                      <div>( <strong>${d.namaPetugas || '........................................'}</strong> )</div>
+                    </td>
+                    <td style="text-align: center; vertical-align: top; padding-top: 5px;">
+                      <div>Pasien / Penanggung Jawab:</div>
+                      <div style="height:60px;display:flex;align-items:center;justify-content:center;">
+                        ${d.sigPasien ? `<img src="${d.sigPasien}" style="max-height:55px;">` : '<br><br>'}
+                      </div>
+                      <div>( <strong>${d.namaTtdPasien || d.namaWali || '........................................'}</strong> )</div>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      `;
+
+      const pages = [
+        { headerHtml: headerHtml, bodyHtml: page1Body },
+        { headerHtml: '', bodyHtml: page2Body }
+      ];
+
+      return createMultiPageSurat(pages, 'RM01/Rev02/RSBHY/2026');
+    }
   }
 
   t.ɵfac = function(f) { return new (f || t)(); };

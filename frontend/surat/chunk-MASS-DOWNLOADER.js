@@ -4,6 +4,11 @@ let RingkasanPulangComponent = null;
 let PrmrjComponent = null;
 let PoliGigiComponent = null;
 let PengkajianAwalPoliComponent = null;
+let CpptIgdComponent = null;
+let PemberianObatIgdComponent = null;
+let GeneralConsentComponent = null;
+let CpptPoliComponent = null;
+let EdukasiPoliComponent = null;
 let loadHtml2Pdf = null;
 let buildSuratPdfFilename = null;
 let getStandardGridCSS = null;
@@ -41,6 +46,26 @@ async function loadDependencies() {
   if (!PengkajianAwalPoliComponent) {
     const modPoli = await import("./chunk-PENGKAJIAN-AWAL-POLI.js");
     PengkajianAwalPoliComponent = modPoli.PengkajianAwalPoliComponent;
+  }
+  if (!CpptIgdComponent) {
+    const modCpptIgd = await import("./chunk-CPPT-IGD.js");
+    CpptIgdComponent = modCpptIgd.CpptIgdComponent;
+  }
+  if (!PemberianObatIgdComponent) {
+    const modFpo = await import("./chunk-PEMBERIAN-OBAT-IGD.js");
+    PemberianObatIgdComponent = modFpo.PemberianObatIgdComponent;
+  }
+  if (!GeneralConsentComponent) {
+    const modGc = await import("./chunk-GENERAL-CONSENT.js");
+    GeneralConsentComponent = modGc.GeneralConsentComponent;
+  }
+  if (!CpptPoliComponent) {
+    const modCpptPoli = await import("./chunk-CPPT-POLI.js");
+    CpptPoliComponent = modCpptPoli.CpptPoliComponent;
+  }
+  if (!EdukasiPoliComponent) {
+    const modEduPoli = await import("./chunk-EDUKASI-POLI.js");
+    EdukasiPoliComponent = modEduPoli.EdukasiPoliComponent;
   }
   if (!apiUrl) {
     try {
@@ -208,7 +233,10 @@ class SimrsMassDownloader {
       const tr = targetTr || menuEl.closest("tr");
       const pt = (tr && detectPatientFromRow(tr)) || lastClickedPatient;
       const currentPath = window.location.pathname.toLowerCase();
-      const mod = (currentPath.includes("/poli") || (pt && pt.poli)) ? "POLI" : "IGD";
+      const poliStr = (pt && (pt.poli || pt.poliNama || "")) ? String(pt.poli || pt.poliNama).toUpperCase() : "";
+      const isGigi = currentPath.includes("gigi") || poliStr.includes("GIGI");
+      const isPoli = isGigi || currentPath.includes("/poli") || (pt && pt.poli && pt.poli !== "IGD");
+      const mod = isGigi ? "POLI_GIGI" : (isPoli ? "POLI" : "IGD");
 
       const btn = document.createElement("button");
       btn.type = "button";
@@ -236,7 +264,10 @@ class SimrsMassDownloader {
       if (tr) {
         lastClickedPatient = detectPatientFromRow(tr);
         const currentPath = window.location.pathname.toLowerCase();
-        lastModule = (currentPath.includes("/poli") || (lastClickedPatient && lastClickedPatient.poli)) ? "POLI" : "IGD";
+        const poliStr = (lastClickedPatient && (lastClickedPatient.poli || lastClickedPatient.poliNama || "")) ? String(lastClickedPatient.poli || lastClickedPatient.poliNama).toUpperCase() : "";
+        const isGigi = currentPath.includes("gigi") || poliStr.includes("GIGI");
+        const isPoli = isGigi || currentPath.includes("/poli") || (lastClickedPatient && lastClickedPatient.poli && lastClickedPatient.poli !== "IGD");
+        lastModule = isGigi ? "POLI_GIGI" : (isPoli ? "POLI" : "IGD");
       }
 
       setTimeout(() => {
@@ -374,38 +405,119 @@ class SimrsMassDownloader {
       } catch (e) {}
     }
 
-    const poliStr = (pObj.poli || "").toUpperCase();
-    const isPoliGigi = moduleType === "POLI" && (poliStr.includes("GIGI") || (pObj.poliNama || "").toUpperCase().includes("GIGI"));
+    const poliStr = (pObj.poli || pObj.poliNama || "").toUpperCase();
+    const currentPath = typeof window !== "undefined" ? window.location.pathname.toLowerCase() : "";
+    const isPoliGigi = moduleType === "POLI_GIGI" || poliStr.includes("GIGI") || currentPath.includes("gigi");
+    const isPoli = moduleType === "POLI" || isPoliGigi || currentPath.includes("/poli") || (pObj.poli && pObj.poli !== "IGD");
+    const unitLabel = isPoliGigi ? "POLI GIGI" : (isPoli ? (pObj.poliNama || pObj.poli || "POLIKLINIK") : "IGD");
 
     const docDefinitions = [];
-    if (moduleType === "POLI") {
-      if (isPoliGigi) {
-        docDefinitions.push({
-          id: "poli-gigi",
-          title: "PRMRJ Poli Gigi",
-          filename: `PRMRJ_POLI_GIGI_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
-          endpoint: `${baseApi}/simrsba/poli-gigi/${encodeURIComponent(noMr)}`,
-          checkFilled: (data) => data && Array.isArray(data.entries) && data.entries.length > 0,
-          render: (pt, data) => PoliGigiComponent.getPrintHtml(pt, data)
-        });
-      } else {
-        docDefinitions.push({
-          id: "pengkajian-awal-poli",
-          title: "Pengkajian Awal Poliklinik Rawat Jalan",
-          filename: `PENGKAJIAN_AWAL_POLI_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
-          endpoint: `${baseApi}/simrsba/pengkajian-awal-poli/${encodeURIComponent(noCheckin)}`,
-          checkFilled: (data) => data && (data.keluhanUtama || data.td || data.diagnosaMedis || data.tglMasukDate),
-          render: (pt, data) => PengkajianAwalPoliComponent.getPrintHtml(pt, data)
-        });
-        docDefinitions.push({
-          id: "prmrj",
-          title: "PRMRJ (Profil Ringkas Medis Rawat Jalan)",
-          filename: `PRMRJ_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
-          endpoint: `${baseApi}/simrsba/prmrj/${encodeURIComponent(noMr)}`,
-          checkFilled: (data) => data && Array.isArray(data.entries) && data.entries.length > 0,
-          render: (pt, data) => PrmrjComponent.getPrintHtml(pt, data)
-        });
-      }
+    if (isPoliGigi) {
+      docDefinitions.push({
+        id: "poli-gigi",
+        title: "PRMRJ Poli Gigi",
+        filename: `PRMRJ_POLI_GIGI_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+        endpoint: `${baseApi}/simrsba/poli-gigi/${encodeURIComponent(noMr)}`,
+        checkFilled: (data) => data && Array.isArray(data.entries) && data.entries.length > 0,
+        render: (pt, data) => PoliGigiComponent.getPrintHtml(pt, data)
+      });
+      docDefinitions.push({
+        id: "cppt-poli",
+        title: "CPPT Poliklinik Rawat Jalan",
+        filename: `CPPT_POLI_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+        endpoint: `${baseApi}/simrsba/cppt-poli/${encodeURIComponent(noCheckin)}`,
+        checkFilled: (data) => {
+          const d = (data && data.formData) ? data.formData : data;
+          return d && Array.isArray(d.entries) && d.entries.length > 0;
+        },
+        render: (pt, data) => {
+          const fd = (data && data.formData) ? data.formData : (data || { entries: [] });
+          return CpptPoliComponent.getPrintHtml(pt, fd);
+        }
+      });
+      docDefinitions.push({
+        id: "edukasi-poli",
+        title: "Edukasi Pasien Poliklinik",
+        filename: `EDUKASI_POLI_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+        endpoint: `${baseApi}/simrsba/edukasi-poli/${encodeURIComponent(noCheckin)}`,
+        checkFilled: (data) => {
+          const entries = (data && data.entries) ? data.entries : ((data && data.formData && data.formData.entries) ? data.formData.entries : []);
+          return entries.some(e => e && (e.tglDate || e.tglTime || e.sasaranTtd || e.edukatorTtd || (e.pemahaman && Object.values(e.pemahaman).some(Boolean)) || (e.evaluasi && Object.values(e.evaluasi).some(Boolean))));
+        },
+        render: (pt, data) => {
+          const fd = (data && data.entries) ? data : ((data && data.formData) ? data.formData : { entries: [] });
+          return EdukasiPoliComponent.getPrintHtml(pt, fd);
+        }
+      });
+      docDefinitions.push({
+        id: "general-consent",
+        title: "General Consent (Persetujuan Umum)",
+        filename: `GENERAL_CONSENT_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+        endpoint: `${baseApi}/simrsba/general-consent/${encodeURIComponent(noCheckin)}`,
+        checkFilled: (data) => data && (data.namaWali || data.sigPasien || data.sigPetugas || data.tglConsent || data.preAdmisi || data.hubunganWali || data.namaPetugas),
+        render: (pt, data) => GeneralConsentComponent.getPrintHtml(pt, (data && data.data) ? Object.assign({}, data.data, data) : data)
+      });
+      docDefinitions.push({
+        id: "prmrj",
+        title: "PRMRJ (Profil Ringkas Medis Rawat Jalan)",
+        filename: `PRMRJ_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+        endpoint: `${baseApi}/simrsba/prmrj/${encodeURIComponent(noMr)}`,
+        checkFilled: (data) => data && Array.isArray(data.entries) && data.entries.length > 0,
+        render: (pt, data) => PrmrjComponent.getPrintHtml(pt, data)
+      });
+    } else if (isPoli) {
+      docDefinitions.push({
+        id: "pengkajian-awal-poli",
+        title: "Pengkajian Awal Poliklinik Rawat Jalan",
+        filename: `PENGKAJIAN_AWAL_POLI_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+        endpoint: `${baseApi}/simrsba/pengkajian-awal-poli/${encodeURIComponent(noCheckin)}`,
+        checkFilled: (data) => data && (data.keluhanUtama || data.td || data.diagnosaMedis || data.tglMasukDate),
+        render: (pt, data) => PengkajianAwalPoliComponent.getPrintHtml(pt, data)
+      });
+      docDefinitions.push({
+        id: "cppt-poli",
+        title: "CPPT Poliklinik Rawat Jalan",
+        filename: `CPPT_POLI_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+        endpoint: `${baseApi}/simrsba/cppt-poli/${encodeURIComponent(noCheckin)}`,
+        checkFilled: (data) => {
+          const d = (data && data.formData) ? data.formData : data;
+          return d && Array.isArray(d.entries) && d.entries.length > 0;
+        },
+        render: (pt, data) => {
+          const fd = (data && data.formData) ? data.formData : (data || { entries: [] });
+          return CpptPoliComponent.getPrintHtml(pt, fd);
+        }
+      });
+      docDefinitions.push({
+        id: "edukasi-poli",
+        title: "Edukasi Pasien Poliklinik",
+        filename: `EDUKASI_POLI_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+        endpoint: `${baseApi}/simrsba/edukasi-poli/${encodeURIComponent(noCheckin)}`,
+        checkFilled: (data) => {
+          const entries = (data && data.entries) ? data.entries : ((data && data.formData && data.formData.entries) ? data.formData.entries : []);
+          return entries.some(e => e && (e.tglDate || e.tglTime || e.sasaranTtd || e.edukatorTtd || (e.pemahaman && Object.values(e.pemahaman).some(Boolean)) || (e.evaluasi && Object.values(e.evaluasi).some(Boolean))));
+        },
+        render: (pt, data) => {
+          const fd = (data && data.entries) ? data : ((data && data.formData) ? data.formData : { entries: [] });
+          return EdukasiPoliComponent.getPrintHtml(pt, fd);
+        }
+      });
+      docDefinitions.push({
+        id: "general-consent",
+        title: "General Consent (Persetujuan Umum)",
+        filename: `GENERAL_CONSENT_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+        endpoint: `${baseApi}/simrsba/general-consent/${encodeURIComponent(noCheckin)}`,
+        checkFilled: (data) => data && (data.namaWali || data.sigPasien || data.sigPetugas || data.tglConsent || data.preAdmisi || data.hubunganWali || data.namaPetugas),
+        render: (pt, data) => GeneralConsentComponent.getPrintHtml(pt, (data && data.data) ? Object.assign({}, data.data, data) : data)
+      });
+      docDefinitions.push({
+        id: "prmrj",
+        title: "PRMRJ (Profil Ringkas Medis Rawat Jalan)",
+        filename: `PRMRJ_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+        endpoint: `${baseApi}/simrsba/prmrj/${encodeURIComponent(noMr)}`,
+        checkFilled: (data) => data && Array.isArray(data.entries) && data.entries.length > 0,
+        render: (pt, data) => PrmrjComponent.getPrintHtml(pt, data)
+      });
     } else {
       docDefinitions.push({
         id: "triase",
@@ -424,12 +536,42 @@ class SimrsMassDownloader {
         render: (pt, data) => PengkajianAwalIgdComponent.getPrintHtml(pt, data)
       });
       docDefinitions.push({
+        id: "cppt-igd",
+        title: "CPPT Gawat Darurat (IGD)",
+        filename: `CPPT_IGD_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+        endpoint: `${baseApi}/simrsba/cppt-igd/${encodeURIComponent(noCheckin)}`,
+        checkFilled: (data) => {
+          const d = (data && data.formData) ? data.formData : data;
+          return d && Array.isArray(d.entries) && d.entries.length > 0;
+        },
+        render: (pt, data) => {
+          const fd = (data && data.formData) ? data.formData : (data || { entries: [] });
+          return CpptIgdComponent.getPrintHtml(pt, fd);
+        }
+      });
+      docDefinitions.push({
+        id: "pemberian-obat-igd",
+        title: "Formulir Pemberian Obat IGD",
+        filename: `PEMBERIAN_OBAT_IGD_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+        endpoint: `${baseApi}/simrsba/pemberian-obat-igd/${encodeURIComponent(noCheckin)}`,
+        checkFilled: (data) => data && ((Array.isArray(data.entries) && data.entries.length > 0 && data.entries.some(e => e && (e.namaObat || e.dosis))) || data.tgl1),
+        render: (pt, data) => PemberianObatIgdComponent.getPrintHtml(pt, data)
+      });
+      docDefinitions.push({
         id: "ringkasan-pulang",
         title: "Ringkasan Pulang IGD",
         filename: `RINGKASAN_PULANG_IGD_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
         endpoint: `${baseApi}/simrsba/ringkasan-pulang/${encodeURIComponent(noCheckin)}`,
         checkFilled: (data) => data && (data.keluhanUtama || data.indikasiMasuk || data.diagnosisKerja || data.tglJamMasuk || data.terapiPulang),
         render: (pt, data) => RingkasanPulangComponent.getPrintHtml(pt, data)
+      });
+      docDefinitions.push({
+        id: "general-consent",
+        title: "General Consent (Persetujuan Umum)",
+        filename: `GENERAL_CONSENT_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+        endpoint: `${baseApi}/simrsba/general-consent/${encodeURIComponent(noCheckin)}`,
+        checkFilled: (data) => data && (data.namaWali || data.sigPasien || data.sigPetugas || data.tglConsent || data.preAdmisi || data.hubunganWali || data.namaPetugas),
+        render: (pt, data) => GeneralConsentComponent.getPrintHtml(pt, (data && data.data) ? Object.assign({}, data.data, data) : data)
       });
       docDefinitions.push({
         id: "prmrj",
@@ -495,7 +637,7 @@ class SimrsMassDownloader {
             </div>
             <div class="col-sm-3">
               <span class="text-muted small">Unit:</span>
-              <div class="fw-bold fs-6">${moduleType}</div>
+              <div class="fw-bold fs-6">${unitLabel}</div>
             </div>
           </div>
         </div>
@@ -813,6 +955,43 @@ class SimrsMassDownloader {
             .gigi-table tbody td:first-child { border-left: none !important; }
             .gigi-table tbody td:last-child { border-right: none !important; }
             .gigi-table tbody tr:last-child td { border-bottom: none !important; }
+            .cppt-table { width: 100%; border-collapse: collapse; font-family: 'Times New Roman', Times, serif; flex: 1; height: 100%; table-layout: fixed; }
+            .cppt-table th { border: 1px solid black; padding: 5px 4px; vertical-align: middle; font-size: 11px !important; text-align: center; background-color: #f2f2f2; font-weight: bold; }
+            .cppt-table tbody td { border-top: none !important; border-bottom: none !important; border-left: 1px solid black !important; border-right: 1px solid black !important; padding: 6px 6px; vertical-align: top; font-size: 11px !important; }
+            .cppt-table tbody td:first-child { border-left: none !important; }
+            .cppt-table tbody td:last-child { border-right: none !important; }
+            .cppt-table tbody tr:last-child td { border-bottom: none !important; }
+            .fpo-admission-context { display: flex; justify-content: space-between; padding: 8px; border-bottom: 2px solid black; font-size: 12px; background-color: #fafafa; flex-shrink: 0; }
+            .fpo-context-col { width: 32%; display: flex; flex-direction: column; gap: 4px; }
+            .fpo-context-row { display: flex; }
+            .fpo-context-label { width: 110px; }
+            .fpo-context-value { font-weight: bold; }
+            .fpo-table { width: 100%; border-collapse: collapse; table-layout: fixed; flex: 1; font-family: 'Times New Roman', Times, serif; }
+            .fpo-table th, .fpo-table td { border: 1px solid black; text-align: center; vertical-align: middle; padding: 3px; font-size: 10.5px !important; box-sizing: border-box; }
+            .fpo-c-no { width: 3% !important; }
+            .fpo-c-nama-obat { width: 15% !important; }
+            .fpo-c-time-slot { width: 2.1% !important; font-size: 8px !important; }
+            .fpo-med-row { break-inside: avoid; page-break-inside: avoid; }
+            .fpo-med-row td { height: 35px; }
+            .edu-table { width: 100%; height: 100%; border-collapse: collapse; font-size: 10px; font-family: 'Times New Roman', Times, serif; table-layout: fixed; }
+            .edu-table th, .edu-table td { border: 1px solid black; padding: 3px; vertical-align: top; }
+            .edu-table th { text-align: center; vertical-align: middle; font-size: 9px; background-color: #f9f9f9; font-weight: bold; }
+            .col-no { width: 2%; text-align: center; }
+            .col-date { width: 5%; }
+            .col-time { width: 4%; }
+            .col-materi { width: 18%; }
+            .col-pemahaman { width: 10%; }
+            .col-metode { width: 10%; }
+            .col-diberikan { width: 7%; }
+            .col-sarana { width: 8%; }
+            .col-leaflet { width: 6%; }
+            .col-sasaran { width: 10%; }
+            .col-edukator { width: 10%; }
+            .col-eval { width: 10%; }
+            ul.cb-list { list-style: none; padding-left: 0; margin: 0; }
+            ul.cb-list li { margin-bottom: 2px; display: flex; align-items: flex-start; font-size: 9px; }
+            .cb { display: inline-block; width: 10px; height: 10px; border: 1px solid black; margin-right: 4px; margin-top: 1px; flex-shrink: 0; text-align: center; line-height: 9px; font-size: 9px; font-weight: bold; }
+            .cb.checked::after { content: "✓"; }
           `;
 
           const patientPayload = {

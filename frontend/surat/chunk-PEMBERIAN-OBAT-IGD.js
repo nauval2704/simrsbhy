@@ -553,6 +553,145 @@ var PemberianObatIgdComponent = (() => {
           </div>
       </div>`.trim();
     }
+
+    static getPrintHtml(patient, formData) {
+      const p = patient || {};
+      const noMr = p.noMr || p.norm || "-";
+      const nama = p.nama || p.namaPasien || "-";
+      const tglLahir = p.tglLahir || p.tanggal_lahir || "-";
+      const kelamin = p.kelamin || p.jenis_kelamin || "-";
+      const dpjp = p.dpjp || p.dokter || p.namaDokter || "-";
+      const tglMasuk = p.tglMasuk || p.tgl_registrasi || "-";
+      const ruang = p.ruang || p.poli || "IGD";
+      const diagnosa = p.diagnosa || p.diagnosaAwal || "-";
+      const getFontSize = (str) => {
+        if (!str) return 12;
+        return str.length > 25 ? 10 : 12;
+      };
+
+      const fd = formData || {};
+      const formatDateStr = (str) => {
+        if (!str) return "________________";
+        try {
+          const dt = new Date(str);
+          if (isNaN(dt.getTime())) return str;
+          const dd = String(dt.getDate()).padStart(2, '0');
+          const mm = String(dt.getMonth() + 1).padStart(2, '0');
+          return `${dd}/${mm}/${dt.getFullYear()}`;
+        } catch (e) { return str; }
+      };
+
+      const tgl1Str = formatDateStr(fd.tgl1);
+      const tgl2Str = formatDateStr(fd.tgl2);
+      const tgl3Str = formatDateStr(fd.tgl3);
+      const tgl4Str = formatDateStr(fd.tgl4);
+      const tgl5Str = formatDateStr(fd.tgl5);
+      const tgl6Str = formatDateStr(fd.tgl6);
+
+      let printRowsHtml = "";
+      const entries = fd.entries || [];
+      for (let i = 0; i < Math.max(10, entries.length); i++) {
+        const ent = entries[i] || null;
+        let obatText = "";
+        if (ent) {
+          const lines = [];
+          if (ent.namaObat) lines.push(`<b>${ent.namaObat}</b>`);
+          const line2 = [];
+          if (ent.dosis) line2.push(ent.dosis);
+          if (ent.rute) line2.push(ent.rute);
+          if (line2.length > 0) lines.push(`<span style="font-size:10px;">${line2.join(' - ')}</span>`);
+          const line3 = [];
+          if (ent.frekuensi) line3.push(ent.frekuensi);
+          if (ent.waktu) line3.push(`(${ent.waktu})`);
+          if (line3.length > 0) lines.push(`<span style="font-size:10px;">${line3.join(' ')}</span>`);
+
+          obatText = lines.join('<br>');
+        }
+
+        let checkCells = "";
+        for (let d = 0; d < 6; d++) {
+          ['PG', 'SI', 'SO', 'ML'].forEach(t => {
+            const isChecked = ent && ent.checks && ent.checks[`${d}_${t}`];
+            checkCells += `<td style="text-align:center; font-weight:bold; font-size:11px;">${isChecked ? '✓' : ''}</td>`;
+          });
+        }
+
+        printRowsHtml += `
+          <tr class="fpo-med-row">
+              <td style="text-align:center;">${i + 1}</td>
+              <td style="text-align:left; padding: 2px 4px; line-height:1.2;">${obatText}</td>
+              ${checkCells}
+          </tr>
+        `;
+      }
+
+      return `<div class="surat-document-landscape">
+          <div class="t-border" style="height:100%;">
+            <div class="t-row" style="height:80px;border-bottom:2px solid black;flex-shrink:0;">
+              <div class="t-col" style="width:100px;display:flex;align-items:center;justify-content:center;">
+                <img src="assets/img/1.png" alt="Logo" style="max-width:100%;max-height:70px;object-fit:contain;" onerror="this.style.display='none'">
+              </div>
+              <div class="t-col" style="flex:1;text-align:center;display:flex;flex-direction:column;justify-content:center;">
+                <h3>RUMAH SAKIT BHAYANGKARA<br>BANDA ACEH</h3>
+                <p style="margin-top:3px;">Jln. Cut Nyak Dhien No. 23 Lamteumen<br>Barat, Banda Aceh Telp. 0651-41355, 0651-41470</p>
+              </div>
+              <div class="t-col" style="flex:1;display:flex;align-items:center;justify-content:center;background-color:#f9f9f9;">
+                <h2 style="font-size:16px;font-weight:bold;margin:0;letter-spacing:0.5px;">FORMULIR PEMBERIAN<br>OBAT ORAL / TOPIKAL</h2>
+              </div>
+              <div class="t-col" style="width:280px;display:flex;flex-direction:column;justify-content:center;">
+                <div style="border:1px solid black;border-radius:6px;padding:4px;background-color:white;">
+                  <div style="display:flex;"><div style="width:75px;font-weight:bold;">NRM</div><div style="font-size:${getFontSize(noMr)}px !important">: ${noMr}</div></div>
+                  <div style="display:flex;"><div style="width:75px;font-weight:bold;">Nama</div><div style="font-size:${getFontSize(nama)}px !important">: ${nama}</div></div>
+                  <div style="display:flex;"><div style="width:75px;font-weight:bold;">Tgl. Lahir</div><div>: ${tglLahir}</div></div>
+                  <div style="display:flex;"><div style="width:75px;font-weight:bold;">Jenis Kelamin</div><div>: ${kelamin}</div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="fpo-admission-context">
+                <div class="fpo-context-col">
+                    <div class="fpo-context-row"><div class="fpo-context-label">Nama Pasien</div><div>: &nbsp;</div><div class="fpo-context-value">${nama}</div></div>
+                    <div class="fpo-context-row"><div class="fpo-context-label">Tanggal Masuk</div><div>: &nbsp;</div><div class="fpo-context-value">${tglMasuk}</div></div>
+                    <div class="fpo-context-row"><div class="fpo-context-label">Ruang / Kamar</div><div>: &nbsp;</div><div class="fpo-context-value">${ruang}</div></div>
+                </div>
+                <div class="fpo-context-col">
+                    <div class="fpo-context-row"><div class="fpo-context-label">No. Rekam Medis</div><div>: &nbsp;</div><div class="fpo-context-value">${noMr}</div></div>
+                    <div class="fpo-context-row"><div class="fpo-context-label">DPJP</div><div>: &nbsp;</div><div class="fpo-context-value">${dpjp}</div></div>
+                    <div class="fpo-context-row"><div class="fpo-context-label">Diagnosa</div><div>: &nbsp;</div><div class="fpo-context-value">${diagnosa}</div></div>
+                </div>
+                <div class="fpo-context-col" style="width: 25%; border: 1px dashed #bbb; padding: 4px; background: white; justify-content: center; align-items: center; display: flex; font-size: 11px;">
+                    <div style="color:#555; font-style:italic;">Tempel Label Identitas Pasien<br>Jika Tersedia</div>
+                </div>
+            </div>
+
+            <table class="fpo-table">
+                <thead>
+                    <tr>
+                        <th rowspan="2" class="fpo-c-no">No.</th>
+                        <th rowspan="2" class="fpo-c-nama-obat">NAMA OBAT ORAL / TOPIKAL</th>
+                        <th colspan="4">TANGGAL: ${tgl1Str}</th>
+                        <th colspan="4">TANGGAL: ${tgl2Str}</th>
+                        <th colspan="4">TANGGAL: ${tgl3Str}</th>
+                        <th colspan="4">TANGGAL: ${tgl4Str}</th>
+                        <th colspan="4">TANGGAL: ${tgl5Str}</th>
+                        <th colspan="4">TANGGAL: ${tgl6Str}</th>
+                    </tr>
+                    <tr>
+                        <th class="fpo-c-time-slot">PG</th><th class="fpo-c-time-slot">SI</th><th class="fpo-c-time-slot">SO</th><th class="fpo-c-time-slot">ML</th>
+                        <th class="fpo-c-time-slot">PG</th><th class="fpo-c-time-slot">SI</th><th class="fpo-c-time-slot">SO</th><th class="fpo-c-time-slot">ML</th>
+                        <th class="fpo-c-time-slot">PG</th><th class="fpo-c-time-slot">SI</th><th class="fpo-c-time-slot">SO</th><th class="fpo-c-time-slot">ML</th>
+                        <th class="fpo-c-time-slot">PG</th><th class="fpo-c-time-slot">SI</th><th class="fpo-c-time-slot">SO</th><th class="fpo-c-time-slot">ML</th>
+                        <th class="fpo-c-time-slot">PG</th><th class="fpo-c-time-slot">SI</th><th class="fpo-c-time-slot">SO</th><th class="fpo-c-time-slot">ML</th>
+                        <th class="fpo-c-time-slot">PG</th><th class="fpo-c-time-slot">SI</th><th class="fpo-c-time-slot">SO</th><th class="fpo-c-time-slot">ML</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${printRowsHtml}
+                </tbody>
+            </table>
+          </div>
+      </div>`.trim();
+    }
   }
 
   t.ɵfac = function (s) {

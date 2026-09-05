@@ -719,6 +719,83 @@ var CpptIgdComponent = (() => {
       '</div>';
     }
 
+    static getPrintHtml(patient, formData) {
+      const p = patient || {};
+      const noMr = p.noMr || p.norm || "-";
+      const nama = p.nama || p.namaPasien || "-";
+      const tglLahir = p.tglLahir || p.tanggal_lahir || "-";
+      const kelamin = p.kelamin || p.jenis_kelamin || "-";
+      const entries = (formData && Array.isArray(formData.entries)) ? formData.entries : [];
+      let rowsHtml = "";
+      entries.forEach((e) => {
+        const soapText = [
+          e.s ? 'S: ' + e.s : '',
+          e.o ? 'O: ' + e.o : '',
+          e.a ? 'A: ' + e.a : '',
+          e.p ? 'P: ' + e.p : '',
+          (!e.s && !e.o && !e.a && !e.p && e.soap) ? e.soap : ''
+        ].filter(Boolean).join('\n');
+
+        const tglJamStr = e.tglJam || (e.tglDate ? (e.tglDate + '<br>' + (e.tglTime || '')) : '');
+
+        rowsHtml += '<tr>' +
+            '<td style="text-align:center; padding: 6px 4px;">' + (tglJamStr || '') + '</td>' +
+            '<td style="text-align:center; padding: 6px 4px;">' + (e.profesi || '') + '<br><br><b>' + (e.ppa || '') + '</b></td>' +
+            '<td style="white-space:pre-wrap; padding: 6px 6px;">' + soapText + '</td>' +
+            '<td style="white-space:pre-wrap; padding: 6px 6px;">' + (e.instruksi || '') + '</td>' +
+            '<td style="text-align:center; vertical-align:bottom; padding: 6px 4px;">' +
+                (e.ttd ? '<img src="' + e.ttd + '" style="max-height:60px; max-width:92%; object-fit:contain; display:block; margin:2px auto;">' : '') +
+                '<div style="font-weight:bold; font-size:10px;">' + (e.verifikasi || '') + '</div>' +
+            '</td>' +
+        '</tr>';
+      });
+
+      rowsHtml += '<tr style="height:100%;">' +
+          '<td></td>' +
+          '<td></td>' +
+          '<td></td>' +
+          '<td></td>' +
+          '<td></td>' +
+      '</tr>';
+
+      return '<div class="surat-document" style="display:flex; flex-direction:column; height:1247px;">' +
+          hospitalHeaderDiv(noMr, nama, tglLahir, kelamin) +
+          '<div style="border:2px solid black; font-family:\'Times New Roman\',Times,serif; flex:1; display:flex; flex-direction:column; min-height:0; margin-top:10px;">' +
+              '<div style="text-align:center; font-weight:bold; font-size:14px !important; padding:8px; border-bottom:2px solid black; background-color:#e6e6e6;">' +
+                  'CATATAN PERKEMBANGAN PASIEN TERINTEGRASI (CPPT)<br>RAWAT JALAN / IGD' +
+              '</div>' +
+              '<table class="cppt-table" style="border:none; border-top:1px solid black; flex:1;">' +
+                '<colgroup>' +
+                    '<col style="width:10%">' +
+                    '<col style="width:11%">' +
+                    '<col style="width:39%">' +
+                    '<col style="width:22%">' +
+                    '<col style="width:18%">' +
+                '</colgroup>' +
+                '<thead>' +
+                    '<tr>' +
+                        '<th style="border-left:none;">Tgl/<br>Jam</th>' +
+                        '<th>Profesi/<br>Bagian</th>' +
+                        '<th>' +
+                            '<div style="font-weight:bold !important;">Hasil Pemeriksaan, Analisa, Rencana, dan Penata Laksanaan Pasien</div>' +
+                            '<div class="desc-text">(Diisi Oleh Dokter/Apoteker Dengan Format SOAP, Perawat/Bidan/ Keterampilan Fisik/Keteknesian Medis/ Dengan Format SBAR, Dan Dietisien Dengan Format ADIME)</div>' +
+                        '</th>' +
+                        '<th>' +
+                            '<div style="font-weight:bold !important;">Intruksi Tenaga Kesehatan</div>' +
+                            '<div class="desc-text">(Intruksi Penatalaksanaan pasien dituliskan dengan rincian yang jelas)</div>' +
+                        '</th>' +
+                        '<th style="border-right:none;">' +
+                            '<div style="font-weight:bold !important;">Verifikasi<br>DPJP</div>' +
+                            '<div class="desc-text">(Ttd, Nama Terang, Tgl & Jam)</div>' +
+                        '</th>' +
+                    '</tr>' +
+                '</thead>' +
+                '<tbody>' + rowsHtml + '</tbody>' +
+              '</table>' +
+          '</div>' +
+      '</div>';
+    }
+
     static {
       this.ɵfac = function (a) {
         return new (a || t)();
