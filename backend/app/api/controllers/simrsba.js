@@ -4803,6 +4803,7 @@ module.exports = {
 
       await archive.finalize();
     } catch (err) {
+      console.error("PUPPETEER_EXPORT_ERROR:", err);
       if (!res.headersSent) {
         res.status(500).json({
           status: "error",
