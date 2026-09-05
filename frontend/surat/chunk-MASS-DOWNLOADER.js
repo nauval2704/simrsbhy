@@ -662,6 +662,9 @@ class SimrsMassDownloader {
           }
 
           modalEl.style.setProperty("display", "none", "important");
+          document.querySelectorAll(".modal, .modal-backdrop").forEach((m) => {
+            m.style.setProperty("display", "none", "important");
+          });
           document.body.classList.add("simrs-printing-mass");
 
           let cleanedUp = false;
@@ -679,11 +682,11 @@ class SimrsMassDownloader {
             printNativeBtn.innerHTML = origText;
           };
 
-          window.addEventListener("afterprint", cleanup);
+          window.addEventListener("afterprint", cleanup, { once: true });
 
           setTimeout(() => {
             window.print();
-            setTimeout(cleanup, 2500);
+            setTimeout(cleanup, 60000);
           }, 300);
         } catch (err) {
           alert("Gagal menyiapkan cetakan: " + err.message);
@@ -734,7 +737,6 @@ class SimrsMassDownloader {
               box-sizing: border-box !important;
               width: 215.9mm !important;
               max-width: 215.9mm !important;
-              min-height: 1247px !important;
               margin: 0 auto !important;
               margin-bottom: 0 !important;
               padding: 5mm !important;
@@ -746,15 +748,14 @@ class SimrsMassDownloader {
             }
             #simrs-mass-render-host .surat-document:last-child,
             #simrs-mass-render-host .surat-page:last-child {
-              page-break-after: auto !important;
-              break-after: auto !important;
+              page-break-after: avoid !important;
+              break-after: avoid !important;
             }
             #simrs-mass-render-host .surat-document-landscape,
             #simrs-mass-render-host .surat-page-landscape {
               box-sizing: border-box !important;
               width: 330.2mm !important;
               max-width: 330.2mm !important;
-              min-height: 809px !important;
               margin: 0 auto !important;
               margin-bottom: 0 !important;
               padding: 5mm !important;
@@ -766,8 +767,8 @@ class SimrsMassDownloader {
             }
             #simrs-mass-render-host .surat-document-landscape:last-child,
             #simrs-mass-render-host .surat-page-landscape:last-child {
-              page-break-after: auto !important;
-              break-after: auto !important;
+              page-break-after: avoid !important;
+              break-after: avoid !important;
             }
             .master-grid { width: 100%; border-collapse: collapse; border: 2px solid black; font-family: 'Times New Roman', Times, serif; }
             .master-grid th, .master-grid td { border: 1px solid black; padding: 4px 6px; font-size: 10px !important; line-height: 1.3; vertical-align: top; }
