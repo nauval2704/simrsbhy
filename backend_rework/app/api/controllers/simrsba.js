@@ -4730,14 +4730,38 @@ module.exports = {
         "/usr/bin/chromium",
         "/snap/bin/chromium"
       ];
+      let systemChrome = null;
       for (const p of possibleChromePaths) {
         if (fs.existsSync(p)) {
-          launchOptions.executablePath = p;
+          systemChrome = p;
           break;
         }
       }
 
-      browser = await puppeteer.launch(launchOptions);
+      try {
+        if (systemChrome) {
+          launchOptions.executablePath = systemChrome;
+        }
+        browser = await puppeteer.launch(launchOptions);
+      } catch (firstLaunchErr) {
+        if (launchOptions.executablePath) {
+          delete launchOptions.executablePath;
+          try {
+            browser = await puppeteer.launch(launchOptions);
+          } catch (secondLaunchErr) {
+            throw new Error(`Gagal meluncurkan browser (System: ${firstLaunchErr.message}, Bundled: ${secondLaunchErr.message})`);
+          }
+        } else if (systemChrome) {
+          launchOptions.executablePath = systemChrome;
+          try {
+            browser = await puppeteer.launch(launchOptions);
+          } catch (secondLaunchErr) {
+            throw new Error(`Gagal meluncurkan browser (Bundled: ${firstLaunchErr.message}, System: ${secondLaunchErr.message})`);
+          }
+        } else {
+          throw firstLaunchErr;
+        }
+      }
 
       let archive;
       if (typeof archiver === "function") {
