@@ -62,13 +62,45 @@ var TriaseComponent = (() => {
             this.triaseData = res.data;
             if (res.data.canvasImage) this.canvasDataUrl = res.data.canvasImage;
           }
+          this.fetchPengkajianIfEmpty();
+        },
+        error: () => {
+          this.fetchPengkajianIfEmpty();
+        },
+      });
+    }
+
+    fetchPengkajianIfEmpty() {
+      this.http.get(i.apiUrl + "/simrsba/pengkajian-awal-igd/" + this.noCheckin).subscribe({
+        next: (res) => {
+          if (res && res.data) {
+            const pk = res.data;
+            if (!this.triaseData) this.triaseData = {};
+            const d = this.triaseData;
+            if (!d.td && pk.td) d.td = pk.td;
+            if (!d.suhu && pk.suhu) d.suhu = pk.suhu;
+            if (!d.hr && pk.nadi) d.hr = pk.nadi;
+            if (!d.rr && pk.rr) d.rr = pk.rr;
+            if (!d.gcsE && pk.gcsE) d.gcsE = pk.gcsE;
+            if (!d.gcsV && pk.gcsV) d.gcsV = pk.gcsV;
+            if (!d.gcsM && pk.gcsM) d.gcsM = pk.gcsM;
+            if (!d.namaDokter && pk.namaDokter) d.namaDokter = pk.namaDokter;
+            if (!d.namaPerawat && pk.namaPerawat) d.namaPerawat = pk.namaPerawat;
+            if (!d.canvasImage && pk.sigDokter) {
+              d.canvasImage = pk.sigDokter;
+              this.canvasDataUrl = pk.sigDokter;
+            }
+            if (!d.canvasImagePerawat && pk.sigPerawat) {
+              d.canvasImagePerawat = pk.sigPerawat;
+            }
+          }
           this.loading = false;
           this.renderView();
         },
         error: () => {
           this.loading = false;
           this.renderView();
-        },
+        }
       });
     }
 
@@ -613,7 +645,7 @@ var TriaseComponent = (() => {
                 <div class="col-md-4">
                   <div class="border rounded p-2 bg-light">
                     <label class="form-label small fw-semibold mb-1">TTD Perawat Triage</label>
-                    <input type="text" id="f-namaPerawat" class="form-control form-control-sm mb-1" placeholder="Nama Perawat Triage...">
+                    <input type="text" id="f-namaPerawat" class="form-control form-control-sm mb-1" value="${this.triaseData?.namaPerawat || ''}" placeholder="Nama Perawat Triage...">
                     <div class="sig-wrap mb-1">
                       <canvas id="sig-perawat" width="500" height="150" style="height:110px;"></canvas>
                       <button type="button" class="btn btn-sm btn-outline-secondary sig-clear-btn" data-target="sig-perawat">Hapus</button>

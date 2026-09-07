@@ -86,6 +86,7 @@ var PengkajianAwalIgdComponent = (() => {
             if (!this.formData.outTd && tr.td) this.formData.outTd = tr.td;
             if (!this.formData.outSuhu && tr.suhu) this.formData.outSuhu = tr.suhu;
             if (!this.formData.outNadi && tr.hr) this.formData.outNadi = tr.hr;
+            if (!this.formData.outNafas && tr.rr) this.formData.outNafas = tr.rr;
             if (!this.formData.outGcs && (tr.gcsE || tr.gcsV || tr.gcsM)) {
               this.formData.outGcs = `E${tr.gcsE || ''} V${tr.gcsV || ''} M${tr.gcsM || ''}`.trim();
             }
@@ -95,6 +96,21 @@ var PengkajianAwalIgdComponent = (() => {
             }
             if (!this.formData.sigPerawat && tr.canvasImagePerawat) {
               this.formData.sigPerawat = tr.canvasImagePerawat;
+            }
+
+            if (!this.formData.namaDokter && tr.namaDokter) {
+              this.formData.namaDokter = tr.namaDokter;
+            }
+            if (!this.formData.namaPerawat && tr.namaPerawat) {
+              this.formData.namaPerawat = tr.namaPerawat;
+            }
+
+            if (!this.formData.keluhanUtama) {
+              if (Array.isArray(tr.symptoms) && tr.symptoms.length > 0) {
+                this.formData.keluhanUtama = tr.symptoms.join(', ');
+              } else if (tr.situasiBerbahaya) {
+                this.formData.keluhanUtama = tr.situasiBerbahaya;
+              }
             }
 
             if (this.patient && this.patient.tglMasuk) {
@@ -123,16 +139,21 @@ var PengkajianAwalIgdComponent = (() => {
         next: (res) => {
           if (res && res.data) {
             const rp = res.data;
-            if (!this.formData.keluhanUtama && rp.indikasiMasuk) {
+            if (!this.formData.keluhanUtama && rp.keluhanUtama) {
+              this.formData.keluhanUtama = rp.keluhanUtama;
+            } else if (!this.formData.keluhanUtama && rp.indikasiMasuk) {
               this.formData.keluhanUtama = rp.indikasiMasuk;
             }
             if (!this.formData.riwayatPenyakitSekarang && rp.keluhanUtama) {
               this.formData.riwayatPenyakitSekarang = rp.keluhanUtama;
             }
-            if (!this.formData.pemeriksaanFisik && rp.pemeriksaanFisik) {
-              this.formData.pemeriksaanFisik = rp.pemeriksaanFisik;
+            if (!this.formData.fisik && rp.pemeriksaanFisik) {
+              this.formData.fisik = rp.pemeriksaanFisik;
             }
-            const kuVal = (rp.alasanTidakDirawat && rp.alasanTidakDirawat.keadaanUmum) || (rp.kondisiKeluar && rp.kondisiKeluar.ku) || "";
+            if (!this.formData.penunjang && rp.pemeriksaanPenunjang) {
+              this.formData.penunjang = rp.pemeriksaanPenunjang;
+            }
+            const kuVal = (rp.alasanTidakDirawat && rp.alasanTidakDirawat.keadaanUmum) || (rp.kondisiKeluar && rp.kondisiKeluar.keadaanUmum) || "";
             if (!this.formData.ku && kuVal) {
               this.formData.ku = kuVal;
             }
@@ -143,11 +164,39 @@ var PengkajianAwalIgdComponent = (() => {
             if (!this.formData.outKesadaran && kesadaranVal) {
               this.formData.outKesadaran = kesadaranVal;
             }
+            if (rp.kondisiKeluar) {
+              const kk = rp.kondisiKeluar;
+              if (!this.formData.outTd && kk.td) this.formData.outTd = kk.td;
+              if (!this.formData.outNadi && kk.nadi) this.formData.outNadi = kk.nadi;
+              if (!this.formData.outSuhu && kk.suhu) this.formData.outSuhu = kk.suhu;
+              if (!this.formData.outNafas && kk.rr) this.formData.outNafas = kk.rr;
+              if (!this.formData.nyeri && kk.nyeri) this.formData.nyeri = kk.nyeri;
+            }
             if (!this.formData.diagnosisKerja && rp.diagnosisKerja) {
               this.formData.diagnosisKerja = rp.diagnosisKerja;
             }
+            if (!this.formData.permasalahanMedis && rp.diagnosisBanding) {
+              this.formData.permasalahanMedis = rp.diagnosisBanding;
+            }
             if (!this.formData.terapi && rp.tindakanTerapi) {
               this.formData.terapi = rp.tindakanTerapi;
+            }
+            if (!this.formData.namaKeluarga && rp.namaPasienKeluarga) {
+              this.formData.namaKeluarga = rp.namaPasienKeluarga;
+            }
+            if (!this.formData.namaDokter && rp.namaDokter) {
+              this.formData.namaDokter = rp.namaDokter;
+            }
+            if (!this.formData.sigDokter && rp.sigDokter) {
+              this.formData.sigDokter = rp.sigDokter;
+            }
+            if (!this.formData.sigKeluarga && rp.sigKeluarga) {
+              this.formData.sigKeluarga = rp.sigKeluarga;
+            }
+            if (!this.formData.outTgl && rp.tglJamKeluar) {
+              const parts = rp.tglJamKeluar.split('T');
+              if (parts[0]) this.formData.outTgl = parts[0];
+              if (parts[1] && !this.formData.outPukul) this.formData.outPukul = parts[1].substring(0, 5);
             }
           }
           this.loading = false;

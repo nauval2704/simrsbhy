@@ -76,14 +76,145 @@ var RingkasanPulangComponent = (() => {
         next: (res) => {
           if (res && res.data) {
             this.formData = { ...this.formData, ...res.data };
-            if(!this.formData.tindakLanjut) this.formData.tindakLanjut = {};
-            if(!this.formData.alasanTidakDirawat) this.formData.alasanTidakDirawat = {};
-            if(!this.formData.kondisiKeluar) this.formData.kondisiKeluar = {};
+            if (!this.formData.tindakLanjut) this.formData.tindakLanjut = {};
+            if (!this.formData.alasanTidakDirawat) this.formData.alasanTidakDirawat = {};
+            if (!this.formData.kondisiKeluar) this.formData.kondisiKeluar = {};
           }
-          this.fetchTriaseIfEmpty();
+          this.fetchPengkajianIfEmpty();
         },
         error: (err) => {
           console.error("Error fetching draft", err);
+          this.fetchPengkajianIfEmpty();
+        }
+      });
+    }
+
+    fetchPengkajianIfEmpty() {
+      this.http.get(i.apiUrl + "/simrsba/pengkajian-awal-igd/" + this.noCheckin).subscribe({
+        next: (res) => {
+          if (res && res.data) {
+            const pk = res.data;
+            if (!this.formData.tglJamMasuk) {
+              if (this.patient && this.patient.tglMasuk) {
+                const tmStr = String(this.patient.tglMasuk).trim();
+                if (tmStr.includes("T")) {
+                  this.formData.tglJamMasuk = tmStr.substring(0, 16);
+                } else if (tmStr.includes(" ")) {
+                  const parts = tmStr.split(" ");
+                  if (parts[0] && parts[1]) {
+                    this.formData.tglJamMasuk = `${parts[0]}T${parts[1].substring(0, 5)}`;
+                  }
+                }
+              } else if (pk.tglMasukDate) {
+                const time = pk.tglMasukTime ? pk.tglMasukTime.substring(0, 5) : "00:00";
+                this.formData.tglJamMasuk = `${pk.tglMasukDate}T${time}`;
+              }
+            }
+
+            if (!this.formData.tglJamKeluar && pk.outTgl) {
+              const time = pk.outPukul ? pk.outPukul.substring(0, 5) : "00:00";
+              this.formData.tglJamKeluar = `${pk.outTgl}T${time}`;
+            }
+
+            if (!this.formData.indikasiMasuk) {
+              if (pk.inapIndikasi) {
+                this.formData.indikasiMasuk = pk.inapIndikasi;
+              } else if (pk.keluhanUtama) {
+                this.formData.indikasiMasuk = pk.keluhanUtama;
+              } else if (pk.riwayatPenyakitSekarang) {
+                this.formData.indikasiMasuk = pk.riwayatPenyakitSekarang;
+              }
+            }
+
+            if (!this.formData.keluhanUtama && pk.keluhanUtama) {
+              this.formData.keluhanUtama = pk.keluhanUtama;
+            }
+
+            if (!this.formData.pemeriksaanFisik && pk.fisik) {
+              this.formData.pemeriksaanFisik = pk.fisik;
+            }
+
+            if (!this.formData.pemeriksaanPenunjang && pk.penunjang) {
+              this.formData.pemeriksaanPenunjang = pk.penunjang;
+            }
+
+            if (!this.formData.diagnosisKerja && pk.diagnosisKerja) {
+              this.formData.diagnosisKerja = pk.diagnosisKerja;
+            }
+
+            if (!this.formData.diagnosisBanding && pk.permasalahanMedis) {
+              this.formData.diagnosisBanding = pk.permasalahanMedis;
+            }
+
+            if (!this.formData.tindakanTerapi) {
+              if (pk.terapi) this.formData.tindakanTerapi = pk.terapi;
+              else if (pk.rencanaAsuhan) this.formData.tindakanTerapi = pk.rencanaAsuhan;
+            }
+
+            if (!this.formData.alasanTidakDirawat) this.formData.alasanTidakDirawat = {};
+            if (!this.formData.alasanTidakDirawat.keadaanUmum && (pk.outKu || pk.ku)) {
+              this.formData.alasanTidakDirawat.keadaanUmum = pk.outKu || pk.ku;
+            }
+
+            if (!this.formData.kondisiKeluar) this.formData.kondisiKeluar = {};
+            const kk = this.formData.kondisiKeluar;
+            if (!kk.keadaanUmum && (pk.outKu || pk.ku)) kk.keadaanUmum = pk.outKu || pk.ku;
+            if (!kk.kesadaran) {
+              if (pk.outKesadaran && pk.outGcs) {
+                kk.kesadaran = `${pk.outKesadaran} (${pk.outGcs})`;
+              } else if (pk.outKesadaran) {
+                kk.kesadaran = pk.outKesadaran;
+              } else if (pk.outGcs) {
+                kk.kesadaran = pk.outGcs;
+              }
+            }
+            if (!kk.td && (pk.outTd || pk.td)) kk.td = pk.outTd || pk.td;
+            if (!kk.nadi && (pk.outNadi || pk.nadi)) kk.nadi = pk.outNadi || pk.nadi;
+            if (!kk.suhu && (pk.outSuhu || pk.suhu)) kk.suhu = pk.outSuhu || pk.suhu;
+            if (!kk.rr && (pk.outNafas || pk.rr)) kk.rr = pk.outNafas || pk.rr;
+            if (!kk.nyeri && pk.nyeri) kk.nyeri = String(pk.nyeri);
+
+            if (!this.formData.tindakLanjut) this.formData.tindakLanjut = {};
+            const tl = this.formData.tindakLanjut;
+            if (!tl.tipe && pk.tl) {
+              if (pk.tl === "APS") {
+                tl.tipe = "APS";
+                if (!tl.alasanAps && pk.tlDetail) tl.alasanAps = pk.tlDetail;
+              } else if (pk.tl === "Pulang") {
+                tl.tipe = "Persetujuan";
+                if (!tl.jamPersetujuan && pk.tlDetail) tl.jamPersetujuan = pk.tlDetail;
+              } else if (pk.tl === "Dirujuk") {
+                tl.tipe = "Rujuk";
+                if (!tl.rujukKe && pk.tlDetail) tl.rujukKe = pk.tlDetail;
+              } else if (pk.tl === "Meninggal") {
+                tl.tipe = "Meninggal";
+                if (!tl.jamMeninggal && pk.tlDetail) tl.jamMeninggal = pk.tlDetail;
+              } else if (pk.tl === "Kontrol") {
+                tl.tipe = "Kontrol";
+                if (!tl.kontrolKe && pk.tlDetail) tl.kontrolKe = pk.tlDetail;
+              }
+            }
+            if (tl.tipe === "APS" && !tl.alasanAps && pk.tlDetail) tl.alasanAps = pk.tlDetail;
+            if (tl.tipe === "Persetujuan" && !tl.jamPersetujuan && pk.tlDetail) tl.jamPersetujuan = pk.tlDetail;
+            if (tl.tipe === "Rujuk" && !tl.rujukKe && pk.tlDetail) tl.rujukKe = pk.tlDetail;
+            if (tl.tipe === "Meninggal" && !tl.jamMeninggal && pk.tlDetail) tl.jamMeninggal = pk.tlDetail;
+
+            if (!this.formData.namaPasienKeluarga && pk.namaKeluarga) {
+              this.formData.namaPasienKeluarga = pk.namaKeluarga;
+            }
+            if (!this.formData.namaDokter && pk.namaDokter) {
+              this.formData.namaDokter = pk.namaDokter;
+            }
+            if (!this.formData.sigDokter && pk.sigDokter) {
+              this.formData.sigDokter = pk.sigDokter;
+            }
+            if (!this.formData.sigKeluarga && pk.sigKeluarga) {
+              this.formData.sigKeluarga = pk.sigKeluarga;
+            }
+          }
+          this.fetchTriaseIfEmpty();
+        },
+        error: () => {
           this.fetchTriaseIfEmpty();
         }
       });
@@ -94,6 +225,25 @@ var RingkasanPulangComponent = (() => {
         next: (res) => {
           if (res && res.data) {
             const tr = res.data;
+            if (!this.formData.tglJamMasuk && this.patient && this.patient.tglMasuk) {
+              const tmStr = String(this.patient.tglMasuk).trim();
+              if (tmStr.includes("T")) {
+                this.formData.tglJamMasuk = tmStr.substring(0, 16);
+              } else if (tmStr.includes(" ")) {
+                const parts = tmStr.split(" ");
+                if (parts[0] && parts[1]) {
+                  this.formData.tglJamMasuk = `${parts[0]}T${parts[1].substring(0, 5)}`;
+                }
+              }
+            }
+            if (!this.formData.keluhanUtama) {
+              if (Array.isArray(tr.symptoms) && tr.symptoms.length > 0) {
+                this.formData.keluhanUtama = tr.symptoms.join(", ");
+              } else if (tr.situasiBerbahaya) {
+                this.formData.keluhanUtama = tr.situasiBerbahaya;
+              }
+            }
+
             if (!this.formData.kondisiKeluar) this.formData.kondisiKeluar = {};
             const kk = this.formData.kondisiKeluar;
             if (!kk.td && tr.td) kk.td = tr.td;
@@ -101,48 +251,21 @@ var RingkasanPulangComponent = (() => {
             if (!kk.nadi && tr.hr) kk.nadi = tr.hr;
             if (!kk.rr && tr.rr) kk.rr = tr.rr;
             if (!kk.kesadaran && (tr.gcsE || tr.gcsV || tr.gcsM)) {
-              kk.kesadaran = `E${tr.gcsE || ''} V${tr.gcsV || ''} M${tr.gcsM || ''}`.trim();
+              kk.kesadaran = `E${tr.gcsE || ""} V${tr.gcsV || ""} M${tr.gcsM || ""}`.trim();
             }
 
             if (!this.formData.sigDokter && tr.canvasImage) {
               this.formData.sigDokter = tr.canvasImage;
             }
-          }
-          this.fetchPengkajianIfEmpty();
-        },
-        error: () => {
-          this.fetchPengkajianIfEmpty();
-        }
-      });
-    }
-
-    fetchPengkajianIfEmpty() {
-      if (this.patient && this.patient.tglMasuk) {
-        const tmStr = String(this.patient.tglMasuk);
-        const parts = tmStr.split(" ");
-        if (!this.formData.tglMasukDate && parts[0]) this.formData.tglMasukDate = parts[0];
-        if (!this.formData.tglMasukTime && parts[1]) this.formData.tglMasukTime = parts[1].substring(0, 5);
-      }
-
-      this.http.get(i.apiUrl + "/simrsba/pengkajian-awal-igd/" + this.noCheckin).subscribe({
-        next: (res) => {
-          if (res && res.data) {
-            const pk = res.data;
-            if (!this.formData.diagnosisUtama && pk.diagnosisKerja) {
-              this.formData.diagnosisUtama = pk.diagnosisKerja;
-            }
-            if (!this.formData.riwayatAlergi && pk.alergiObat) {
-              this.formData.riwayatAlergi = pk.alergiObat === 'Ya' ? (pk.namaObatAlergi || 'Ya') : 'Tidak Ada';
-            }
-            if (!this.formData.tglKeluarDate && pk.outTgl) {
-              this.formData.tglKeluarDate = pk.outTgl;
-            }
-            if (!this.formData.tglKeluarTime && pk.outPukul) {
-              this.formData.tglKeluarTime = pk.outPukul;
+            if (!this.formData.namaDokter && tr.namaDokter) {
+              this.formData.namaDokter = tr.namaDokter;
             }
           }
           if (!this.formData.namaDokter && this.patient) {
             this.formData.namaDokter = this.patient.dokterDpjp || this.patient.dpjp || this.patient.namaDokter || "";
+          }
+          if (!this.formData.namaPasienKeluarga && this.patient) {
+            this.formData.namaPasienKeluarga = this.patient.nama || "";
           }
           this.loading = false;
           this.renderUI();
@@ -150,6 +273,9 @@ var RingkasanPulangComponent = (() => {
         error: () => {
           if (!this.formData.namaDokter && this.patient) {
             this.formData.namaDokter = this.patient.dokterDpjp || this.patient.dpjp || this.patient.namaDokter || "";
+          }
+          if (!this.formData.namaPasienKeluarga && this.patient) {
+            this.formData.namaPasienKeluarga = this.patient.nama || "";
           }
           this.loading = false;
           this.renderUI();
