@@ -512,6 +512,13 @@ var RingkasanPulangComponent = (() => {
       updatePrint();
     }
 
+    renderPrintLayout(noMr, nama, tglLahir, kelamin) {
+      const printContainer = document.getElementById("rp-print-container");
+      if (!printContainer) return;
+      const pt = Object.assign({ noMr, nama, tglLahir, kelamin }, this.patient || {});
+      printContainer.innerHTML = t.getPrintHtml(pt, this.formData);
+    }
+
     static getPrintHtml(patient, formData) {
       const getFontSize = (str, maxLen = 16, defaultSize = 10, minSize = 7) => { if (!str || str.length <= maxLen) return defaultSize; return Math.max(minSize, defaultSize * (maxLen / str.length)).toFixed(1); };
       const p = patient || {};
