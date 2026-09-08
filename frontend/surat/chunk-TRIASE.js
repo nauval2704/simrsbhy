@@ -60,7 +60,7 @@ var TriaseComponent = (() => {
         next: (res) => {
           if (res && res.data) {
             this.triaseData = res.data;
-            if (res.data.canvasImage) this.canvasDataUrl = res.data.canvasImage;
+            if (res.data.canvasImage && res.data.canvasImage.length > 500) this.canvasDataUrl = res.data.canvasImage;
           }
           this.fetchPengkajianIfEmpty();
         },
@@ -86,12 +86,26 @@ var TriaseComponent = (() => {
             if (!d.gcsM && pk.gcsM) d.gcsM = pk.gcsM;
             if (!d.namaDokter && pk.namaDokter) d.namaDokter = pk.namaDokter;
             if (!d.namaPerawat && pk.namaPerawat) d.namaPerawat = pk.namaPerawat;
-            if (!d.canvasImage && pk.sigDokter) {
+            if (!d.canvasImage && pk.sigDokter && pk.sigDokter.length > 500) {
               d.canvasImage = pk.sigDokter;
               this.canvasDataUrl = pk.sigDokter;
             }
-            if (!d.canvasImagePerawat && pk.sigPerawat) {
+            if (!d.canvasImagePerawat && pk.sigPerawat && pk.sigPerawat.length > 500) {
               d.canvasImagePerawat = pk.sigPerawat;
+            }
+            if (!d.pukulPemeriksaan) {
+              if (pk.tglMasukTime) {
+                d.pukulPemeriksaan = pk.tglMasukTime.substring(0, 5);
+              } else if (this.patient?.tglMasuk) {
+                const tm = String(this.patient.tglMasuk);
+                if (tm.includes("T")) {
+                  const parts = tm.split("T");
+                  if (parts[1]) d.pukulPemeriksaan = parts[1].substring(0, 5);
+                } else if (tm.includes(" ")) {
+                  const parts = tm.split(" ");
+                  if (parts[1]) d.pukulPemeriksaan = parts[1].substring(0, 5);
+                }
+              }
             }
           }
           this.loading = false;
@@ -112,13 +126,25 @@ var TriaseComponent = (() => {
         btn.innerHTML = "Menyimpan...";
       }
 
+      const isCanvasBlank = (canvas) => {
+        if (!canvas) return true;
+        const ctx = canvas.getContext("2d");
+        const pixelBuffer = new Uint32Array(
+          ctx.getImageData(0, 0, canvas.width, canvas.height).data.buffer
+        );
+        return !pixelBuffer.some((color) => color !== 0);
+      };
+
       const sigDokter = document.getElementById("sig-dokter");
       const sigPerawat = document.getElementById("sig-perawat");
 
+      const sigDokterData = (sigDokter && !isCanvasBlank(sigDokter)) ? sigDokter.toDataURL() : null;
+      const sigPerawatData = (sigPerawat && !isCanvasBlank(sigPerawat)) ? sigPerawat.toDataURL() : null;
+
       const payload = {
         noCheckin: this.noCheckin,
-        canvasImage: sigDokter ? sigDokter.toDataURL() : null,
-        canvasImagePerawat: sigPerawat ? sigPerawat.toDataURL() : null,
+        canvasImage: sigDokterData,
+        canvasImagePerawat: sigPerawatData,
         namaDokter: document.getElementById("f-namaDokter")?.value || "",
         namaPerawat: document.getElementById("f-namaPerawat")?.value || "",
         td: document.getElementById("f-td")?.value || "",
@@ -155,25 +181,27 @@ var TriaseComponent = (() => {
               2000,
             );
           }
-          const sigDokterEl = document.getElementById("sig-dokter");
-          const sigPerawatEl = document.getElementById("sig-perawat");
           const previewDokter = document.getElementById("p-sig-dokter");
           const previewPerawat = document.getElementById("p-sig-perawat");
-          if (sigDokterEl && previewDokter) {
-            const img = document.createElement("img");
-            img.src = sigDokterEl.toDataURL();
-            img.style.cssText =
-              "max-width:100%;max-height:48px;object-fit:contain;";
+          if (previewDokter) {
             previewDokter.innerHTML = "";
-            previewDokter.appendChild(img);
+            if (sigDokterData && sigDokterData.length > 500) {
+              const img = document.createElement("img");
+              img.src = sigDokterData;
+              img.style.cssText =
+                "max-width:100%;max-height:48px;object-fit:contain;";
+              previewDokter.appendChild(img);
+            }
           }
-          if (sigPerawatEl && previewPerawat) {
-            const img = document.createElement("img");
-            img.src = sigPerawatEl.toDataURL();
-            img.style.cssText =
-              "max-width:100%;max-height:48px;object-fit:contain;";
+          if (previewPerawat) {
             previewPerawat.innerHTML = "";
-            previewPerawat.appendChild(img);
+            if (sigPerawatData && sigPerawatData.length > 500) {
+              const img = document.createElement("img");
+              img.src = sigPerawatData;
+              img.style.cssText =
+                "max-width:100%;max-height:48px;object-fit:contain;";
+              previewPerawat.appendChild(img);
+            }
           }
           this.showToast("success", "Triase berhasil disimpan");
         },
@@ -668,115 +696,16 @@ var TriaseComponent = (() => {
         getFilename: () => buildSuratPdfFilename('TRIASE', self.patient?.noMr || self.patient?.norm, self.patient?.nama)
       });
 
-      const makeSigPad = (id) => {
-        const canvas = document.getElementById(id);
-        if (!canvas) return;
-        const ctx = canvas.getContext("2d");
-        ctx.lineWidth = 1.8;
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-        ctx.strokeStyle = "#000000";
-        let drawing = false;
-        let lastX = 0,
-          lastY = 0;
-        const getPos = (e) => {
-          const r = canvas.getBoundingClientRect();
-          const sx = canvas.width / r.width;
-          const sy = canvas.height / r.height;
-          if (e.touches)
-            return [
-              (e.touches[0].clientX - r.left) * sx,
-              (e.touches[0].clientY - r.top) * sy,
-            ];
-          return [(e.clientX - r.left) * sx, (e.clientY - r.top) * sy];
-        };
-        canvas.addEventListener("mousedown", (e) => {
-          drawing = true;
-          [lastX, lastY] = getPos(e);
-        });
-        canvas.addEventListener("mousemove", (e) => {
-          if (!drawing) return;
-          const [x, y] = getPos(e);
-          ctx.beginPath();
-          ctx.moveTo(lastX, lastY);
-          ctx.lineTo(x, y);
-          ctx.stroke();
-          [lastX, lastY] = [x, y];
-        });
-        canvas.addEventListener("mouseup", () => (drawing = false));
-        canvas.addEventListener("mouseleave", () => (drawing = false));
-        canvas.addEventListener(
-          "touchstart",
-          (e) => {
-            e.preventDefault();
-            drawing = true;
-            [lastX, lastY] = getPos(e);
-          },
-          { passive: false },
-        );
-        canvas.addEventListener(
-          "touchmove",
-          (e) => {
-            e.preventDefault();
-            if (!drawing) return;
-            const [x, y] = getPos(e);
-            ctx.beginPath();
-            ctx.moveTo(lastX, lastY);
-            ctx.lineTo(x, y);
-            ctx.stroke();
-            [lastX, lastY] = [x, y];
-          },
-          { passive: false },
-        );
-        canvas.addEventListener("touchend", () => (drawing = false));
-      };
-
-      makeSigPad("sig-dokter");
-      makeSigPad("sig-perawat");
-
-      if (self.canvasDataUrl) {
-        const canvas = document.getElementById("sig-dokter");
-        if (canvas) {
-          const img = new Image();
-          img.onload = () =>
-            canvas
-              .getContext("2d")
-              .drawImage(img, 0, 0, canvas.width, canvas.height);
-          img.src = self.canvasDataUrl;
-        }
-      }
-
-      if (self.triaseData?.canvasImagePerawat) {
-        const canvas = document.getElementById("sig-perawat");
-        if (canvas) {
-          const img = new Image();
-          img.onload = () =>
-            canvas
-              .getContext("2d")
-              .drawImage(img, 0, 0, canvas.width, canvas.height);
-          img.src = self.triaseData.canvasImagePerawat;
-        }
-      }
-
-      document.querySelectorAll(".sig-clear-btn").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const targetId = btn.getAttribute("data-target");
-          const c = document.getElementById(targetId);
-          if (c) c.getContext("2d").clearRect(0, 0, c.width, c.height);
-          const previewId =
-            targetId === "sig-dokter" ? "p-sig-dokter" : "p-sig-perawat";
-          const p = document.getElementById(previewId);
-          if (p) p.innerHTML = "";
-        });
-      });
-
-      document
-        .getElementById("btn-save-triase")
-        ?.addEventListener("click", () => {
-          self.handleSave();
-        });
-
       const defaultDpjp = self.patient?.dokterDpjp || self.patient?.dpjp || self.patient?.namaDokter || self.patient?.dokter || "";
+
+      const isCanvasBlank = (canvas) => {
+        if (!canvas) return true;
+        const ctx = canvas.getContext("2d");
+        const pixelBuffer = new Uint32Array(
+          ctx.getImageData(0, 0, canvas.width, canvas.height).data.buffer
+        );
+        return !pixelBuffer.some((color) => color !== 0);
+      };
 
       const syncToPreview = () => {
         const getVal = (id) => document.getElementById(id)?.value || "";
@@ -815,29 +744,159 @@ var TriaseComponent = (() => {
         const previewPerawat = document.getElementById("p-sig-perawat");
         if (sigDokterEl && previewDokter) {
           try {
-            const dataUrl = sigDokterEl.toDataURL();
-            if (dataUrl && dataUrl.length > 100) {
-              const img = document.createElement("img");
-              img.src = dataUrl;
-              img.style.cssText = "max-width:100%;max-height:48px;object-fit:contain;";
+            if (!isCanvasBlank(sigDokterEl)) {
+              const dataUrl = sigDokterEl.toDataURL();
+              if (dataUrl && dataUrl.length > 500) {
+                const img = document.createElement("img");
+                img.src = dataUrl;
+                img.style.cssText = "max-width:100%;max-height:48px;object-fit:contain;";
+                previewDokter.innerHTML = "";
+                previewDokter.appendChild(img);
+              }
+            } else {
               previewDokter.innerHTML = "";
-              previewDokter.appendChild(img);
             }
           } catch(e) {}
         }
         if (sigPerawatEl && previewPerawat) {
           try {
-            const dataUrl = sigPerawatEl.toDataURL();
-            if (dataUrl && dataUrl.length > 100) {
-              const img = document.createElement("img");
-              img.src = dataUrl;
-              img.style.cssText = "max-width:100%;max-height:48px;object-fit:contain;";
+            if (!isCanvasBlank(sigPerawatEl)) {
+              const dataUrl = sigPerawatEl.toDataURL();
+              if (dataUrl && dataUrl.length > 500) {
+                const img = document.createElement("img");
+                img.src = dataUrl;
+                img.style.cssText = "max-width:100%;max-height:48px;object-fit:contain;";
+                previewPerawat.innerHTML = "";
+                previewPerawat.appendChild(img);
+              }
+            } else {
               previewPerawat.innerHTML = "";
-              previewPerawat.appendChild(img);
             }
           } catch(e) {}
         }
       };
+
+      const makeSigPad = (id) => {
+        const canvas = document.getElementById(id);
+        if (!canvas) return;
+        if (canvas._sigPadInitialized) return;
+        canvas._sigPadInitialized = true;
+
+        const ctx = canvas.getContext("2d");
+        ctx.lineWidth = 1.8;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.strokeStyle = "#000000";
+        let drawing = false;
+        let lastX = 0,
+          lastY = 0;
+        const getPos = (e) => {
+          const r = canvas.getBoundingClientRect();
+          const sx = canvas.width / r.width;
+          const sy = canvas.height / r.height;
+          if (e.touches)
+            return [
+              (e.touches[0].clientX - r.left) * sx,
+              (e.touches[0].clientY - r.top) * sy,
+            ];
+          return [(e.clientX - r.left) * sx, (e.clientY - r.top) * sy];
+        };
+        canvas.addEventListener("mousedown", (e) => {
+          drawing = true;
+          [lastX, lastY] = getPos(e);
+        });
+        canvas.addEventListener("mousemove", (e) => {
+          if (!drawing) return;
+          const [x, y] = getPos(e);
+          ctx.beginPath();
+          ctx.moveTo(lastX, lastY);
+          ctx.lineTo(x, y);
+          ctx.stroke();
+          [lastX, lastY] = [x, y];
+        });
+        const endDraw = () => {
+          if (drawing) {
+            drawing = false;
+            syncToPreview();
+          }
+        };
+        canvas.addEventListener("mouseup", endDraw);
+        canvas.addEventListener("mouseleave", endDraw);
+        canvas.addEventListener(
+          "touchstart",
+          (e) => {
+            e.preventDefault();
+            drawing = true;
+            [lastX, lastY] = getPos(e);
+          },
+          { passive: false },
+        );
+        canvas.addEventListener(
+          "touchmove",
+          (e) => {
+            e.preventDefault();
+            if (!drawing) return;
+            const [x, y] = getPos(e);
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            [lastX, lastY] = [x, y];
+          },
+          { passive: false },
+        );
+        canvas.addEventListener("touchend", endDraw);
+      };
+
+      makeSigPad("sig-dokter");
+      makeSigPad("sig-perawat");
+
+      if (self.canvasDataUrl && self.canvasDataUrl.length > 500) {
+        const canvas = document.getElementById("sig-dokter");
+        if (canvas) {
+          const img = new Image();
+          img.onload = () => {
+            canvas
+              .getContext("2d")
+              .drawImage(img, 0, 0, canvas.width, canvas.height);
+            syncToPreview();
+          };
+          img.src = self.canvasDataUrl;
+        }
+      }
+
+      if (self.triaseData?.canvasImagePerawat && self.triaseData.canvasImagePerawat.length > 500) {
+        const canvas = document.getElementById("sig-perawat");
+        if (canvas) {
+          const img = new Image();
+          img.onload = () => {
+            canvas
+              .getContext("2d")
+              .drawImage(img, 0, 0, canvas.width, canvas.height);
+            syncToPreview();
+          };
+          img.src = self.triaseData.canvasImagePerawat;
+        }
+      }
+
+      document.querySelectorAll(".sig-clear-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const targetId = btn.getAttribute("data-target");
+          const c = document.getElementById(targetId);
+          if (c) c.getContext("2d").clearRect(0, 0, c.width, c.height);
+          const previewId =
+            targetId === "sig-dokter" ? "p-sig-dokter" : "p-sig-perawat";
+          const p = document.getElementById(previewId);
+          if (p) p.innerHTML = "";
+          syncToPreview();
+        });
+      });
+
+      document
+        .getElementById("btn-save-triase")
+        ?.addEventListener("click", () => {
+          self.handleSave();
+        });
 
       const printTab = root.querySelector('#triase-print-tab');
       if (printTab) {
@@ -1014,7 +1073,18 @@ var TriaseComponent = (() => {
         const d = self.triaseData;
         const setVal = (id, val) => {
           const el = document.getElementById(id);
-          if (el && val) el.value = val;
+          if (!el || val === undefined || val === null || val === "") return;
+          if (id === "f-triageColor" && d.triageLevel) {
+            const opt = Array.from(el.options).find(o => o.text.trim() === d.triageLevel.trim() || o.text.toLowerCase().includes(d.triageLevel.toLowerCase()));
+            if (opt) {
+              el.value = opt.value;
+              opt.selected = true;
+            } else {
+              el.value = val;
+            }
+          } else {
+            el.value = val;
+          }
         };
         setVal("f-td", d.td);
         setVal("f-suhu", d.suhu);
@@ -1036,7 +1106,7 @@ var TriaseComponent = (() => {
             if (d.symptoms.includes(cb.value)) cb.checked = true;
           });
         }
-        if (d.canvasImage) {
+        if (d.canvasImage && d.canvasImage.length > 500) {
           const pd = document.getElementById("p-sig-dokter");
           if (pd) {
             const img = document.createElement("img");
@@ -1054,7 +1124,7 @@ var TriaseComponent = (() => {
             img.src = d.canvasImage;
           }
         }
-        if (d.canvasImagePerawat) {
+        if (d.canvasImagePerawat && d.canvasImagePerawat.length > 500) {
           const pp = document.getElementById("p-sig-perawat");
           if (pp) {
             const img = document.createElement("img");
@@ -1090,8 +1160,8 @@ var TriaseComponent = (() => {
       const initPukul = d.pukulPemeriksaan || "";
       const sym = (val) => (d.symptoms && Array.isArray(d.symptoms) && d.symptoms.includes(val)) ? "\u2713" : "";
       const tc = (c) => d.triageColor === c ? "\u2713" : "";
-      const sigDokterHtml = d.canvasImage ? `<img src="${d.canvasImage}" style="max-width:100%;max-height:48px;object-fit:contain;">` : "";
-      const sigPerawatHtml = d.canvasImagePerawat ? `<img src="${d.canvasImagePerawat}" style="max-width:100%;max-height:48px;object-fit:contain;">` : "";
+      const sigDokterHtml = (d.canvasImage && d.canvasImage.length > 500) ? `<img src="${d.canvasImage}" style="max-width:100%;max-height:48px;object-fit:contain;">` : "";
+      const sigPerawatHtml = (d.canvasImagePerawat && d.canvasImagePerawat.length > 500) ? `<img src="${d.canvasImagePerawat}" style="max-width:100%;max-height:48px;object-fit:contain;">` : "";
       const defaultDpjp = p.dokterDpjp || p.dpjp || p.namaDokter || p.dokter || "";
 
       const bodyHtml = `

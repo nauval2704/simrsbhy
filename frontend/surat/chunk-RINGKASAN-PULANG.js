@@ -90,30 +90,51 @@ var RingkasanPulangComponent = (() => {
     }
 
     fetchPengkajianIfEmpty() {
+      const toDatetimeLocal = (dateStr, timeStr) => {
+        if (!dateStr && !timeStr) return "";
+        let d = "";
+        let t = "00:00";
+        if (dateStr) {
+          const s = String(dateStr).trim();
+          if (s.includes("T")) {
+            const parts = s.split("T");
+            d = parts[0];
+            if (parts[1]) t = parts[1].substring(0, 5);
+          } else if (s.includes(" ")) {
+            const parts = s.split(" ");
+            d = parts[0];
+            if (parts[1]) t = parts[1].substring(0, 5);
+          } else {
+            d = s;
+          }
+        }
+        if (timeStr) {
+          const s = String(timeStr).trim();
+          t = s.length >= 5 ? s.substring(0, 5) : s.padStart(5, "0");
+        }
+        if (!d) return "";
+        return `${d}T${t}`;
+      };
+
       this.http.get(i.apiUrl + "/simrsba/pengkajian-awal-igd/" + this.noCheckin).subscribe({
         next: (res) => {
           if (res && res.data) {
             const pk = res.data;
             if (!this.formData.tglJamMasuk) {
-              if (this.patient && this.patient.tglMasuk) {
-                const tmStr = String(this.patient.tglMasuk).trim();
-                if (tmStr.includes("T")) {
-                  this.formData.tglJamMasuk = tmStr.substring(0, 16);
-                } else if (tmStr.includes(" ")) {
-                  const parts = tmStr.split(" ");
-                  if (parts[0] && parts[1]) {
-                    this.formData.tglJamMasuk = `${parts[0]}T${parts[1].substring(0, 5)}`;
-                  }
-                }
-              } else if (pk.tglMasukDate) {
-                const time = pk.tglMasukTime ? pk.tglMasukTime.substring(0, 5) : "00:00";
-                this.formData.tglJamMasuk = `${pk.tglMasukDate}T${time}`;
+              const ptDate = this.patient?.tglMasuk || this.patient?.tglInput || this.patient?.tglCheckin;
+              if (pk.tglMasukDate) {
+                this.formData.tglJamMasuk = toDatetimeLocal(pk.tglMasukDate, pk.tglMasukTime);
+              } else if (ptDate) {
+                this.formData.tglJamMasuk = toDatetimeLocal(ptDate, pk.tglMasukTime);
               }
             }
 
-            if (!this.formData.tglJamKeluar && pk.outTgl) {
-              const time = pk.outPukul ? pk.outPukul.substring(0, 5) : "00:00";
-              this.formData.tglJamKeluar = `${pk.outTgl}T${time}`;
+            if (!this.formData.tglJamKeluar) {
+              if (pk.outTgl) {
+                this.formData.tglJamKeluar = toDatetimeLocal(pk.outTgl, pk.outPukul);
+              } else if (this.patient?.tglOut) {
+                this.formData.tglJamKeluar = toDatetimeLocal(this.patient.tglOut);
+              }
             }
 
             if (!this.formData.indikasiMasuk) {
@@ -126,8 +147,12 @@ var RingkasanPulangComponent = (() => {
               }
             }
 
-            if (!this.formData.keluhanUtama && pk.keluhanUtama) {
-              this.formData.keluhanUtama = pk.keluhanUtama;
+            if (!this.formData.keluhanUtama) {
+              if (pk.keluhanUtama) {
+                this.formData.keluhanUtama = pk.keluhanUtama;
+              } else if (pk.riwayatPenyakitSekarang) {
+                this.formData.keluhanUtama = pk.riwayatPenyakitSekarang;
+              }
             }
 
             if (!this.formData.pemeriksaanFisik && pk.fisik) {
@@ -172,7 +197,7 @@ var RingkasanPulangComponent = (() => {
             if (!kk.nadi && (pk.outNadi || pk.nadi)) kk.nadi = pk.outNadi || pk.nadi;
             if (!kk.suhu && (pk.outSuhu || pk.suhu)) kk.suhu = pk.outSuhu || pk.suhu;
             if (!kk.rr && (pk.outNafas || pk.rr)) kk.rr = pk.outNafas || pk.rr;
-            if (!kk.nyeri && pk.nyeri) kk.nyeri = String(pk.nyeri);
+            if (!kk.nyeri && pk.nyeri !== undefined && pk.nyeri !== null && pk.nyeri !== "") kk.nyeri = String(pk.nyeri);
 
             if (!this.formData.tindakLanjut) this.formData.tindakLanjut = {};
             const tl = this.formData.tindakLanjut;
@@ -205,10 +230,10 @@ var RingkasanPulangComponent = (() => {
             if (!this.formData.namaDokter && pk.namaDokter) {
               this.formData.namaDokter = pk.namaDokter;
             }
-            if (!this.formData.sigDokter && pk.sigDokter) {
+            if (!this.formData.sigDokter && pk.sigDokter && pk.sigDokter.length > 500) {
               this.formData.sigDokter = pk.sigDokter;
             }
-            if (!this.formData.sigKeluarga && pk.sigKeluarga) {
+            if (!this.formData.sigKeluarga && pk.sigKeluarga && pk.sigKeluarga.length > 500) {
               this.formData.sigKeluarga = pk.sigKeluarga;
             }
           }
@@ -221,19 +246,40 @@ var RingkasanPulangComponent = (() => {
     }
 
     fetchTriaseIfEmpty() {
+      const toDatetimeLocal = (dateStr, timeStr) => {
+        if (!dateStr && !timeStr) return "";
+        let d = "";
+        let t = "00:00";
+        if (dateStr) {
+          const s = String(dateStr).trim();
+          if (s.includes("T")) {
+            const parts = s.split("T");
+            d = parts[0];
+            if (parts[1]) t = parts[1].substring(0, 5);
+          } else if (s.includes(" ")) {
+            const parts = s.split(" ");
+            d = parts[0];
+            if (parts[1]) t = parts[1].substring(0, 5);
+          } else {
+            d = s;
+          }
+        }
+        if (timeStr) {
+          const s = String(timeStr).trim();
+          t = s.length >= 5 ? s.substring(0, 5) : s.padStart(5, "0");
+        }
+        if (!d) return "";
+        return `${d}T${t}`;
+      };
+
       this.http.get(i.apiUrl + "/simrsba/triase/" + this.noCheckin).subscribe({
         next: (res) => {
           if (res && res.data) {
             const tr = res.data;
-            if (!this.formData.tglJamMasuk && this.patient && this.patient.tglMasuk) {
-              const tmStr = String(this.patient.tglMasuk).trim();
-              if (tmStr.includes("T")) {
-                this.formData.tglJamMasuk = tmStr.substring(0, 16);
-              } else if (tmStr.includes(" ")) {
-                const parts = tmStr.split(" ");
-                if (parts[0] && parts[1]) {
-                  this.formData.tglJamMasuk = `${parts[0]}T${parts[1].substring(0, 5)}`;
-                }
+            if (!this.formData.tglJamMasuk) {
+              const ptDate = this.patient?.tglMasuk || this.patient?.tglInput || this.patient?.tglCheckin;
+              if (ptDate) {
+                this.formData.tglJamMasuk = toDatetimeLocal(ptDate);
               }
             }
             if (!this.formData.keluhanUtama) {
@@ -254,7 +300,7 @@ var RingkasanPulangComponent = (() => {
               kk.kesadaran = `E${tr.gcsE || ""} V${tr.gcsV || ""} M${tr.gcsM || ""}`.trim();
             }
 
-            if (!this.formData.sigDokter && tr.canvasImage) {
+            if (!this.formData.sigDokter && tr.canvasImage && tr.canvasImage.length > 500) {
               this.formData.sigDokter = tr.canvasImage;
             }
             if (!this.formData.namaDokter && tr.namaDokter) {
@@ -284,13 +330,44 @@ var RingkasanPulangComponent = (() => {
     }
 
     saveData() {
+        const root = document.querySelector("app-ringkasan-pulang-wrapper");
+        if (root) {
+          root.querySelectorAll(".input-field").forEach(el => {
+            if (el.dataset.field) this.formData[el.dataset.field] = el.value;
+          });
+          root.querySelectorAll(".input-nested").forEach(el => {
+            const parent = el.dataset.parent;
+            const field = el.dataset.field;
+            if (parent && field) {
+              if (!this.formData[parent]) this.formData[parent] = {};
+              this.formData[parent][field] = el.value;
+            }
+          });
+          root.querySelectorAll("input[type='radio']").forEach(el => {
+            if (el.checked) {
+              const parent = el.dataset.parent;
+              const field = el.dataset.field;
+              if (parent && field) {
+                if (!this.formData[parent]) this.formData[parent] = {};
+                this.formData[parent][field] = el.value;
+              }
+            }
+          });
+        }
+
+        const sigDokterVal = (this.formData.sigDokter && this.formData.sigDokter.length > 500) ? this.formData.sigDokter : null;
+        const sigKeluargaVal = (this.formData.sigKeluarga && this.formData.sigKeluarga.length > 500) ? this.formData.sigKeluarga : null;
+
         const payload = {
             noCheckin: this.noCheckin,
             noMr: this.patient?.noMr || this.patient?.norm,
             namaPasien: this.patient?.nama,
-            dpjp: this.patient?.dpjp,
+            dpjp: this.patient?.dpjp || this.patient?.dokterDpjp,
             tglInput: new Date().toISOString(),
-            ...this.formData
+            ...this.formData,
+            canvasImage: sigDokterVal,
+            sigDokter: sigDokterVal,
+            sigKeluarga: sigKeluargaVal
         };
 
         const btn = document.getElementById("btn-save-rp");
@@ -516,15 +593,44 @@ var RingkasanPulangComponent = (() => {
         getFilename: () => buildSuratPdfFilename('RINGKASAN_PULANG_IGD', this.patient?.noMr || this.patient?.norm, this.patient?.nama)
       });
 
+      const printTab = root.querySelector("#rp-print-tab");
+      const updatePrint = () => {
+          root.querySelectorAll(".input-field").forEach(el => {
+              if (el.dataset.field) this.formData[el.dataset.field] = el.value;
+          });
+          root.querySelectorAll(".input-nested").forEach(el => {
+              const parent = el.dataset.parent;
+              const field = el.dataset.field;
+              if (parent && field) {
+                  if (!this.formData[parent]) this.formData[parent] = {};
+                  this.formData[parent][field] = el.value;
+              }
+          });
+          root.querySelectorAll("input[type='radio']").forEach(el => {
+              if (el.checked) {
+                  const parent = el.dataset.parent;
+                  const field = el.dataset.field;
+                  if (parent && field) {
+                      if (!this.formData[parent]) this.formData[parent] = {};
+                      this.formData[parent][field] = el.value;
+                  }
+              }
+          });
+          this.renderPrintLayout(noMr, nama, tglLahir, kelamin);
+      };
+
       const makeSigPad = (canvasId, fieldName) => {
         const canvas = root.querySelector("#" + canvasId);
         if (!canvas) return;
         const ctx = canvas.getContext("2d");
-        if (this.formData[fieldName]) {
+        if (this.formData[fieldName] && this.formData[fieldName].length > 500) {
           const img = new Image();
           img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
           img.src = this.formData[fieldName];
         }
+        if (canvas._sigPadInitialized) return;
+        canvas._sigPadInitialized = true;
+
         let drawing = false;
         let lastX = 0, lastY = 0;
         const getPos = (e) => {
@@ -552,6 +658,7 @@ var RingkasanPulangComponent = (() => {
           if (drawing) {
             drawing = false;
             this.formData[fieldName] = canvas.toDataURL();
+            updatePrint();
           }
         };
         canvas.addEventListener("mousedown", startDraw);
@@ -567,12 +674,21 @@ var RingkasanPulangComponent = (() => {
           clearBtn.addEventListener("click", () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             delete this.formData[fieldName];
+            updatePrint();
           });
         }
       };
 
       makeSigPad("sig-keluarga-rp", "sigKeluarga");
       makeSigPad("sig-dokter-rp", "sigDokter");
+
+      const coll4 = root.querySelector('#collapse_rp_4');
+      if (coll4) {
+        coll4.addEventListener('shown.bs.collapse', () => {
+          makeSigPad("sig-keluarga-rp", "sigKeluarga");
+          makeSigPad("sig-dokter-rp", "sigDokter");
+        });
+      }
 
       const btnSave = root.querySelector("#btn-save-rp");
       if(btnSave) btnSave.addEventListener("click", () => this.saveData());
@@ -606,31 +722,6 @@ var RingkasanPulangComponent = (() => {
           });
       });
 
-      const printTab = root.querySelector("#rp-print-tab");
-      const updatePrint = () => {
-          root.querySelectorAll(".input-field").forEach(el => {
-              if (el.dataset.field) this.formData[el.dataset.field] = el.value;
-          });
-          root.querySelectorAll(".input-nested").forEach(el => {
-              const parent = el.dataset.parent;
-              const field = el.dataset.field;
-              if (parent && field) {
-                  if (!this.formData[parent]) this.formData[parent] = {};
-                  this.formData[parent][field] = el.value;
-              }
-          });
-          root.querySelectorAll("input[type='radio']").forEach(el => {
-              if (el.checked) {
-                  const parent = el.dataset.parent;
-                  const field = el.dataset.field;
-                  if (parent && field) {
-                      if (!this.formData[parent]) this.formData[parent] = {};
-                      this.formData[parent][field] = el.value;
-                  }
-              }
-          });
-          this.renderPrintLayout(noMr, nama, tglLahir, kelamin);
-      };
       if (printTab) {
           printTab.addEventListener("click", updatePrint);
           printTab.addEventListener("shown.bs.tab", updatePrint);
@@ -724,6 +815,26 @@ var RingkasanPulangComponent = (() => {
                     <td colspan="3">Pemeriksaan Penunjang:<br><div style="white-space:pre-wrap; margin-top:2px;">${fd.pemeriksaanPenunjang || ''}</div></td>
                 </tr>
 
+                <tr style="height: 50px;">
+                    <td colspan="3">Diagnosis Kerja:<br><div style="white-space:pre-wrap; margin-top:2px;">${fd.diagnosisKerja || ''}</div></td>
+                    <td colspan="3">Diagnosis Banding:<br><div style="white-space:pre-wrap; margin-top:2px;">${fd.diagnosisBanding || ''}</div></td>
+                </tr>
+
+                <tr style="height: 50px;">
+                    <td colspan="6">Tindakan / Terapi saat di IGD:<br><div style="white-space:pre-wrap; margin-top:2px;">${fd.tindakanTerapi || ''}</div></td>
+                </tr>
+
+                <tr>
+                    <td colspan="2" style="vertical-align: top;">Pilihan Tindak Lanjut</td>
+                    <td colspan="4" style="line-height: 1.6;">
+                        <div><span class="${cb(tl.tipe, 'APS')}"></span> Pulang Atas Permintaan Sendiri / Menolak Rawat Inap ${tl.alasanAps ? `(Alasan: ${tl.alasanAps})` : ''}</div>
+                        <div><span class="${cb(tl.tipe, 'Persetujuan')}"></span> Pulang Atas Persetujuan ${tl.jamPersetujuan ? `(Jam: ${tl.jamPersetujuan})` : ''}</div>
+                        <div><span class="${cb(tl.tipe, 'Kontrol')}"></span> Kontrol ${tl.kontrolTgl || tl.kontrolKe ? `(Tgl: ${tl.kontrolTgl || '-'}, Ke: ${tl.kontrolKe || '-'})` : ''}</div>
+                        <div><span class="${cb(tl.tipe, 'Rujuk')}"></span> Dirujuk ${tl.rujukKe ? `(Ke: ${tl.rujukKe})` : ''}</div>
+                        <div><span class="${cb(tl.tipe, 'Meninggal')}"></span> Meninggal ${tl.jamMeninggal ? `(Jam: ${tl.jamMeninggal})` : ''}</div>
+                    </td>
+                </tr>
+
                 <tr>
                     <td colspan="2">Alasan tidak perlu dirawat</td>
                     <td colspan="4" style="line-height: 1.6;">
@@ -772,7 +883,7 @@ var RingkasanPulangComponent = (() => {
                     <td colspan="3" style="text-align: center; vertical-align: top; padding-top: 15px;">
                         Pasien/Keluarga
                         <div style="height: 60px; display: flex; align-items: center; justify-content: center; margin-top: 5px;">
-                            ${fd.sigKeluarga ? `<img src="${fd.sigKeluarga}" style="max-height: 55px; max-width: 100%; object-fit: contain;">` : ''}
+                            ${(fd.sigKeluarga && fd.sigKeluarga.length > 500) ? `<img src="${fd.sigKeluarga}" style="max-height: 55px; max-width: 100%; object-fit: contain;">` : ''}
                         </div>
                         <div style="margin-top: 5px;">( ${fd.namaPasienKeluarga || '........................................'} )</div>
                     </td>
@@ -781,7 +892,7 @@ var RingkasanPulangComponent = (() => {
                         Dokter Penanggungjawab<br>
                         Pelayanan Kegawatdaruratan
                         <div style="height: 55px; display: flex; align-items: center; justify-content: center; margin-top: 5px;">
-                            ${fd.sigDokter ? `<img src="${fd.sigDokter}" style="max-height: 50px; max-width: 100%; object-fit: contain;">` : ''}
+                            ${(fd.sigDokter && fd.sigDokter.length > 500) ? `<img src="${fd.sigDokter}" style="max-height: 50px; max-width: 100%; object-fit: contain;">` : ''}
                         </div>
                         <div style="margin-top: 2px;">( ${fd.namaDokter || dpjp} )</div>
                         <div style="font-size: 10px; margin-top: 2px;">Nama Jelas dan Gelar</div>

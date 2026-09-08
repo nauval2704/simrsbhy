@@ -71,6 +71,24 @@ var PengkajianAwalIgdComponent = (() => {
     }
 
     fetchTriaseIfEmpty() {
+      const parseDateAndTime = (str) => {
+        if (!str) return { date: "", time: "" };
+        const s = String(str).trim();
+        let date = "", time = "";
+        if (s.includes("T")) {
+          const parts = s.split("T");
+          date = parts[0];
+          if (parts[1]) time = parts[1].substring(0, 5);
+        } else if (s.includes(" ")) {
+          const parts = s.split(" ");
+          date = parts[0];
+          if (parts[1]) time = parts[1].substring(0, 5);
+        } else {
+          date = s;
+        }
+        return { date, time };
+      };
+
       this.http.get(i.apiUrl + "/simrsba/triase/" + this.noCheckin).subscribe({
         next: (res) => {
           if (res && res.data) {
@@ -83,18 +101,10 @@ var PengkajianAwalIgdComponent = (() => {
             if (!this.formData.gcsV && tr.gcsV) this.formData.gcsV = tr.gcsV;
             if (!this.formData.gcsM && tr.gcsM) this.formData.gcsM = tr.gcsM;
 
-            if (!this.formData.outTd && tr.td) this.formData.outTd = tr.td;
-            if (!this.formData.outSuhu && tr.suhu) this.formData.outSuhu = tr.suhu;
-            if (!this.formData.outNadi && tr.hr) this.formData.outNadi = tr.hr;
-            if (!this.formData.outNafas && tr.rr) this.formData.outNafas = tr.rr;
-            if (!this.formData.outGcs && (tr.gcsE || tr.gcsV || tr.gcsM)) {
-              this.formData.outGcs = `E${tr.gcsE || ''} V${tr.gcsV || ''} M${tr.gcsM || ''}`.trim();
-            }
-
-            if (!this.formData.sigDokter && tr.canvasImage) {
+            if (!this.formData.sigDokter && tr.canvasImage && tr.canvasImage.length > 500) {
               this.formData.sigDokter = tr.canvasImage;
             }
-            if (!this.formData.sigPerawat && tr.canvasImagePerawat) {
+            if (!this.formData.sigPerawat && tr.canvasImagePerawat && tr.canvasImagePerawat.length > 500) {
               this.formData.sigPerawat = tr.canvasImagePerawat;
             }
 
@@ -113,11 +123,11 @@ var PengkajianAwalIgdComponent = (() => {
               }
             }
 
-            if (this.patient && this.patient.tglMasuk) {
-              const tmStr = String(this.patient.tglMasuk);
-              const parts = tmStr.split(" ");
-              if (!this.formData.tglMasukDate && parts[0]) this.formData.tglMasukDate = parts[0];
-              if (!this.formData.tglMasukTime && parts[1]) this.formData.tglMasukTime = parts[1].substring(0, 5);
+            const ptDate = this.patient?.tglMasuk || this.patient?.tglInput || this.patient?.tglCheckin;
+            if (ptDate && (!this.formData.tglMasukDate || !this.formData.tglMasukTime)) {
+              const parsedPt = parseDateAndTime(ptDate);
+              if (!this.formData.tglMasukDate && parsedPt.date) this.formData.tglMasukDate = parsedPt.date;
+              if (!this.formData.tglMasukTime && parsedPt.time) this.formData.tglMasukTime = parsedPt.time;
             }
           }
           if (!this.formData.namaDokter && this.patient) {
@@ -135,6 +145,24 @@ var PengkajianAwalIgdComponent = (() => {
     }
 
     fetchRingkasanPulangIfEmpty() {
+      const parseDateAndTime = (str) => {
+        if (!str) return { date: "", time: "" };
+        const s = String(str).trim();
+        let date = "", time = "";
+        if (s.includes("T")) {
+          const parts = s.split("T");
+          date = parts[0];
+          if (parts[1]) time = parts[1].substring(0, 5);
+        } else if (s.includes(" ")) {
+          const parts = s.split(" ");
+          date = parts[0];
+          if (parts[1]) time = parts[1].substring(0, 5);
+        } else {
+          date = s;
+        }
+        return { date, time };
+      };
+
       this.http.get(i.apiUrl + "/simrsba/ringkasan-pulang/" + this.noCheckin).subscribe({
         next: (res) => {
           if (res && res.data) {
@@ -170,7 +198,8 @@ var PengkajianAwalIgdComponent = (() => {
               if (!this.formData.outNadi && kk.nadi) this.formData.outNadi = kk.nadi;
               if (!this.formData.outSuhu && kk.suhu) this.formData.outSuhu = kk.suhu;
               if (!this.formData.outNafas && kk.rr) this.formData.outNafas = kk.rr;
-              if (!this.formData.nyeri && kk.nyeri) this.formData.nyeri = kk.nyeri;
+              if (!this.formData.nyeri && kk.nyeri !== undefined && kk.nyeri !== null && kk.nyeri !== "") this.formData.nyeri = String(kk.nyeri);
+              if (!this.formData.outGcs && kk.kesadaran) this.formData.outGcs = kk.kesadaran;
             }
             if (!this.formData.diagnosisKerja && rp.diagnosisKerja) {
               this.formData.diagnosisKerja = rp.diagnosisKerja;
@@ -187,16 +216,40 @@ var PengkajianAwalIgdComponent = (() => {
             if (!this.formData.namaDokter && rp.namaDokter) {
               this.formData.namaDokter = rp.namaDokter;
             }
-            if (!this.formData.sigDokter && rp.sigDokter) {
+            if (!this.formData.sigDokter && rp.sigDokter && rp.sigDokter.length > 500) {
               this.formData.sigDokter = rp.sigDokter;
             }
-            if (!this.formData.sigKeluarga && rp.sigKeluarga) {
+            if (!this.formData.sigKeluarga && rp.sigKeluarga && rp.sigKeluarga.length > 500) {
               this.formData.sigKeluarga = rp.sigKeluarga;
             }
+
+            if (rp.tglJamMasuk && (!this.formData.tglMasukDate || !this.formData.tglMasukTime)) {
+              const parsedIn = parseDateAndTime(rp.tglJamMasuk);
+              if (!this.formData.tglMasukDate && parsedIn.date) this.formData.tglMasukDate = parsedIn.date;
+              if (!this.formData.tglMasukTime && parsedIn.time) this.formData.tglMasukTime = parsedIn.time;
+            }
+
             if (!this.formData.outTgl && rp.tglJamKeluar) {
-              const parts = rp.tglJamKeluar.split('T');
-              if (parts[0]) this.formData.outTgl = parts[0];
-              if (parts[1] && !this.formData.outPukul) this.formData.outPukul = parts[1].substring(0, 5);
+              const parsedOut = parseDateAndTime(rp.tglJamKeluar);
+              if (parsedOut.date) this.formData.outTgl = parsedOut.date;
+              if (parsedOut.time && !this.formData.outPukul) this.formData.outPukul = parsedOut.time;
+            }
+
+            if (!this.formData.tl && rp.tindakLanjut && rp.tindakLanjut.tipe) {
+              const tlt = rp.tindakLanjut.tipe;
+              this.formData.tl = tlt;
+              if (!this.formData.tlDetail) {
+                if (tlt === 'APS') this.formData.tlDetail = rp.tindakLanjut.alasanAps || '';
+                else if (tlt === 'Persetujuan' || tlt === 'Pulang') {
+                  this.formData.tl = 'Pulang';
+                  this.formData.tlDetail = rp.tindakLanjut.jamPersetujuan || '';
+                }
+                else if (tlt === 'Kontrol') this.formData.tlDetail = rp.tindakLanjut.kontrolTgl || '';
+                else if (tlt === 'Rujuk' || tlt === 'Dirujuk') {
+                  this.formData.tl = 'Dirujuk';
+                  this.formData.tlDetail = rp.tindakLanjut.rujukKe || '';
+                }
+              }
             }
           }
           this.loading = false;
@@ -222,13 +275,22 @@ var PengkajianAwalIgdComponent = (() => {
           }
         });
       }
+
+      const sigDokterVal = (this.formData.sigDokter && this.formData.sigDokter.length > 500) ? this.formData.sigDokter : null;
+      const sigPerawatVal = (this.formData.sigPerawat && this.formData.sigPerawat.length > 500) ? this.formData.sigPerawat : null;
+      const sigKeluargaVal = (this.formData.sigKeluarga && this.formData.sigKeluarga.length > 500) ? this.formData.sigKeluarga : null;
+
       const payload = {
         noCheckin: this.noCheckin,
         noMr: this.patient?.noMr || this.patient?.norm,
         namaPasien: this.patient?.nama,
-        dpjp: this.patient?.dpjp,
+        dpjp: this.patient?.dpjp || this.patient?.dokterDpjp,
         tglInput: new Date().toISOString(),
-        ...this.formData
+        ...this.formData,
+        canvasImage: sigDokterVal,
+        sigDokter: sigDokterVal,
+        sigPerawat: sigPerawatVal,
+        sigKeluarga: sigKeluargaVal
       };
 
       const btn = document.getElementById("btn-save-pengkajian");
@@ -518,6 +580,20 @@ var PengkajianAwalIgdComponent = (() => {
         el.addEventListener("change", handler);
       });
 
+      const printTab = root.querySelector("#pengkajian-print-tab");
+      const updatePrint = () => {
+        root.querySelectorAll(".form-data-input").forEach((el) => {
+          const field = el.dataset.field;
+          if (!field) return;
+          if (el.type === "radio") {
+            if (el.checked) this.formData[field] = el.value;
+          } else {
+            this.formData[field] = el.value;
+          }
+        });
+        this.renderPrintLayout(noMr, nama, tglLahir, kelamin, getFontSize);
+      };
+
       const initAnatomiCanvas = () => {
         const canvasAnatomi = root.querySelector("#canvas-anatomi-input");
         if (!canvasAnatomi) return;
@@ -533,6 +609,9 @@ var PengkajianAwalIgdComponent = (() => {
           }
         };
         bgImg.src = "assets/img/anatomi (front & back).jpg";
+
+        if (canvasAnatomi._initialized) return;
+        canvasAnatomi._initialized = true;
 
         let drawing = false;
         let lastX = 0, lastY = 0;
@@ -560,6 +639,7 @@ var PengkajianAwalIgdComponent = (() => {
           if (drawing) {
             drawing = false;
             this.formData.canvasAnatomi = canvasAnatomi.toDataURL();
+            updatePrint();
           }
         };
         canvasAnatomi.addEventListener("mousedown", startDraw);
@@ -576,6 +656,7 @@ var PengkajianAwalIgdComponent = (() => {
             ctx.clearRect(0, 0, canvasAnatomi.width, canvasAnatomi.height);
             ctx.drawImage(bgImg, 0, 0, canvasAnatomi.width, canvasAnatomi.height);
             delete this.formData.canvasAnatomi;
+            updatePrint();
           });
         }
       };
@@ -584,11 +665,14 @@ var PengkajianAwalIgdComponent = (() => {
         const canvas = root.querySelector("#" + id);
         if (!canvas) return;
         const ctx = canvas.getContext("2d");
-        if (this.formData[fieldName]) {
+        if (this.formData[fieldName] && this.formData[fieldName].length > 500) {
           const img = new Image();
           img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
           img.src = this.formData[fieldName];
         }
+        if (canvas._sigPadInitialized) return;
+        canvas._sigPadInitialized = true;
+
         let drawing = false;
         let lastX = 0, lastY = 0;
         const getPos = (e) => {
@@ -616,6 +700,7 @@ var PengkajianAwalIgdComponent = (() => {
           if (drawing) {
             drawing = false;
             this.formData[fieldName] = canvas.toDataURL();
+            updatePrint();
           }
         };
         canvas.addEventListener("mousedown", startDraw);
@@ -631,6 +716,7 @@ var PengkajianAwalIgdComponent = (() => {
           clearBtn.addEventListener("click", () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             delete this.formData[fieldName];
+            updatePrint();
           });
         }
       };
@@ -649,19 +735,6 @@ var PengkajianAwalIgdComponent = (() => {
         });
       });
 
-      const printTab = root.querySelector("#pengkajian-print-tab");
-      const updatePrint = () => {
-        root.querySelectorAll(".form-data-input").forEach((el) => {
-          const field = el.dataset.field;
-          if (!field) return;
-          if (el.type === "radio") {
-            if (el.checked) this.formData[field] = el.value;
-          } else {
-            this.formData[field] = el.value;
-          }
-        });
-        this.renderPrintLayout(noMr, nama, tglLahir, kelamin, getFontSize);
-      };
       if (printTab) {
         printTab.addEventListener("click", updatePrint);
         printTab.addEventListener("shown.bs.tab", updatePrint);
@@ -1006,13 +1079,13 @@ var PengkajianAwalIgdComponent = (() => {
               </tr>
               <tr>
                 <td style="padding-top:10px; height:70px; vertical-align:middle;">
-                  ${getVal('sigKeluarga') ? `<img src="${getVal('sigKeluarga')}" style="max-height:60px; max-width:90%; object-fit:contain;">` : ''}
+                  ${(getVal('sigKeluarga') && getVal('sigKeluarga').length > 500) ? `<img src="${getVal('sigKeluarga')}" style="max-height:60px; max-width:90%; object-fit:contain;">` : ''}
                 </td>
                 <td style="padding-top:10px; height:70px; vertical-align:middle;">
-                  ${getVal('sigPerawat') ? `<img src="${getVal('sigPerawat')}" style="max-height:60px; max-width:90%; object-fit:contain;">` : ''}
+                  ${(getVal('sigPerawat') && getVal('sigPerawat').length > 500) ? `<img src="${getVal('sigPerawat')}" style="max-height:60px; max-width:90%; object-fit:contain;">` : ''}
                 </td>
                 <td style="padding-top:10px; height:70px; vertical-align:middle;">
-                  ${getVal('sigDokter') ? `<img src="${getVal('sigDokter')}" style="max-height:60px; max-width:90%; object-fit:contain;">` : ''}
+                  ${(getVal('sigDokter') && getVal('sigDokter').length > 500) ? `<img src="${getVal('sigDokter')}" style="max-height:60px; max-width:90%; object-fit:contain;">` : ''}
                 </td>
               </tr>
               <tr>
