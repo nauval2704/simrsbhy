@@ -191,6 +191,12 @@ router.post("/triase/sync-satusehat", simrsBaController.syncTriaseSatuSehat);
 
 router.post("/prmrj", simrsBaController.savePrmrj);
 router.get("/prmrj/:noCheckin", simrsBaController.getPrmrj);
+router.post("/poli-gigi", simrsBaController.savePoliGigi);
+router.get("/poli-gigi/:noCheckin", simrsBaController.getPoliGigi);
+router.get("/referensi/icd10", simrsBaController.cariIcd10);
+router.get("/referensi/icd10/:term", simrsBaController.cariIcd10);
+router.get("/referensi/icd9", simrsBaController.cariIcd9);
+router.get("/referensi/icd9/:term", simrsBaController.cariIcd9);
 
 router.post("/edukasi-poli", simrsBaController.saveEdukasiPoli);
 router.get("/edukasi-poli/:noCheckin", simrsBaController.getEdukasiPoli);
@@ -211,6 +217,7 @@ router.get("/pemberian-obat-igd/:noCheckin", simrsBaController.getPemberianObatI
 
 router.post("/poli-gigi", simrsBaController.savePoliGigi);
 router.get("/poli-gigi/:noCheckin", simrsBaController.getPoliGigi);
+router.get("/farmasi-obat/:noCheckin", simrsBaController.getFarmasiObat);
 
 router.post("/pengkajian-awal-poli", simrsBaController.savePengkajianAwalPoli);
 router.get("/pengkajian-awal-poli/:noCheckin", simrsBaController.getPengkajianAwalPoli);

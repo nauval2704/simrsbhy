@@ -3961,6 +3961,130 @@ module.exports = {
       return res.status(400).send({ status: 400, message: "Gagal mengambil data PRMRJ", data: null });
     }
   },
+  savePoliGigi: async (req, res) => {
+    try {
+      const payload = req.body;
+      const noMr = payload.noMr ? String(payload.noMr).trim() : null;
+      let query = {};
+      if (noMr) {
+        query = { noMr: noMr };
+      } else {
+        query = { noCheckin: payload.noCheckin };
+      }
+      const saved = await PoliGigi.findOneAndUpdate(
+        query,
+        { $set: payload },
+        { upsert: true, new: true }
+      );
+      return res.status(200).send({ status: 200, message: "PRMRJ Poli Gigi berhasil disimpan", data: saved });
+    } catch (error) {
+      return res.status(400).send({ status: 400, message: "Gagal menyimpan PRMRJ Poli Gigi", data: null });
+    }
+  },
+  getPoliGigi: async (req, res) => {
+    try {
+      const param = req.params.noCheckin ? String(req.params.noCheckin).trim() : '';
+      let noMr = null;
+      const checkin = await Checkin.findOne({ noCheckin: param }).select({ noMr: 1 }).lean();
+      if (checkin && checkin.noMr) {
+        noMr = String(checkin.noMr).trim();
+      }
+
+      const orConditions = [{ noCheckin: param }];
+      if (noMr) {
+        orConditions.push({ noMr: noMr });
+      } else {
+        orConditions.push({ noMr: param });
+      }
+
+      const data = await PoliGigi.findOne({ $or: orConditions }).sort({ updatedAt: -1 });
+      return res.status(200).send({ status: 200, message: "Ok", data: data });
+    } catch (error) {
+      return res.status(400).send({ status: 400, message: "Gagal mengambil data PRMRJ Poli Gigi", data: null });
+    }
+  },
+  cariIcd10: async (req, res) => {
+    try {
+      const q = String(req.query.q || req.query.term || req.query.keyword || req.params.term || "").trim();
+      if (!q || q.length < 2) {
+        return res.status(200).json({ status: 200, data: [] });
+      }
+
+      const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(escaped, 'i');
+      const startsWithRegex = new RegExp('^' + escaped, 'i');
+
+      const db = mongoose.connection.db;
+      if (!db) {
+        return res.status(500).json({ status: 500, message: "Database connection not ready", data: [] });
+      }
+
+      const results = await db.collection('icd').find({
+        $or: [
+          { kode: { $regex: startsWithRegex } },
+          { kode: { $regex: regex } },
+          { deskripsi: { $regex: regex } }
+        ]
+      }).limit(30).toArray();
+
+      const mapped = results.map(item => {
+        const kode = (item.kode || '').trim();
+        const deskripsi = (item.deskripsi || '').trim();
+        return {
+          _id: item._id,
+          kode: kode,
+          deskripsi: deskripsi,
+          display: `${kode} - ${deskripsi}`
+        };
+      });
+
+      return res.status(200).json({ status: 200, data: mapped });
+    } catch (error) {
+      console.error("Error cariIcd10:", error);
+      return res.status(500).json({ status: 500, message: "Gagal mencari data ICD-10", data: [] });
+    }
+  },
+  cariIcd9: async (req, res) => {
+    try {
+      const q = String(req.query.q || req.query.term || req.query.keyword || req.params.term || "").trim();
+      if (!q || q.length < 2) {
+        return res.status(200).json({ status: 200, data: [] });
+      }
+
+      const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(escaped, 'i');
+      const startsWithRegex = new RegExp('^' + escaped, 'i');
+
+      const db = mongoose.connection.db;
+      if (!db) {
+        return res.status(500).json({ status: 500, message: "Database connection not ready", data: [] });
+      }
+
+      const results = await db.collection('icd9').find({
+        $or: [
+          { kode: { $regex: startsWithRegex } },
+          { kode: { $regex: regex } },
+          { deskripsi: { $regex: regex } }
+        ]
+      }).limit(30).toArray();
+
+      const mapped = results.map(item => {
+        const kode = (item.kode || '').trim();
+        const deskripsi = (item.deskripsi || '').trim();
+        return {
+          _id: item._id,
+          kode: kode,
+          deskripsi: deskripsi,
+          display: `${kode} - ${deskripsi}`
+        };
+      });
+
+      return res.status(200).json({ status: 200, data: mapped });
+    } catch (error) {
+      console.error("Error cariIcd9:", error);
+      return res.status(500).json({ status: 500, message: "Gagal mencari data ICD-9", data: [] });
+    }
+  },
   saveEdukasiPoli: async (req, res) => {
     try {
       const payload = req.body;
@@ -4844,4 +4968,99 @@ module.exports = {
       }
     }
   },
+  getFarmasiObat: async (req, res) => {
+    try {
+      const noCheckin = req.params.noCheckin ? String(req.params.noCheckin).trim() : "";
+      if (!noCheckin) {
+        return res.status(200).json({ status: 200, data: { text: "", items: [] } });
+      }
+
+      // 1. Ambil dari Resep
+      let reseps = [];
+      try {
+        reseps = await ResepModel.find({ noCheckin: noCheckin });
+      } catch (e) {}
+
+      // 2. Ambil dari Rincian Farmasi
+      let rincians = [];
+      try {
+        rincians = await Rincian.aggregate([
+          { $match: { noCheckin: noCheckin, pelayanan: "FARMASI" } },
+          {
+            $lookup: {
+              from: "tarifs",
+              localField: "noTarif",
+              foreignField: "noTarif",
+              as: "dataTarif",
+            },
+          },
+          {
+            $replaceRoot: {
+              newRoot: {
+                $mergeObjects: [{ $arrayElemAt: ["$dataTarif", 0] }, "$$ROOT"],
+              },
+            },
+          },
+          { $project: { dataTarif: 0 } },
+          { $sort: { tglInput: -1 } },
+        ]);
+      } catch (e) {}
+
+      // 3. Format nama obat & BMHP
+      const medicineLines = [];
+      const seen = new Set();
+
+      if (Array.isArray(reseps)) {
+        for (const doc of reseps) {
+          const obatList = doc.obat || [];
+          for (const o of obatList) {
+            if (!o || !o.nama) continue;
+            const key = o.nama.trim().toUpperCase();
+            if (seen.has(key)) continue;
+            seen.add(key);
+
+            let line = o.nama.trim();
+            const qtyStr = o.jumlah ? `${o.jumlah} ${o.satuan || ''}`.trim() : (o.satuan || '');
+            if (qtyStr) line += ` (${qtyStr})`;
+
+            const details = [o.takaran, o.jam, o.kapan, o.deskripsi]
+              .filter(d => d && typeof d === 'string' && d.trim().length > 0 && d.trim() !== '-')
+              .join(' ');
+            if (details) line += ` - ${details}`;
+
+            medicineLines.push(line);
+          }
+        }
+      }
+
+      if (Array.isArray(rincians)) {
+        for (const r of rincians) {
+          if (!r || !r.nama) continue;
+          const key = r.nama.trim().toUpperCase();
+          if (seen.has(key)) continue;
+          seen.add(key);
+
+          let line = r.nama.trim();
+          const qtyStr = r.qty ? `${r.qty} ${r.satuan || ''}`.trim() : (r.satuan || '');
+          if (qtyStr) line += ` (${qtyStr})`;
+          medicineLines.push(line);
+        }
+      }
+
+      const formattedText = medicineLines.map((m, idx) => `${idx + 1}. ${m}`).join('\n');
+
+      return res.status(200).json({
+        status: 200,
+        message: "Ok",
+        data: {
+          text: formattedText,
+          items: medicineLines,
+        },
+      });
+    } catch (error) {
+      console.error("Error getFarmasiObat:", error);
+      return res.status(500).json({ status: 500, message: "Gagal mengambil data obat", data: { text: "", items: [] } });
+    }
+  },
 };
+

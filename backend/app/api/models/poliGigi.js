@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
-const PoliGigiSchema = new Schema({
+const PoliGigiSchema = new Schema(
+  {
     noCheckin: {
       type: String,
       trim: true,
@@ -13,15 +14,20 @@ const PoliGigiSchema = new Schema({
       default: null,
       index: true,
     },
-  canvasImage: {
-    type: String,
-    default: null,
+    formData: { type: Object, default: {} },
+    entries: { type: Array, default: [] },
+    canvasImage: {
+      type: String,
+      default: null,
+    },
+    tglInput: {
+      type: String,
+      trim: true,
+      default: null,
+    },
   },
-  tglInput: {
-    type: String,
-    trim: true,
-    default: null,
-  },
-}, { strict: false });
+  { strict: false, timestamps: true }
+);
 
 module.exports = mongoose.model("PoliGigi", PoliGigiSchema);
+
