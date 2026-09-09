@@ -1787,42 +1787,109 @@ module.exports = {
       })
       .catch((err) => { });
   },
-  vclaimApiKamarTersediaProd: function (req, res, next) {
+  vclaimApiKamarTersediaProd: async function (req, res, next) {
     var dateSkrg = Date.now();
     var tmStamp = Math.floor(dateSkrg / 1000);
     var data = consProd + "&" + tmStamp;
     var signa = crypto.createHmac("sha256", keyProd).update(data).digest();
     var encodedSigna = Buffer.from(signa).toString("base64");
 
-    axios({
-      url: urlApplicares + "rest/bed/read/" + kodeRs + "/1/100",
-      method: "get",
-      headers: {
-        "X-cons-id": consProd,
-        "X-timestamp": tmStamp,
-        "X-signature": encodedSigna,
-        "Content-Type": "application/json; charset=utf-8",
-        Accept: "application/json",
-      },
-    })
-      .then((response) => {
-        res.json(response.data);
-      })
-      .catch((err) => {
-        res.status(200).send({
-          error: "Internal Server Error", raw_error: err ? err.message : "",
-          status: "error",
-          message: "ERROR_OPERASI",
-          data: err,
-        });
+    try {
+      const response = await axios({
+        url: urlApplicares + "rest/bed/read/" + kodeRs + "/1/100",
+        method: "get",
+        headers: {
+          "X-cons-id": consProd,
+          "X-timestamp": tmStamp,
+          "X-signature": encodedSigna,
+          "Content-Type": "application/json; charset=utf-8",
+          Accept: "application/json",
+        },
+        timeout: 4000,
       });
+
+      if (
+        response.data &&
+        response.data.response &&
+        Array.isArray(response.data.response.list) &&
+        response.data.response.list.length > 0
+      ) {
+        return res.json(response.data);
+      }
+    } catch (err) {}
+
+    // Fallback to local MongoDB ruangan collection so room availability is always displayed
+    try {
+      const localRooms = await ruanganModel
+        .find({})
+        .sort({ kodeKelas: 1, namaruang: 1 })
+        .lean();
+
+      const getNamaKelas = (kode) => {
+        switch (kode) {
+          case "KL1":
+          case "KLS1":
+            return "KELAS I";
+          case "KL2":
+            return "KELAS II";
+          case "KL3":
+          case "KLS3":
+            return "KELAS III";
+          case "VIP":
+            return "VIP";
+          case "VVIP":
+          case "VVIP1":
+            return "VVIP";
+          case "SAL":
+            return "BERSALIN";
+          case "PICU":
+          case "PIC":
+            return "PICU";
+          case "NICU":
+            return "NICU";
+          case "ICU":
+            return "ICU";
+          default:
+            return kode;
+        }
+      };
+
+      const list = localRooms.map((r) => ({
+        koderuang: r.koderuang || "-",
+        namaruang: r.namaruang || "-",
+        kodekelas: r.kodeKelas || "-",
+        namakelas: getNamaKelas(r.kodeKelas),
+        kapasitas: parseInt(r.kapasitas || "0", 10),
+        tersedia: parseInt(r.tersedia || "0", 10),
+        tersediapria: parseInt(r.tersediapria || "0", 10),
+        tersediawanita: parseInt(r.tersediawanita || "0", 10),
+        tersediapriawanita: parseInt(r.tersediapriawanita || "0", 10),
+        lastupdate: r.tglinput || new Date().toISOString(),
+      }));
+
+      return res.json({
+        metadata: {
+          code: 1,
+          message: "OK (Local Data)",
+          totalitems: list.length,
+        },
+        response: {
+          list: list,
+        },
+      });
+    } catch (err2) {
+      return res.status(200).send({
+        metadata: { code: 0, message: err2.message },
+        response: { list: [] },
+      });
+    }
   },
   kamarLocal: async function (req, res, next) {
     try {
       const getData = await ruanganModel.aggregate([
         {
           $match: {
-            kodeKelas: { $in: ['KL1', 'KL2', 'KL3', 'VVIP', 'VIP'] } // Filter by kodeKelas values 'KL1' and 'KL2'
+            kodeKelas: { $in: ['KL1', 'KL2', 'KL3', 'VVIP', 'VIP', 'SAL', 'PIC', 'PICU'] }
           }
         }, {
           $addFields: {

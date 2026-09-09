@@ -123,6 +123,10 @@ var PengkajianAwalIgdComponent = (() => {
               }
             }
 
+            if (!this.formData.tglMasukTime && tr.pukulPemeriksaan) {
+              this.formData.tglMasukTime = tr.pukulPemeriksaan.substring(0, 5);
+            }
+
             const ptDate = this.patient?.tglMasuk || this.patient?.tglInput || this.patient?.tglCheckin;
             if (ptDate && (!this.formData.tglMasukDate || !this.formData.tglMasukTime)) {
               const parsedPt = parseDateAndTime(ptDate);
@@ -235,20 +239,26 @@ var PengkajianAwalIgdComponent = (() => {
               if (parsedOut.time && !this.formData.outPukul) this.formData.outPukul = parsedOut.time;
             }
 
-            if (!this.formData.tl && rp.tindakLanjut && rp.tindakLanjut.tipe) {
-              const tlt = rp.tindakLanjut.tipe;
-              this.formData.tl = tlt;
+            if (rp.tindakLanjut) {
+              const rptl = rp.tindakLanjut;
+              if (!this.formData.tl && rptl.tipe) {
+                const tlt = rptl.tipe;
+                if (tlt === 'Persetujuan') this.formData.tl = 'Pulang';
+                else if (tlt === 'Rujuk') this.formData.tl = 'Dirujuk';
+                else this.formData.tl = tlt;
+              }
+              if (!this.formData.tlAlasanAps && rptl.alasanAps) this.formData.tlAlasanAps = rptl.alasanAps;
+              if (!this.formData.tlJamPersetujuan && rptl.jamPersetujuan) this.formData.tlJamPersetujuan = rptl.jamPersetujuan;
+              if (!this.formData.tlKontrolTgl && rptl.kontrolTgl) this.formData.tlKontrolTgl = rptl.kontrolTgl;
+              if (!this.formData.tlKontrolKe && rptl.kontrolKe) this.formData.tlKontrolKe = rptl.kontrolKe;
+
               if (!this.formData.tlDetail) {
-                if (tlt === 'APS') this.formData.tlDetail = rp.tindakLanjut.alasanAps || '';
-                else if (tlt === 'Persetujuan' || tlt === 'Pulang') {
-                  this.formData.tl = 'Pulang';
-                  this.formData.tlDetail = rp.tindakLanjut.jamPersetujuan || '';
-                }
-                else if (tlt === 'Kontrol') this.formData.tlDetail = rp.tindakLanjut.kontrolTgl || '';
-                else if (tlt === 'Rujuk' || tlt === 'Dirujuk') {
-                  this.formData.tl = 'Dirujuk';
-                  this.formData.tlDetail = rp.tindakLanjut.rujukKe || '';
-                }
+                const currentTl = this.formData.tl || rptl.tipe;
+                if (currentTl === 'APS') this.formData.tlDetail = rptl.alasanAps || '';
+                else if (currentTl === 'Pulang' || currentTl === 'Persetujuan') this.formData.tlDetail = rptl.jamPersetujuan || '';
+                else if (currentTl === 'Kontrol') this.formData.tlDetail = rptl.kontrolTgl ? (rptl.kontrolTgl + (rptl.kontrolKe ? ' ke ' + rptl.kontrolKe : '')) : '';
+                else if (currentTl === 'Dirujuk' || currentTl === 'Rujuk') this.formData.tlDetail = rptl.rujukKe || '';
+                else if (currentTl === 'Meninggal') this.formData.tlDetail = rptl.jamMeninggal || '';
               }
             }
           }
@@ -455,11 +465,16 @@ var PengkajianAwalIgdComponent = (() => {
                 <div class="col-md-6"><div class="f-group"><label class="f-label">Diagnosa Keperawatan</label><textarea class="f-input form-data-input" data-field="diagnosaKeperawatan" rows="2">${getVal('diagnosaKeperawatan')}</textarea></div></div>
                 <div class="col-md-6"><div class="f-group"><label class="f-label">Terapi &amp; Tindakan</label><textarea class="f-input form-data-input" data-field="terapi" rows="2">${getVal('terapi')}</textarea></div></div>
                 <div class="col-12"><hr class="my-1"></div>
-                <div class="col-md-3"><div class="f-group"><label class="f-label">Tindak Lanjut</label><select class="f-input form-data-input" data-field="tl"><option value="" ${getVal('tl') === '' ? 'selected' : ''}>-Pilih-</option><option value="APS" ${getVal('tl') === 'APS' ? 'selected' : ''}>APS</option><option value="Pulang" ${getVal('tl') === 'Pulang' ? 'selected' : ''}>Pulang</option><option value="Dirujuk" ${getVal('tl') === 'Dirujuk' ? 'selected' : ''}>Dirujuk</option><option value="Meninggal" ${getVal('tl') === 'Meninggal' ? 'selected' : ''}>Meninggal</option><option value="Rawat Inap" ${getVal('tl') === 'Rawat Inap' ? 'selected' : ''}>Rawat Inap</option></select></div></div>
-                <div class="col-md-3"><div class="f-group"><label class="f-label">Detail TL (Alasan/Jam/Ke)</label><input type="text" class="f-input form-data-input" data-field="tlDetail" value="${getVal('tlDetail')}"></div></div>
+                <div class="col-md-3"><div class="f-group"><label class="f-label">Tindak Lanjut</label><select class="f-input form-data-input" data-field="tl"><option value="" ${getVal('tl') === '' ? 'selected' : ''}>-Pilih-</option><option value="APS" ${getVal('tl') === 'APS' ? 'selected' : ''}>APS (Menolak Rawat Inap)</option><option value="Pulang" ${getVal('tl') === 'Pulang' ? 'selected' : ''}>Pulang Atas Persetujuan</option><option value="Kontrol" ${getVal('tl') === 'Kontrol' ? 'selected' : ''}>Kontrol</option><option value="Dirujuk" ${getVal('tl') === 'Dirujuk' ? 'selected' : ''}>Dirujuk</option><option value="Meninggal" ${getVal('tl') === 'Meninggal' ? 'selected' : ''}>Meninggal</option><option value="Rawat Inap" ${getVal('tl') === 'Rawat Inap' ? 'selected' : ''}>Rawat Inap</option></select></div></div>
+                <div class="col-md-3"><div class="f-group"><label class="f-label">Detail TL (Alasan/Jam/Ke)</label><input type="text" class="f-input form-data-input" data-field="tlDetail" value="${getVal('tlDetail')}" placeholder="Keterangan tindak lanjut..."></div></div>
                 <div class="col-md-2"><div class="f-group"><label class="f-label">Indikasi Rawat Inap</label><select class="f-input form-data-input" data-field="inapIndikasi"><option value="" ${getVal('inapIndikasi') === '' ? 'selected' : ''}>-Pilih-</option><option value="preventif" ${getVal('inapIndikasi') === 'preventif' ? 'selected' : ''}>Preventif</option><option value="rehabilitatif" ${getVal('inapIndikasi') === 'rehabilitatif' ? 'selected' : ''}>Rehabilitatif</option><option value="paliatif" ${getVal('inapIndikasi') === 'paliatif' ? 'selected' : ''}>Paliatif</option><option value="kuratif" ${getVal('inapIndikasi') === 'kuratif' ? 'selected' : ''}>Kuratif</option></select></div></div>
                 <div class="col-md-2"><div class="f-group"><label class="f-label">Rencana Asuhan</label><input type="text" class="f-input form-data-input" data-field="rencanaAsuhan" value="${getVal('rencanaAsuhan')}"></div></div>
-                <div class="col-md-2"><div class="f-group"><label class="f-label">Hasil yang Diharapkan</label><input type="text" class="f-input form-data-input" data-field="hasilDiharapkan" value="${getVal('hasilDiharapkan')}"></div></div>
+                <div class="col-md-2"><div class="f-group"><label class="f-label">Hasil Diharapkan</label><input type="text" class="f-input form-data-input" data-field="hasilDiharapkan" value="${getVal('hasilDiharapkan')}"></div></div>
+
+                <div class="col-md-3"><div class="f-group"><label class="f-label" title="Huruf G pada dokumen"><span class="badge bg-secondary me-1">G</span>Alasan Menolak Rawat Inap</label><input type="text" class="f-input form-data-input" data-field="tlAlasanAps" value="${getVal('tlAlasanAps') || (getVal('tl') === 'APS' ? getVal('tlDetail') : '')}" placeholder="Alasan menolak rawat inap..."></div></div>
+                <div class="col-md-3"><div class="f-group"><label class="f-label" title="Huruf H pada dokumen"><span class="badge bg-secondary me-1">H</span>Jam Pulang Persetujuan</label><input type="time" class="f-input form-data-input" data-field="tlJamPersetujuan" value="${getVal('tlJamPersetujuan') || (getVal('tl') === 'Pulang' ? getVal('tlDetail') : '')}"></div></div>
+                <div class="col-md-3"><div class="f-group"><label class="f-label" title="Huruf I pada dokumen"><span class="badge bg-secondary me-1">I</span>Kontrol Tanggal</label><input type="date" class="f-input form-data-input" data-field="tlKontrolTgl" value="${getVal('tlKontrolTgl')}"></div></div>
+                <div class="col-md-3"><div class="f-group"><label class="f-label" title="Huruf J pada dokumen"><span class="badge bg-secondary me-1">J</span>Kontrol Ke (Poli/Faskes)</label><input type="text" class="f-input form-data-input" data-field="tlKontrolKe" value="${getVal('tlKontrolKe')}" placeholder="Poli/RS tujuan kontrol..."></div></div>
               </div>
 
               <div class="border rounded p-3 bg-light mb-3">
@@ -1024,10 +1039,10 @@ var PengkajianAwalIgdComponent = (() => {
               <strong>TINDAK LANJUT :</strong><br>
               <div style="margin-top:2px; line-height:1.5;">
                 ${sq('tl','APS')} Pulang Atas Permintaan Sendiri atau menolak rawat inap.<br>
-                &nbsp;&nbsp;&nbsp; Alasan menolak rawat inap : ${getVal('tl') === 'APS' ? getVal('tlDetail') : '.......................................................................................................................................'}<br>
-                ${sq('tl','Pulang')} Pulang Atas persetujuan, pada jam: ${getVal('tl') === 'Pulang' ? getVal('tlDetail') : '.........................................................................................................................'}<br>
-                ${sq('tl','Kontrol')} Kontrol tanggal: ${getVal('tl') === 'Kontrol' ? getVal('tlDetail') : '..........................................................................................'} Ke: .....................................................<br>
-                ${sq('tl','Dirujuk')} Dirujuk ke ${getVal('tl') === 'Dirujuk' ? getVal('tlDetail') : '....................................................................................................'} &nbsp;&nbsp;&nbsp;&nbsp; ${sq('tl','Meninggal')} Meninggal<br>
+                &nbsp;&nbsp;&nbsp; Alasan menolak rawat inap : ${getVal('tlAlasanAps') || (getVal('tl') === 'APS' ? getVal('tlDetail') : '') || '.......................................................................................................................................'}<br>
+                ${sq('tl','Pulang')} Pulang Atas persetujuan, pada jam: ${getVal('tlJamPersetujuan') || (getVal('tl') === 'Pulang' ? getVal('tlDetail') : '') || '.........................................................................................................................'}<br>
+                ${(getVal('tl') === 'Kontrol' || getVal('tlKontrolTgl')) ? '&#9632;' : '&#9633;'} Kontrol tanggal: ${getVal('tlKontrolTgl') || (getVal('tl') === 'Kontrol' ? getVal('tlDetail') : '') || '..........................................................................................'} Ke: ${getVal('tlKontrolKe') || '.....................................................'}<br>
+                ${sq('tl','Dirujuk')} Dirujuk ke ${getVal('tl') === 'Dirujuk' ? (getVal('tlRujukKe') || getVal('tlDetail')) : '....................................................................................................'} &nbsp;&nbsp;&nbsp;&nbsp; ${sq('tl','Meninggal')} Meninggal<br>
                 ${sq('tl','Rawat Inap')} Rawat Inap, Indikasi :<br>
                 <table class="inner-align" style="margin-left:15px; width:300px;">
                   <tr>

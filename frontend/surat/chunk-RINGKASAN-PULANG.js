@@ -131,46 +131,53 @@ var RingkasanPulangComponent = (() => {
 
             if (!this.formData.tglJamKeluar) {
               if (pk.outTgl) {
-                this.formData.tglJamKeluar = toDatetimeLocal(pk.outTgl, pk.outPukul);
+                this.formData.tglJamKeluar = toDatetimeLocal(pk.outTgl, pk.outPukul || pk.tlJamPersetujuan);
               } else if (this.patient?.tglOut) {
                 this.formData.tglJamKeluar = toDatetimeLocal(this.patient.tglOut);
               }
             }
 
+            // A: Indikasi Masuk IGD <- pk.keluhanUtama (A)
             if (!this.formData.indikasiMasuk) {
-              if (pk.inapIndikasi) {
-                this.formData.indikasiMasuk = pk.inapIndikasi;
-              } else if (pk.keluhanUtama) {
+              if (pk.keluhanUtama) {
                 this.formData.indikasiMasuk = pk.keluhanUtama;
+              } else if (pk.inapIndikasi) {
+                this.formData.indikasiMasuk = pk.inapIndikasi;
               } else if (pk.riwayatPenyakitSekarang) {
                 this.formData.indikasiMasuk = pk.riwayatPenyakitSekarang;
               }
             }
 
+            // B: Keluhan Utama <- pk.riwayatPenyakitSekarang (B)
             if (!this.formData.keluhanUtama) {
-              if (pk.keluhanUtama) {
-                this.formData.keluhanUtama = pk.keluhanUtama;
-              } else if (pk.riwayatPenyakitSekarang) {
+              if (pk.riwayatPenyakitSekarang) {
                 this.formData.keluhanUtama = pk.riwayatPenyakitSekarang;
+              } else if (pk.keluhanUtama) {
+                this.formData.keluhanUtama = pk.keluhanUtama;
               }
             }
 
+            // C: Pemeriksaan Fisik
             if (!this.formData.pemeriksaanFisik && pk.fisik) {
               this.formData.pemeriksaanFisik = pk.fisik;
             }
 
+            // D: Pemeriksaan Penunjang
             if (!this.formData.pemeriksaanPenunjang && pk.penunjang) {
               this.formData.pemeriksaanPenunjang = pk.penunjang;
             }
 
+            // E: Diagnosis Kerja
             if (!this.formData.diagnosisKerja && pk.diagnosisKerja) {
               this.formData.diagnosisKerja = pk.diagnosisKerja;
             }
 
+            // Diagnosis Banding
             if (!this.formData.diagnosisBanding && pk.permasalahanMedis) {
               this.formData.diagnosisBanding = pk.permasalahanMedis;
             }
 
+            // F: Tindakan / Terapi saat di IGD
             if (!this.formData.tindakanTerapi) {
               if (pk.terapi) this.formData.tindakanTerapi = pk.terapi;
               else if (pk.rencanaAsuhan) this.formData.tindakanTerapi = pk.rencanaAsuhan;
@@ -181,6 +188,7 @@ var RingkasanPulangComponent = (() => {
               this.formData.alasanTidakDirawat.keadaanUmum = pk.outKu || pk.ku;
             }
 
+            // K - P: Kondisi Keluar (Keadaan Umum, Kesadaran, TD, Nadi, Suhu, RR)
             if (!this.formData.kondisiKeluar) this.formData.kondisiKeluar = {};
             const kk = this.formData.kondisiKeluar;
             if (!kk.keadaanUmum && (pk.outKu || pk.ku)) kk.keadaanUmum = pk.outKu || pk.ku;
@@ -191,6 +199,8 @@ var RingkasanPulangComponent = (() => {
                 kk.kesadaran = pk.outKesadaran;
               } else if (pk.outGcs) {
                 kk.kesadaran = pk.outGcs;
+              } else if (pk.gcsE || pk.gcsM || pk.gcsV) {
+                kk.kesadaran = `E${pk.gcsE || ''} M${pk.gcsM || ''} V${pk.gcsV || ''}`.trim();
               }
             }
             if (!kk.td && (pk.outTd || pk.td)) kk.td = pk.outTd || pk.td;
@@ -199,42 +209,61 @@ var RingkasanPulangComponent = (() => {
             if (!kk.rr && (pk.outNafas || pk.rr)) kk.rr = pk.outNafas || pk.rr;
             if (!kk.nyeri && pk.nyeri !== undefined && pk.nyeri !== null && pk.nyeri !== "") kk.nyeri = String(pk.nyeri);
 
+            // G, H, I, J: Tindak Lanjut
             if (!this.formData.tindakLanjut) this.formData.tindakLanjut = {};
             const tl = this.formData.tindakLanjut;
             if (!tl.tipe && pk.tl) {
               if (pk.tl === "APS") {
                 tl.tipe = "APS";
-                if (!tl.alasanAps && pk.tlDetail) tl.alasanAps = pk.tlDetail;
               } else if (pk.tl === "Pulang") {
                 tl.tipe = "Persetujuan";
-                if (!tl.jamPersetujuan && pk.tlDetail) tl.jamPersetujuan = pk.tlDetail;
               } else if (pk.tl === "Dirujuk") {
                 tl.tipe = "Rujuk";
-                if (!tl.rujukKe && pk.tlDetail) tl.rujukKe = pk.tlDetail;
               } else if (pk.tl === "Meninggal") {
                 tl.tipe = "Meninggal";
-                if (!tl.jamMeninggal && pk.tlDetail) tl.jamMeninggal = pk.tlDetail;
               } else if (pk.tl === "Kontrol") {
                 tl.tipe = "Kontrol";
-                if (!tl.kontrolKe && pk.tlDetail) tl.kontrolKe = pk.tlDetail;
               }
             }
-            if (tl.tipe === "APS" && !tl.alasanAps && pk.tlDetail) tl.alasanAps = pk.tlDetail;
-            if (tl.tipe === "Persetujuan" && !tl.jamPersetujuan && pk.tlDetail) tl.jamPersetujuan = pk.tlDetail;
-            if (tl.tipe === "Rujuk" && !tl.rujukKe && pk.tlDetail) tl.rujukKe = pk.tlDetail;
-            if (tl.tipe === "Meninggal" && !tl.jamMeninggal && pk.tlDetail) tl.jamMeninggal = pk.tlDetail;
 
+            // G: Alasan menolak rawat inap
+            if (!tl.alasanAps && (pk.tlAlasanAps || (pk.tl === "APS" ? pk.tlDetail : ""))) {
+              tl.alasanAps = pk.tlAlasanAps || pk.tlDetail;
+            }
+
+            // H: Jam pulang persetujuan
+            if (!tl.jamPersetujuan && (pk.tlJamPersetujuan || (pk.tl === "Pulang" ? pk.tlDetail : "") || pk.outPukul)) {
+              tl.jamPersetujuan = pk.tlJamPersetujuan || (pk.tl === "Pulang" ? pk.tlDetail : "") || (pk.outPukul ? pk.outPukul.substring(0, 5) : "");
+            }
+
+            // I: Kontrol tanggal
+            if (!tl.kontrolTgl && (pk.tlKontrolTgl || (pk.tl === "Kontrol" ? pk.tlDetail : ""))) {
+              tl.kontrolTgl = pk.tlKontrolTgl || pk.tlDetail;
+            }
+
+            // J: Kontrol ke
+            if (!tl.kontrolKe && pk.tlKontrolKe) {
+              tl.kontrolKe = pk.tlKontrolKe;
+            }
+
+            if (!tl.rujukKe && (pk.tlRujukKe || (pk.tl === "Dirujuk" ? pk.tlDetail : ""))) {
+              tl.rujukKe = pk.tlRujukKe || pk.tlDetail;
+            }
+
+            // Y: TTD & Nama Pasien/Keluarga
             if (!this.formData.namaPasienKeluarga && pk.namaKeluarga) {
               this.formData.namaPasienKeluarga = pk.namaKeluarga;
             }
+            if (!this.formData.sigKeluarga && pk.sigKeluarga && pk.sigKeluarga.length > 500) {
+              this.formData.sigKeluarga = pk.sigKeluarga;
+            }
+
+            // Q: TTD & Nama Dokter
             if (!this.formData.namaDokter && pk.namaDokter) {
               this.formData.namaDokter = pk.namaDokter;
             }
             if (!this.formData.sigDokter && pk.sigDokter && pk.sigDokter.length > 500) {
               this.formData.sigDokter = pk.sigDokter;
-            }
-            if (!this.formData.sigKeluarga && pk.sigKeluarga && pk.sigKeluarga.length > 500) {
-              this.formData.sigKeluarga = pk.sigKeluarga;
             }
           }
           this.fetchTriaseIfEmpty();
@@ -279,7 +308,7 @@ var RingkasanPulangComponent = (() => {
             if (!this.formData.tglJamMasuk) {
               const ptDate = this.patient?.tglMasuk || this.patient?.tglInput || this.patient?.tglCheckin;
               if (ptDate) {
-                this.formData.tglJamMasuk = toDatetimeLocal(ptDate);
+                this.formData.tglJamMasuk = toDatetimeLocal(ptDate, tr.pukulPemeriksaan);
               }
             }
             if (!this.formData.keluhanUtama) {

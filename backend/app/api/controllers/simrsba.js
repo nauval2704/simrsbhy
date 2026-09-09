@@ -1923,8 +1923,8 @@ module.exports = {
   deleteTarif: async (req, res) => {
     try {
       const dataTarif = await Tarif.deleteOne({
-        _id: ObjectId(req.body.id),
-      }).lean();
+        _id: req.body.id,
+      });
       res.status(200).send({
         error: 0,
         status: "success",
@@ -4769,7 +4769,10 @@ module.exports = {
       } else {
         if (user) {
           if (nama) user.nama = nama.trim();
-          if (email) {
+          if (req.body.newUsername && req.body.newUsername.trim()) {
+            user.username = req.body.newUsername.trim();
+            if (email) user.email = email.trim();
+          } else if (email) {
             user.email = email.trim();
             user.username = email.trim().toLowerCase();
           }
