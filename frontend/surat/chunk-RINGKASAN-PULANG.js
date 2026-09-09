@@ -373,12 +373,16 @@ var RingkasanPulangComponent = (() => {
             }
           });
           root.querySelectorAll("input[type='radio']").forEach(el => {
-            if (el.checked) {
-              const parent = el.dataset.parent;
-              const field = el.dataset.field;
-              if (parent && field) {
+            const parent = el.dataset.parent;
+            const field = el.dataset.field;
+            if (parent && field) {
+              const name = el.name;
+              const checked = root.querySelector(`input[type='radio'][name='${name}']:checked`);
+              if (checked) {
                 if (!this.formData[parent]) this.formData[parent] = {};
-                this.formData[parent][field] = el.value;
+                this.formData[parent][field] = checked.value;
+              } else if (this.formData[parent]) {
+                delete this.formData[parent][field];
               }
             }
           });
@@ -636,14 +640,18 @@ var RingkasanPulangComponent = (() => {
               }
           });
           root.querySelectorAll("input[type='radio']").forEach(el => {
-              if (el.checked) {
-                  const parent = el.dataset.parent;
-                  const field = el.dataset.field;
-                  if (parent && field) {
-                      if (!this.formData[parent]) this.formData[parent] = {};
-                      this.formData[parent][field] = el.value;
-                  }
+            const parent = el.dataset.parent;
+            const field = el.dataset.field;
+            if (parent && field) {
+              const name = el.name;
+              const checked = root.querySelector(`input[type='radio'][name='${name}']:checked`);
+              if (checked) {
+                if (!this.formData[parent]) this.formData[parent] = {};
+                this.formData[parent][field] = checked.value;
+              } else if (this.formData[parent]) {
+                delete this.formData[parent][field];
               }
+            }
           });
           this.renderPrintLayout(noMr, nama, tglLahir, kelamin);
       };
@@ -741,14 +749,31 @@ var RingkasanPulangComponent = (() => {
 
       const radios = root.querySelectorAll("input[type='radio']");
       radios.forEach(el => {
-          el.addEventListener("change", (e) => {
-              if(e.target.checked) {
-                  const parent = e.target.dataset.parent;
-                  const field = e.target.dataset.field;
-                  if (!this.formData[parent]) this.formData[parent] = {};
-                  this.formData[parent][field] = e.target.value;
-              }
-          });
+        const markState = () => {
+          el._wasChecked = el.checked;
+        };
+        el.addEventListener("pointerdown", markState);
+        if (el.parentElement && el.parentElement.tagName === "LABEL") {
+          el.parentElement.addEventListener("pointerdown", markState);
+        }
+        el.addEventListener("click", (e) => {
+          const parent = el.dataset.parent;
+          const field = el.dataset.field;
+          if (el._wasChecked) {
+            el.checked = false;
+            el._wasChecked = false;
+            if (parent && field && this.formData[parent]) {
+              delete this.formData[parent][field];
+            }
+            updatePrint();
+          } else {
+            if (parent && field) {
+              if (!this.formData[parent]) this.formData[parent] = {};
+              this.formData[parent][field] = el.value;
+            }
+            updatePrint();
+          }
+        });
       });
 
       if (printTab) {

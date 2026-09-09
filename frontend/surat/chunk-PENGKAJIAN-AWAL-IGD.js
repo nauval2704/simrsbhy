@@ -279,7 +279,12 @@ var PengkajianAwalIgdComponent = (() => {
           const field = el.dataset.field;
           if (!field) return;
           if (el.type === "radio") {
-            if (el.checked) this.formData[field] = el.value;
+            const checkedRadio = root.querySelector(`input[type="radio"][data-field="${field}"]:checked`);
+            if (checkedRadio) {
+              this.formData[field] = checkedRadio.value;
+            } else {
+              delete this.formData[field];
+            }
           } else {
             this.formData[field] = el.value;
           }
@@ -434,7 +439,10 @@ var PengkajianAwalIgdComponent = (() => {
                 <div class="col-md-3"><div class="f-group"><label class="f-label">Pemeriksaan Penunjang</label><input type="text" class="f-input form-data-input" data-field="penunjang" value="${getVal('penunjang')}"></div></div>
                 <div class="col-12"><hr class="my-1"></div>
                 <div class="col-md-6">
-                  <span class="fw-bold small text-secondary">Skrining Gizi Anak (1 bln - 18 thn)</span>
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="fw-bold small text-secondary">Skrining Gizi Anak (1 bln - 18 thn)</span>
+                    <button type="button" class="btn btn-outline-danger btn-sm py-0 btn-reset-gizi" data-target="gizi-anak" style="font-size:10px; border-radius:4px;"><i class="bi bi-x-circle me-1"></i>Kosongkan</button>
+                  </div>
                   <div class="f-group mt-1"><label class="f-label">1. Tampak Kurus?</label><label class="f-radio-label"><input type="radio" name="giziA1" class="form-data-input" data-field="giziA1" value="1" ${getVal('giziA1') === '1' ? 'checked' : ''}> Ya (1)</label><label class="f-radio-label"><input type="radio" name="giziA1" class="form-data-input" data-field="giziA1" value="0" ${getVal('giziA1') === '0' ? 'checked' : ''}> Tidak (0)</label></div>
                   <div class="f-group"><label class="f-label">2. Penurunan BB 1 bulan terakhir?</label><label class="f-radio-label"><input type="radio" name="giziA2" class="form-data-input" data-field="giziA2" value="2" ${getVal('giziA2') === '2' ? 'checked' : ''}> Ya (2)</label><label class="f-radio-label"><input type="radio" name="giziA2" class="form-data-input" data-field="giziA2" value="0" ${getVal('giziA2') === '0' ? 'checked' : ''}> Tidak (0)</label></div>
                   <div class="f-group"><label class="f-label">3. Diare >5x/hari atau asupan berkurang?</label><label class="f-radio-label"><input type="radio" name="giziA3" class="form-data-input" data-field="giziA3" value="1" ${getVal('giziA3') === '1' ? 'checked' : ''}> Ya (1)</label><label class="f-radio-label"><input type="radio" name="giziA3" class="form-data-input" data-field="giziA3" value="0" ${getVal('giziA3') === '0' ? 'checked' : ''}> Tidak (0)</label></div>
@@ -442,7 +450,10 @@ var PengkajianAwalIgdComponent = (() => {
                   <div class="f-group mt-1"><label class="f-label">Detail Penyakit Berisiko Malnutrisi</label><input type="text" class="f-input form-data-input" data-field="giziA4Detail" value="${getVal('giziA4Detail')}" placeholder="Diare kronis, HIV, PJB, dll"></div>
                 </div>
                 <div class="col-md-6">
-                  <span class="fw-bold small text-secondary">Skrining Gizi Dewasa</span>
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="fw-bold small text-secondary">Skrining Gizi Dewasa</span>
+                    <button type="button" class="btn btn-outline-danger btn-sm py-0 btn-reset-gizi" data-target="gizi-dewasa" style="font-size:10px; border-radius:4px;"><i class="bi bi-x-circle me-1"></i>Kosongkan</button>
+                  </div>
                   <div class="f-group mt-1"><label class="f-label">1. Penurunan BB tidak diinginkan (6 bln)?</label><label class="f-radio-label"><input type="radio" name="giziD1" class="form-data-input" data-field="giziD1" value="2" ${getVal('giziD1') === '2' ? 'checked' : ''}> Ya (2)</label><label class="f-radio-label"><input type="radio" name="giziD1" class="form-data-input" data-field="giziD1" value="0" ${getVal('giziD1') === '0' ? 'checked' : ''}> Tidak (0)</label></div>
                   <div class="f-group"><label class="f-label">2. Asupan makan berkurang?</label><label class="f-radio-label"><input type="radio" name="giziD2" class="form-data-input" data-field="giziD2" value="1" ${getVal('giziD2') === '1' ? 'checked' : ''}> Ya (1)</label><label class="f-radio-label"><input type="radio" name="giziD2" class="form-data-input" data-field="giziD2" value="0" ${getVal('giziD2') === '0' ? 'checked' : ''}> Tidak (0)</label></div>
                 </div>
@@ -582,17 +593,62 @@ var PengkajianAwalIgdComponent = (() => {
 
       const inputs = root.querySelectorAll(".form-data-input");
       inputs.forEach(el => {
+        if (el.type === "radio") return;
         const handler = (e) => {
           const field = e.target.dataset.field;
           if (!field) return;
-          if (e.target.type === "radio") {
-            if (e.target.checked) this.formData[field] = e.target.value;
-          } else {
-            this.formData[field] = e.target.value;
-          }
+          this.formData[field] = e.target.value;
         };
         el.addEventListener("input", handler);
         el.addEventListener("change", handler);
+      });
+
+      root.querySelectorAll("input[type='radio'].form-data-input").forEach((radio) => {
+        const markState = () => {
+          radio._wasChecked = radio.checked;
+        };
+        radio.addEventListener("pointerdown", markState);
+        if (radio.parentElement && radio.parentElement.tagName === "LABEL") {
+          radio.parentElement.addEventListener("pointerdown", markState);
+        }
+        radio.addEventListener("click", (e) => {
+          const field = radio.dataset.field;
+          if (radio._wasChecked) {
+            radio.checked = false;
+            radio._wasChecked = false;
+            if (field) {
+              delete self.formData[field];
+            }
+            updatePrint();
+          } else {
+            if (field && radio.checked) {
+              self.formData[field] = radio.value;
+            }
+            updatePrint();
+          }
+        });
+      });
+
+      root.querySelectorAll(".btn-reset-gizi").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          const target = btn.dataset.target;
+          const fields = target === "gizi-anak"
+            ? ["giziA1", "giziA2", "giziA3", "giziA4", "giziA4Detail"]
+            : ["giziD1", "giziD2"];
+          fields.forEach((f) => {
+            delete self.formData[f];
+            root.querySelectorAll(`[data-field="${f}"]`).forEach((el) => {
+              if (el.type === "radio") {
+                el.checked = false;
+                el._wasChecked = false;
+              } else {
+                el.value = "";
+              }
+            });
+          });
+          updatePrint();
+        });
       });
 
       const printTab = root.querySelector("#pengkajian-print-tab");
@@ -601,7 +657,12 @@ var PengkajianAwalIgdComponent = (() => {
           const field = el.dataset.field;
           if (!field) return;
           if (el.type === "radio") {
-            if (el.checked) this.formData[field] = el.value;
+            const checkedRadio = root.querySelector(`input[type="radio"][data-field="${field}"]:checked`);
+            if (checkedRadio) {
+              this.formData[field] = checkedRadio.value;
+            } else {
+              delete this.formData[field];
+            }
           } else {
             this.formData[field] = el.value;
           }
@@ -768,8 +829,10 @@ var PengkajianAwalIgdComponent = (() => {
       const getVal = (field) => fd[field] || "";
       const cb = (field, val) => (fd[field] === val) ? 'cb' : '';
 
-      const giziATotal = (parseInt(fd.giziA1) || 0) + (parseInt(fd.giziA2) || 0) + (parseInt(fd.giziA3) || 0) + (parseInt(fd.giziA4) || 0);
-      const giziDTotal = (parseInt(fd.giziD1) || 0) + (parseInt(fd.giziD2) || 0);
+      const hasGiziA = (fd.giziA1 !== undefined && fd.giziA1 !== '') || (fd.giziA2 !== undefined && fd.giziA2 !== '') || (fd.giziA3 !== undefined && fd.giziA3 !== '') || (fd.giziA4 !== undefined && fd.giziA4 !== '');
+      const hasGiziD = (fd.giziD1 !== undefined && fd.giziD1 !== '') || (fd.giziD2 !== undefined && fd.giziD2 !== '');
+      const giziATotal = hasGiziA ? ((parseInt(fd.giziA1) || 0) + (parseInt(fd.giziA2) || 0) + (parseInt(fd.giziA3) || 0) + (parseInt(fd.giziA4) || 0)) : '';
+      const giziDTotal = hasGiziD ? ((parseInt(fd.giziD1) || 0) + (parseInt(fd.giziD2) || 0)) : '';
 
       const sq = (field, val) => `<span class="t-sq ${cb(field, val)}"></span>`;
 
