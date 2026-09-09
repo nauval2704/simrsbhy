@@ -1103,20 +1103,16 @@ var PengkajianAwalIgdComponent = (() => {
                 ${sq('tl','APS')} Pulang Atas Permintaan Sendiri atau menolak rawat inap.<br>
                 &nbsp;&nbsp;&nbsp; Alasan menolak rawat inap : ${getVal('tlAlasanAps') || (getVal('tl') === 'APS' ? getVal('tlDetail') : '') || '.......................................................................................................................................'}<br>
                 ${sq('tl','Pulang')} Pulang Atas persetujuan, pada jam: ${getVal('tlJamPersetujuan') || (getVal('tl') === 'Pulang' ? getVal('tlDetail') : '') || '.........................................................................................................................'}<br>
-                ${(getVal('tl') === 'Kontrol' || getVal('tlKontrolTgl')) ? '&#9632;' : '&#9633;'} Kontrol tanggal: ${getVal('tlKontrolTgl') || (getVal('tl') === 'Kontrol' ? getVal('tlDetail') : '') || '..........................................................................................'} Ke: ${getVal('tlKontrolKe') || '.....................................................'}<br>
+                <span class="t-sq ${(getVal('tl') === 'Kontrol' || getVal('tlKontrolTgl')) ? 'cb' : ''}"></span> Kontrol tanggal: ${getVal('tlKontrolTgl') || (getVal('tl') === 'Kontrol' ? getVal('tlDetail') : '') || '..........................................................................................'} Ke: ${getVal('tlKontrolKe') || '.....................................................'}<br>
                 ${sq('tl','Dirujuk')} Dirujuk ke ${getVal('tl') === 'Dirujuk' ? (getVal('tlRujukKe') || getVal('tlDetail')) : '....................................................................................................'} &nbsp;&nbsp;&nbsp;&nbsp; ${sq('tl','Meninggal')} Meninggal<br>
                 ${sq('tl','Rawat Inap')} Rawat Inap, Indikasi :<br>
-                <table class="inner-align" style="margin-left:15px; width:300px;">
-                  <tr>
-                    <td>${sq('inapIndikasi','preventif')} preventif</td>
-                    <td>${sq('inapIndikasi','rehabilitatif')} rehabilitatif</td>
-                  </tr>
-                  <tr>
-                    <td>${sq('inapIndikasi','paliatif')} paliatif</td>
-                    <td>${sq('inapIndikasi','kuratif')} kuratif</td>
-                  </tr>
-                </table>
-                ${sq('','')}&nbsp;Rencana asuhan yang akan diberikan: ${getVal('rencanaAsuhan') || '.....................................................................................................................'}<br>
+                <div style="display:grid; grid-template-columns: 140px 140px; margin-left:18px; margin-top:2px; margin-bottom:2px; line-height:1.5;">
+                  <div>${sq('inapIndikasi','preventif')} preventif</div>
+                  <div>${sq('inapIndikasi','rehabilitatif')} rehabilitatif</div>
+                  <div>${sq('inapIndikasi','paliatif')} paliatif</div>
+                  <div>${sq('inapIndikasi','kuratif')} kuratif</div>
+                </div>
+                ${sq('','')} Rencana asuhan yang akan diberikan: ${getVal('rencanaAsuhan') || '.....................................................................................................................'}<br>
                 &nbsp;&nbsp;&nbsp; Hasil yang diharapkan : ${getVal('hasilDiharapkan') || '..............................................................................................................................................'}
               </div>
             </div>
