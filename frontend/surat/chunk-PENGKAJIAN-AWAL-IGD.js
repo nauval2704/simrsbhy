@@ -482,10 +482,10 @@ var PengkajianAwalIgdComponent = (() => {
                 <div class="col-md-2"><div class="f-group"><label class="f-label">Rencana Asuhan</label><input type="text" class="f-input form-data-input" data-field="rencanaAsuhan" value="${getVal('rencanaAsuhan')}"></div></div>
                 <div class="col-md-2"><div class="f-group"><label class="f-label">Hasil Diharapkan</label><input type="text" class="f-input form-data-input" data-field="hasilDiharapkan" value="${getVal('hasilDiharapkan')}"></div></div>
 
-                <div class="col-md-3"><div class="f-group"><label class="f-label" title="Huruf G pada dokumen"><span class="badge bg-secondary me-1">G</span>Alasan Menolak Rawat Inap</label><input type="text" class="f-input form-data-input" data-field="tlAlasanAps" value="${getVal('tlAlasanAps') || (getVal('tl') === 'APS' ? getVal('tlDetail') : '')}" placeholder="Alasan menolak rawat inap..."></div></div>
-                <div class="col-md-3"><div class="f-group"><label class="f-label" title="Huruf H pada dokumen"><span class="badge bg-secondary me-1">H</span>Jam Pulang Persetujuan</label><input type="time" class="f-input form-data-input" data-field="tlJamPersetujuan" value="${getVal('tlJamPersetujuan') || (getVal('tl') === 'Pulang' ? getVal('tlDetail') : '')}"></div></div>
-                <div class="col-md-3"><div class="f-group"><label class="f-label" title="Huruf I pada dokumen"><span class="badge bg-secondary me-1">I</span>Kontrol Tanggal</label><input type="date" class="f-input form-data-input" data-field="tlKontrolTgl" value="${getVal('tlKontrolTgl')}"></div></div>
-                <div class="col-md-3"><div class="f-group"><label class="f-label" title="Huruf J pada dokumen"><span class="badge bg-secondary me-1">J</span>Kontrol Ke (Poli/Faskes)</label><input type="text" class="f-input form-data-input" data-field="tlKontrolKe" value="${getVal('tlKontrolKe')}" placeholder="Poli/RS tujuan kontrol..."></div></div>
+                <div class="col-md-3"><div class="f-group"><label class="f-label">Alasan Menolak Rawat Inap</label><input type="text" class="f-input form-data-input" data-field="tlAlasanAps" value="${getVal('tlAlasanAps') || (getVal('tl') === 'APS' ? getVal('tlDetail') : '')}" placeholder="Alasan menolak rawat inap..."></div></div>
+                <div class="col-md-3"><div class="f-group"><label class="f-label">Jam Pulang Persetujuan</label><input type="time" class="f-input form-data-input" data-field="tlJamPersetujuan" value="${getVal('tlJamPersetujuan') || (getVal('tl') === 'Pulang' ? getVal('tlDetail') : '')}"></div></div>
+                <div class="col-md-3"><div class="f-group"><label class="f-label">Kontrol Tanggal</label><input type="date" class="f-input form-data-input" data-field="tlKontrolTgl" value="${getVal('tlKontrolTgl')}"></div></div>
+                <div class="col-md-3"><div class="f-group"><label class="f-label">Kontrol Ke (Poli/Faskes)</label><input type="text" class="f-input form-data-input" data-field="tlKontrolKe" value="${getVal('tlKontrolKe')}" placeholder="Poli/RS tujuan kontrol..."></div></div>
               </div>
 
               <div class="border rounded p-3 bg-light mb-3">
@@ -499,11 +499,10 @@ var PengkajianAwalIgdComponent = (() => {
                   <div class="col-md-3"><div class="f-group"><label class="f-label">Keadaan Umum</label><input type="text" class="f-input form-data-input" data-field="outKu" value="${getVal('outKu')}" placeholder="${getVal('ku') || 'Baik'}"></div></div>
                   <div class="col-md-3"><div class="f-group"><label class="f-label">Kesadaran</label><input type="text" class="f-input form-data-input" data-field="outKesadaran" value="${getVal('outKesadaran')}" placeholder="Compos Mentis"></div></div>
                   <div class="col-md-2"><div class="f-group"><label class="f-label">GCS</label><input type="text" class="f-input form-data-input" data-field="outGcs" value="${getVal('outGcs')}" placeholder="${(getVal('gcsE') || getVal('gcsM') || getVal('gcsV')) ? `E${getVal('gcsE')} M${getVal('gcsM')} V${getVal('gcsV')}` : '15'}"></div></div>
-                  <div class="col-md-2"><div class="f-group"><label class="f-label">Tekanan Darah</label><input type="text" class="f-input form-data-input" data-field="outTd" value="${getVal('outTd')}" placeholder="Awal: ${getVal('td') || '120/80'}"></div></div>
-                  <div class="col-md-2"><div class="f-group"><label class="f-label">Frekuensi Tanda Vital</label><input type="text" class="f-input form-data-input" data-field="outFreqTv" value="${getVal('outFreqTv')}" placeholder="Frekuensi TV"></div></div>
+                  <div class="col-md-3"><div class="f-group"><label class="f-label">Tekanan Darah</label><input type="text" class="f-input form-data-input" data-field="outTd" value="${getVal('outTd')}" placeholder="Awal: ${getVal('td') || '120/80'}"></div></div>
                   <div class="col-md-2"><div class="f-group"><label class="f-label">Suhu (°C)</label><input type="text" class="f-input form-data-input" data-field="outSuhu" value="${getVal('outSuhu')}" placeholder="Awal: ${getVal('suhu') || '36.5'}"></div></div>
                   <div class="col-md-2"><div class="f-group"><label class="f-label">Frekuensi Nadi</label><input type="text" class="f-input form-data-input" data-field="outNadi" value="${getVal('outNadi')}" placeholder="Awal: ${getVal('nadi') || '80'}"></div></div>
-                  <div class="col-md-2"><div class="f-group"><label class="f-label">Nafas (x/Menit)</label><input type="text" class="f-input form-data-input" data-field="outNafas" value="${getVal('outNafas')}" placeholder="Awal: ${getVal('rr') || '20'}"></div></div>
+                  <div class="col-md-3"><div class="f-group"><label class="f-label">Nafas (x/Menit)</label><input type="text" class="f-input form-data-input" data-field="outNafas" value="${getVal('outNafas')}" placeholder="Awal: ${getVal('rr') || '20'}"></div></div>
                 </div>
               </div>
 
@@ -1138,8 +1137,7 @@ var PengkajianAwalIgdComponent = (() => {
             </div>
             <div class="t-col t-f1" style="padding:4px 6px;">
               <table class="inner-align" style="line-height:1.6;">
-                <tr><td style="width:140px;">Frekuensi Tanda Vital</td><td style="width:10px;">:</td><td>${getVal('outFreqTv') || '........................ mmHg'}</td></tr>
-                <tr><td>Suhu</td><td>:</td><td>${getVal('outSuhu') ? getVal('outSuhu') + ' &deg;C' : '........................ &deg;C'}</td></tr>
+                <tr><td style="width:70px;">Suhu</td><td style="width:10px;">:</td><td>${getVal('outSuhu') ? getVal('outSuhu') + ' &deg;C' : '........................ &deg;C'}</td></tr>
                 <tr><td>Nadi</td><td>:</td><td>${getVal('outNadi') ? getVal('outNadi') + ' x/Menit' : '........................ x/Menit'}</td></tr>
                 <tr><td>Nafas</td><td>:</td><td>${getVal('outNafas') ? getVal('outNafas') + ' x/Menit' : '........................'}</td></tr>
               </table>
