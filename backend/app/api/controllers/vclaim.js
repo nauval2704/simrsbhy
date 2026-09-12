@@ -12,11 +12,11 @@ var keyDev = "8qN14DBB1B";
 var urlDev = "https://dvlp.bpjs-kesehatan.go.id/VClaim-Rest/";
 
 var consid = "13034";
-var key = "0xR53761A8";
+var key = "9UH68UK4gr";
 
 var kodeRs = "0101R009";
 var consProd = "13034";
-var keyProd = "0xR53761A8";
+var keyProd = "9UH68UK4gr";
 
 var urlVclaim = "https://new-api.bpjs-kesehatan.go.id:8080/new-vclaim-rest/";
 var urlApplicares = "https://new-api.bpjs-kesehatan.go.id/aplicaresws/";
@@ -24,7 +24,7 @@ var urlApplicares = "https://new-api.bpjs-kesehatan.go.id/aplicaresws/";
 // prod
 
 const ConsId = "13034";
-const SecretKey = "0xR53761A8";
+const SecretKey = "9UH68UK4gr";
 const UserKey = "6824f88f2b12582ebd98c430afc8c76f";
 const BaseUrl = "https://apijkn.bpjs-kesehatan.go.id/vclaim-rest/";
 

@@ -35,8 +35,18 @@ router.get(
   "/api/peserta/nokartu/:nokartu/tglsep/:tgl",
   simrsController.vclaimApiPesertaNokartu
 );
+// Short-form alias (no /api/ prefix, date directly after nokartu)
+router.get(
+  "/peserta/nokartu/:nokartu/:tgl",
+  simrsController.vclaimApiPesertaNokartu
+);
 router.get(
   "/api/peserta/nik/:nik/tglsep/:tgl",
+  simrsController.vclaimApiPesertaNik
+);
+// Short-form alias
+router.get(
+  "/peserta/nik/:nik/:tgl",
   simrsController.vclaimApiPesertaNik
 );
 router.post("/api/SEP/1.1/insert", simrsController.vclaimApiSep11Insert);

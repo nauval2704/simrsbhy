@@ -1,17 +1,13 @@
 const crypto = require('crypto');
 const lz = require('lz-string');
-require('dotenv').config();
 
-// Kredensial BPJS VClaim (prod)
-const ConsId = process.env.BPJS_CONS_ID;
-const SecretKey = process.env.BPJS_SECRET_KEY;
-const UserKey = process.env.BPJS_USER_KEY;
-const BaseUrl = process.env.BPJS_VCLAIM_BASE_URL;
-
-// Kredensial Applicares (Kamar)
-const KodeRs = process.env.BPJS_KODE_RS;
-const UrlApplicares = process.env.BPJS_URL_APPLICARES;
-// Generate header autentikasi BPJS
+// prod
+const ConsId = '13034';
+const SecretKey = '0xR53761A8';
+const UserKey = '6824f88f2b12582ebd98c430afc8c76f';
+const BaseUrl = 'https://apijkn.bpjs-kesehatan.go.id/vclaim-rest/';
+const KodeRs = '0101R009';
+const UrlApplicares = 'https://new-api.bpjs-kesehatan.go.id/aplicaresws/';
 function getBpjsAuth() {
   const tmStamp = Math.floor(Date.now() / 1000);
   const data = ConsId + '&' + tmStamp;
@@ -21,7 +17,6 @@ function getBpjsAuth() {
   return { tmStamp, password, encodedSigna };
 }
 
-// Dekripsi respons terenkripsi dari BPJS
 function decryptResponse(string, password) {
   const key_hash = crypto.createHash('sha256').update(password).digest();
   const iv = key_hash.slice(0, 16);
