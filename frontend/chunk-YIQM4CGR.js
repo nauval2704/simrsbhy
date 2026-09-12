@@ -2428,10 +2428,18 @@ function bo(t, n, e) {
         let o, s = new Promise(c => {
                 o = c
             }),
-            u = i.startViewTransition(() => (o(), Io(t))),
-            {
-                onViewTransitionCreated: a
-            } = r;
+            u;
+        try {
+            u = i.startViewTransition(() => (o(), Io(t)));
+            u?.ready?.catch(() => {});
+            u?.finished?.catch(() => {});
+            u?.updateCallbackDone?.catch(() => {});
+        } catch (c) {
+            return o(), s;
+        }
+        let {
+            onViewTransitionCreated: a
+        } = r;
         return a && k(t, () => a({
             transition: u,
             from: n,

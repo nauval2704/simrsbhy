@@ -27,10 +27,10 @@ var keyProd = "5jBCABEED9";
 // const BaseUrl = "https://apijkn-dev.bpjs-kesehatan.go.id/ihs_dev/";
 
 // prod
-const ConsId = '13034';
-const SecretKey = '0xR53761A8';
-const UserKey = '6824f88f2b12582ebd98c430afc8c76f';
-const BaseUrl = 'https://apijkn.bpjs-kesehatan.go.id/wsihs/api/rs/validate/';
+const ConsId = process.env.BPJS_CONS_ID || '13034';
+const SecretKey = process.env.BPJS_SECRET_KEY || '9UH68UK4gr';
+const UserKey = process.env.BPJS_USER_KEY || '6824f88f2b12582ebd98c430afc8c76f';
+const BaseUrl = process.env.BPJS_ICARE_BASE_URL || 'https://apijkn.bpjs-kesehatan.go.id/wsihs/api/rs/validate/';
 
 var urlApplicares = "https://dvlp.bpjs-kesehatan.go.id:8888/aplicaresws/";
 

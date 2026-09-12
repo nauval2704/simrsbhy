@@ -1,13 +1,13 @@
 const crypto = require('crypto');
 const lz = require('lz-string');
 
-// prod
-const ConsId = '13034';
-const SecretKey = '0xR53761A8';
-const UserKey = '6824f88f2b12582ebd98c430afc8c76f';
-const BaseUrl = 'https://apijkn.bpjs-kesehatan.go.id/vclaim-rest/';
-const KodeRs = '0101R009';
-const UrlApplicares = 'https://new-api.bpjs-kesehatan.go.id/aplicaresws/';
+// prod config from environment
+const ConsId = process.env.BPJS_CONS_ID || '13034';
+const SecretKey = process.env.BPJS_SECRET_KEY || '9UH68UK4gr';
+const UserKey = process.env.BPJS_USER_KEY || '6824f88f2b12582ebd98c430afc8c76f';
+const BaseUrl = process.env.BPJS_VCLAIM_BASE_URL || process.env.BPJS_BASE_URL || 'https://apijkn.bpjs-kesehatan.go.id/vclaim-rest/';
+const KodeRs = process.env.BPJS_KODE_RS || '0101R009';
+const UrlApplicares = process.env.BPJS_URL_APPLICARES || 'https://new-api.bpjs-kesehatan.go.id/aplicaresws/';
 function getBpjsAuth() {
   const tmStamp = Math.floor(Date.now() / 1000);
   const data = ConsId + '&' + tmStamp;

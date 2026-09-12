@@ -17212,7 +17212,7 @@ var g1 = (() => {
         (o) => {
           ((this.dataPeserta = o.peserta),
             (this.isLoading = !1),
-            o.peserta
+            o?.peserta?.statusPeserta
               ? (o.peserta.statusPeserta.kode == "0"
                   ? this.toastr.success(
                       "PESERTA " + o.peserta.statusPeserta.keterangan,
@@ -17226,7 +17226,7 @@ var g1 = (() => {
                   nama: o.peserta.nama,
                   nik: o.peserta.nik,
                   nobpjs: o.peserta.noKartu,
-                  notelp: o.peserta.mr.noTelepon,
+                  notelp: o.peserta.mr?.noTelepon || "",
                   tgllahir: o.peserta.tglLahir,
                   sex: o.peserta.sex,
                 }))
@@ -17247,7 +17247,7 @@ var g1 = (() => {
         (o) => {
           ((this.dataPeserta = o.peserta),
             (this.isLoading = !1),
-            o.peserta
+            o?.peserta?.statusPeserta
               ? (o.peserta.statusPeserta.kode == "0"
                   ? this.toastr.success(
                       "PESERTA " + o.peserta.statusPeserta.keterangan,
@@ -17261,7 +17261,7 @@ var g1 = (() => {
                   nama: o.peserta.nama,
                   nik: o.peserta.nik,
                   nobpjs: o.peserta.noKartu,
-                  notelp: o.peserta.mr.noTelepon,
+                  notelp: o.peserta.mr?.noTelepon || "",
                   tgllahir: o.peserta.tglLahir,
                   sex: o.peserta.sex,
                 }))
@@ -27831,27 +27831,39 @@ var Hv = (() => {
       );
     }
     getDataBpjs(e) {
+      if (!e || e == "" || e == "null" || e == "undefined") {
+        ((this.ketPeserta = "Bukan Peserta BPJS / No Kartu Kosong"),
+          (this.isAktif = 99),
+          (this.dataBpjs = []),
+          (this.isLoading = !1));
+        return;
+      }
       ((this.isLoading = !0),
         this.bridgingBpjsService
           .cariPesertaNokartu(e, this.latest_date)
           .subscribe(
             (a) => {
               ((this.dataBpjs = a),
-                this.dataBpjs.response == "Peserta Tidak Terdaftar"
-                  ? ((this.ketPeserta = this.dataBpjs.response),
+                !this.dataBpjs?.peserta?.statusPeserta
+                  ? ((this.ketPeserta =
+                      typeof this.dataBpjs?.response == "string"
+                        ? this.dataBpjs.response
+                        : (this.dataBpjs?.metaData?.message ||
+                           this.dataBpjs?.metadata?.message ||
+                           "Peserta Tidak Terdaftar")),
                     (this.isAktif = 99),
                     (this.dataBpjs = []),
                     (this.isLoading = !1))
                   : ((this.ketPeserta =
                       this.dataBpjs.peserta.statusPeserta.keterangan),
                     (this.hakKelas =
-                      this.dataBpjs?.peserta.hakKelas.keterangan),
+                      this.dataBpjs?.peserta?.hakKelas?.keterangan),
                     (this.isAktif = this.dataBpjs.peserta.statusPeserta.kode),
                     this.updateDataPrb(
-                      this.dataPasien[0].norm,
+                      this.dataPasien?.[0]?.norm,
                       this.dataBpjs.peserta.noKartu,
-                      this.dataBpjs.peserta.informasi.prolanisPRB,
-                      this.dataBpjs.peserta.hakKelas.kode,
+                      this.dataBpjs.peserta.informasi?.prolanisPRB,
+                      this.dataBpjs.peserta.hakKelas?.kode,
                     )));
             },
             (a) => {
@@ -28151,8 +28163,8 @@ var Hv = (() => {
                 },
               ),
               this.toastr.success(
-                d.response.peserta.statusPeserta.keterangan,
-                d.response.peserta.nama,
+                d.response?.peserta?.statusPeserta?.keterangan || "OK",
+                d.response?.peserta?.nama || "",
               ));
           } else ((this.error = d.metaData.message), (this.isLoading = !1));
         },
@@ -35466,7 +35478,7 @@ var o_ = (() => {
             ((this.dataPeserta = a.peserta),
               (this.isLoading = !1),
               (this.isResponse = !0),
-              a.peserta
+              a?.peserta?.statusPeserta
                 ? a.peserta.statusPeserta.kode == "0"
                   ? this.toastr.success(
                       "PESERTA " + a.peserta.statusPeserta.keterangan,
@@ -35706,7 +35718,7 @@ var l_ = (() => {
             ((this.dataPeserta = a.peserta),
               (this.isLoading = !1),
               (this.isResponse = !0),
-              a.peserta
+              a?.peserta?.statusPeserta
                 ? a.peserta.statusPeserta.kode == "0"
                   ? this.toastr.success(
                       "PESERTA " + a.peserta.statusPeserta.keterangan,
@@ -37294,8 +37306,8 @@ var LA = [
                     }),
                       (this.isLoading = !1),
                       this.toastr.success(
-                        a.response.rujukan.peserta.statusPeserta.keterangan,
-                        a.response.rujukan.peserta.nama,
+                        a.response?.rujukan?.peserta?.statusPeserta?.keterangan || "OK",
+                        a.response?.rujukan?.peserta?.nama || "",
                       ));
                   } else
                     ((this.error = a.metaData.message), (this.isLoading = !1));
@@ -39501,8 +39513,8 @@ var r5 = [
                     }),
                       (this.isLoading = !1),
                       this.toastr.success(
-                        a.response.rujukan.peserta.statusPeserta.keterangan,
-                        a.response.rujukan.peserta.nama,
+                        a.response?.rujukan?.peserta?.statusPeserta?.keterangan || "OK",
+                        a.response?.rujukan?.peserta?.nama || "",
                       ));
                   } else
                     ((this.error = a.metaData.message), (this.isLoading = !1));
@@ -54961,25 +54973,37 @@ var R_ = (() => {
         });
     }
     getDataBpjs(e) {
+      if (!e || e == "" || e == "null" || e == "undefined") {
+        ((this.ketPeserta = "Bukan Peserta BPJS / No Kartu Kosong"),
+          (this.isAktif = 99),
+          (this.dataBpjs = []),
+          (this.isLoading = !1));
+        return;
+      }
       this.bridgingBpjsService
         .cariPesertaNokartu(e, this.latest_date)
         .subscribe(
           (a) => {
             ((this.dataBpjs = a),
-              this.dataBpjs.response == "Peserta Tidak Terdaftar"
-                ? ((this.ketPeserta = this.dataBpjs.response),
+              !this.dataBpjs?.peserta?.statusPeserta
+                ? ((this.ketPeserta =
+                    typeof this.dataBpjs?.response == "string"
+                      ? this.dataBpjs.response
+                      : (this.dataBpjs?.metaData?.message ||
+                         this.dataBpjs?.metadata?.message ||
+                         "Peserta Tidak Terdaftar")),
                   (this.isAktif = 99),
                   (this.dataBpjs = []),
                   (this.isLoading = !1))
                 : ((this.ketPeserta =
                     this.dataBpjs.peserta.statusPeserta.keterangan),
-                  (this.hakKelas = this.dataBpjs?.peserta.hakKelas.keterangan),
+                  (this.hakKelas = this.dataBpjs?.peserta?.hakKelas?.keterangan),
                   (this.isAktif = this.dataBpjs.peserta.statusPeserta.kode),
                   this.updateDataPrb(
-                    this.dataPasien[0].norm,
+                    this.dataPasien?.[0]?.norm,
                     this.dataBpjs.peserta.noKartu,
-                    this.dataBpjs.peserta.informasi.prolanisPRB,
-                    this.dataBpjs.peserta.hakKelas.kode,
+                    this.dataBpjs.peserta.informasi?.prolanisPRB,
+                    this.dataBpjs.peserta.hakKelas?.kode,
                   )));
           },
           (a) => {
@@ -69283,19 +69307,31 @@ var rk = (() => {
       );
     }
     getDataBpjs(e) {
+      if (!e || e == "" || e == "null" || e == "undefined") {
+        ((this.ketPeserta = "Bukan Peserta BPJS / No Kartu Kosong"),
+          (this.isAktif = 99),
+          (this.dataBpjs = []),
+          (this.isLoading = !1));
+        return;
+      }
       this.bridgingBpjsService
         .cariPesertaNokartu(e, this.latest_date)
         .subscribe(
           (a) => {
             ((this.dataBpjs = a),
-              this.dataBpjs.response == "Peserta Tidak Terdaftar"
-                ? ((this.ketPeserta = this.dataBpjs.response),
+              !this.dataBpjs?.peserta?.statusPeserta
+                ? ((this.ketPeserta =
+                    typeof this.dataBpjs?.response == "string"
+                      ? this.dataBpjs.response
+                      : (this.dataBpjs?.metaData?.message ||
+                         this.dataBpjs?.metadata?.message ||
+                         "Peserta Tidak Terdaftar")),
                   (this.isAktif = 99),
                   (this.dataBpjs = []),
                   (this.isLoading = !1))
                 : ((this.ketPeserta =
                     this.dataBpjs.peserta.statusPeserta.keterangan),
-                  (this.hakKelas = this.dataBpjs?.peserta.hakKelas.keterangan),
+                  (this.hakKelas = this.dataBpjs?.peserta?.hakKelas?.keterangan),
                   (this.isAktif = this.dataBpjs.peserta.statusPeserta.kode),
                   (this.isLoading = !1)));
           },
@@ -81013,7 +81049,7 @@ var jV = [
         let a = (0, _p.default)().format("YYYY-MM-DD");
         (this.bridgingBpjsService.cariPesertaNik(e, a).subscribe(
           (o) => {
-            o
+            o?.peserta?.statusPeserta
               ? (this.pasienBaruForm.setValue({
                   nama: o.peserta.nama,
                   nik: o.peserta.nik,
@@ -81042,7 +81078,7 @@ var jV = [
                   o.peserta.statusPeserta.keterangan,
                   o.peserta.nama,
                 ))
-              : ((this.error = o.metaData.message), (this.isLoading = !1));
+              : ((this.error = o?.metaData?.message || (typeof o?.response == "string" ? o.response : "Data Tidak Ditemukan")), (this.isLoading = !1), this.toastr.error(this.error, "BRIDGING"));
           },
           (o) => {
             ((this.error = o), (this.isLoading = !1));
@@ -81056,7 +81092,7 @@ var jV = [
         let a = (0, _p.default)().format("YYYY-MM-DD");
         (this.bridgingBpjsService.cariPesertaNokartu(e, a).subscribe(
           (o) => {
-            o
+            o?.peserta?.statusPeserta
               ? (this.pasienBaruForm.setValue({
                   nama: o.peserta.nama,
                   nik: o.peserta.nik,
@@ -81085,7 +81121,7 @@ var jV = [
                   o.peserta.statusPeserta.keterangan,
                   o.peserta.nama,
                 ))
-              : ((this.error = o.metaData.message), (this.isLoading = !1));
+              : ((this.error = o?.metaData?.message || (typeof o?.response == "string" ? o.response : "Data Tidak Ditemukan")), (this.isLoading = !1), this.toastr.error(this.error, "BRIDGING"));
           },
           (o) => {
             ((this.error = o), (this.isLoading = !1));
@@ -110566,19 +110602,31 @@ var iS = (() => {
       );
     }
     getDataBpjs(e) {
+      if (!e || e == "" || e == "null" || e == "undefined") {
+        ((this.ketPeserta = "Bukan Peserta BPJS / No Kartu Kosong"),
+          (this.isAktif = 99),
+          (this.dataBpjs = []),
+          (this.isLoading = !1));
+        return;
+      }
       this.bridgingBpjsService
         .cariPesertaNokartu(e, this.latest_date)
         .subscribe(
           (a) => {
             ((this.dataBpjs = a),
-              this.dataBpjs.response == "Peserta Tidak Terdaftar"
-                ? ((this.ketPeserta = this.dataBpjs.response),
+              !this.dataBpjs?.peserta?.statusPeserta
+                ? ((this.ketPeserta =
+                    typeof this.dataBpjs?.response == "string"
+                      ? this.dataBpjs.response
+                      : (this.dataBpjs?.metaData?.message ||
+                         this.dataBpjs?.metadata?.message ||
+                         "Peserta Tidak Terdaftar")),
                   (this.isAktif = 99),
                   (this.dataBpjs = []),
                   (this.isLoading = !1))
                 : ((this.ketPeserta =
                     this.dataBpjs.peserta.statusPeserta.keterangan),
-                  (this.hakKelas = this.dataBpjs?.peserta.hakKelas.keterangan),
+                  (this.hakKelas = this.dataBpjs?.peserta?.hakKelas?.keterangan),
                   (this.isAktif = this.dataBpjs.peserta.statusPeserta.kode),
                   (this.isLoading = !1)));
           },
@@ -112999,19 +113047,31 @@ var aS = (() => {
       );
     }
     getDataBpjs(e) {
+      if (!e || e == "" || e == "null" || e == "undefined") {
+        ((this.ketPeserta = "Bukan Peserta BPJS / No Kartu Kosong"),
+          (this.isAktif = 99),
+          (this.dataBpjs = []),
+          (this.isLoading = !1));
+        return;
+      }
       this.bridgingBpjsService
         .cariPesertaNokartu(e, this.latest_date)
         .subscribe(
           (a) => {
             ((this.dataBpjs = a),
-              this.dataBpjs.response == "Peserta Tidak Terdaftar"
-                ? ((this.ketPeserta = this.dataBpjs.response),
+              !this.dataBpjs?.peserta?.statusPeserta
+                ? ((this.ketPeserta =
+                    typeof this.dataBpjs?.response == "string"
+                      ? this.dataBpjs.response
+                      : (this.dataBpjs?.metaData?.message ||
+                         this.dataBpjs?.metadata?.message ||
+                         "Peserta Tidak Terdaftar")),
                   (this.isAktif = 99),
                   (this.dataBpjs = []),
                   (this.isLoading = !1))
                 : ((this.ketPeserta =
                     this.dataBpjs.peserta.statusPeserta.keterangan),
-                  (this.hakKelas = this.dataBpjs?.peserta.hakKelas.keterangan),
+                  (this.hakKelas = this.dataBpjs?.peserta?.hakKelas?.keterangan),
                   (this.isAktif = this.dataBpjs.peserta.statusPeserta.kode),
                   (this.isLoading = !1)));
           },
@@ -118742,19 +118802,31 @@ var _S = (() => {
       );
     }
     getDataBpjs(e) {
+      if (!e || e == "" || e == "null" || e == "undefined") {
+        ((this.ketPeserta = "Bukan Peserta BPJS / No Kartu Kosong"),
+          (this.isAktif = 99),
+          (this.dataBpjs = []),
+          (this.isLoading = !1));
+        return;
+      }
       this.bridgingBpjsService
         .cariPesertaNokartu(e, this.latest_date)
         .subscribe(
           (a) => {
             ((this.dataBpjs = a),
-              this.dataBpjs.response == "Peserta Tidak Terdaftar"
-                ? ((this.ketPeserta = this.dataBpjs.response),
+              !this.dataBpjs?.peserta?.statusPeserta
+                ? ((this.ketPeserta =
+                    typeof this.dataBpjs?.response == "string"
+                      ? this.dataBpjs.response
+                      : (this.dataBpjs?.metaData?.message ||
+                         this.dataBpjs?.metadata?.message ||
+                         "Peserta Tidak Terdaftar")),
                   (this.isAktif = 99),
                   (this.dataBpjs = []),
                   (this.isLoading = !1))
                 : ((this.ketPeserta =
                     this.dataBpjs.peserta.statusPeserta.keterangan),
-                  (this.hakKelas = this.dataBpjs?.peserta.hakKelas.keterangan),
+                  (this.hakKelas = this.dataBpjs?.peserta?.hakKelas?.keterangan),
                   (this.isAktif = this.dataBpjs.peserta.statusPeserta.kode),
                   (this.isLoading = !1)));
           },

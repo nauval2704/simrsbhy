@@ -11,22 +11,22 @@ var considDev = "11349";
 var keyDev = "8qN14DBB1B";
 var urlDev = "https://dvlp.bpjs-kesehatan.go.id/VClaim-Rest/";
 
-var consid = "13034";
-var key = "9UH68UK4gr";
+var consid = process.env.BPJS_CONS_ID || "13034";
+var key = process.env.BPJS_SECRET_KEY || "9UH68UK4gr";
 
-var kodeRs = "0101R009";
-var consProd = "13034";
-var keyProd = "9UH68UK4gr";
+var kodeRs = process.env.BPJS_KODE_RS || "0101R009";
+var consProd = process.env.BPJS_CONS_ID || "13034";
+var keyProd = process.env.BPJS_SECRET_KEY || "9UH68UK4gr";
 
-var urlVclaim = "https://new-api.bpjs-kesehatan.go.id:8080/new-vclaim-rest/";
-var urlApplicares = "https://new-api.bpjs-kesehatan.go.id/aplicaresws/";
+var urlVclaim = process.env.BPJS_VCLAIM_BASE_URL || process.env.BPJS_BASE_URL || "https://new-api.bpjs-kesehatan.go.id:8080/new-vclaim-rest/";
+var urlApplicares = process.env.BPJS_URL_APPLICARES || "https://new-api.bpjs-kesehatan.go.id/aplicaresws/";
 
 // prod
 
-const ConsId = "13034";
-const SecretKey = "9UH68UK4gr";
-const UserKey = "6824f88f2b12582ebd98c430afc8c76f";
-const BaseUrl = "https://apijkn.bpjs-kesehatan.go.id/vclaim-rest/";
+const ConsId = process.env.BPJS_CONS_ID || "13034";
+const SecretKey = process.env.BPJS_SECRET_KEY || "9UH68UK4gr";
+const UserKey = process.env.BPJS_USER_KEY || "6824f88f2b12582ebd98c430afc8c76f";
+const BaseUrl = process.env.BPJS_VCLAIM_BASE_URL || process.env.BPJS_BASE_URL || "https://apijkn.bpjs-kesehatan.go.id/vclaim-rest/";
 
 // dev
 
@@ -1251,6 +1251,7 @@ module.exports = {
 
       if (getList.data.metaData.code !== "200") {
         res.json({
+          metaData: getList.data.metaData,
           response: getList.data.metaData.message,
         });
       } else {
@@ -1262,10 +1263,11 @@ module.exports = {
       }
     } catch (err) {
       res.json({
-        metadata: {
-          message: "Jadwal Tidak Ditemukan",
-          code: 201,
+        metaData: {
+          message: err.message || "Peserta Tidak Ditemukan",
+          code: "201",
         },
+        response: err.message || "Peserta Tidak Ditemukan",
       });
     }
   },
@@ -1304,6 +1306,7 @@ module.exports = {
 
       if (getList.data.metaData.code !== "200") {
         res.json({
+          metaData: getList.data.metaData,
           response: getList.data.metaData.message,
         });
       } else {
@@ -1315,10 +1318,11 @@ module.exports = {
       }
     } catch (err) {
       res.json({
-        metadata: {
-          message: "Jadwal Tidak Ditemukan",
-          code: 201,
+        metaData: {
+          message: err.message || "Peserta Tidak Ditemukan",
+          code: "201",
         },
+        response: err.message || "Peserta Tidak Ditemukan",
       });
     }
   },

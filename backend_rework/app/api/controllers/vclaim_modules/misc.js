@@ -5,10 +5,10 @@ const { ConsId, SecretKey, UserKey, BaseUrl, getBpjsAuth, decryptResponse } = re
 const crypto = require('crypto');
 const lz = require('lz-string');
 const ruanganModel = require('../../models/ruangan');
-const kodeRs = '0101R009';
-const consProd = '13034';
-const keyProd = '0xR53761A8';
-const urlApplicares = 'https://new-api.bpjs-kesehatan.go.id/aplicaresws/';
+const kodeRs = process.env.BPJS_KODE_RS || '0101R009';
+const consProd = process.env.BPJS_CONS_ID || '13034';
+const keyProd = process.env.BPJS_SECRET_KEY || '9UH68UK4gr';
+const urlApplicares = process.env.BPJS_URL_APPLICARES || 'https://new-api.bpjs-kesehatan.go.id/aplicaresws/';
 
 module.exports = {
   vclaimApiDiagnosa: async (req, res) => {
