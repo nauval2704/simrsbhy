@@ -19951,7 +19951,7 @@ function a4(t, s) {
 function r4(t, s) {
   if ((t & 1 && (i(0, "tr")(1, "td", 19), r(2), n()()), t & 2)) {
     let e = h().$implicit;
-    (l(2), w(" ", e.nama, " "));
+    (l(2), w(" ", e.nama,"( "+e.jumlah+" "+e.satuan+" )", (e = e.jumlah) !== null && e !== void 0 ? e : "-", " ", (e = e.satuan) !== null && e !== void 0 ? e : "", " "));
   }
 }
 
@@ -20028,9 +20028,9 @@ function o4(t, s) {
     (l(19),
       m("ngForOf", S.dataPasien),
       l(5),
-      m("ngIf", S.isArray(u.nama))("ngIfElse", k),
+      m("ngIf", S.isArray(u.nama),u.jumlah)("ngIfElse", k),
       l(8),
-      Qi(
+      Qi( 
         " ",
         (e = u.quantity) !== null && e !== void 0 ? e : "-",
         " X SEHARI ",
@@ -29347,6 +29347,9 @@ function IR(t, s) {
     n(),
     i(18, "option", 24),
     r(19, "ML (Mili)"),
+    n(),
+    i(18, "option", 25),
+    r(19, "SEMPROT"),
     n()()()(),
     i(20, "div", 1)(21, "div", 2)(22, "div", 8)(23, "select", 25)(
       24,
@@ -29476,6 +29479,7 @@ var Wv = (() => {
     constructor(e, a) {
       ((this.farmasiService = e),
         (this.toastr = a),
+        (this.idPrmrj = ""),
         (this.initValue = new Bt()),
         (this.inputForm = new ji({
           sumberStock: new mt("", [b.required]),
@@ -29498,6 +29502,12 @@ var Wv = (() => {
           .subscribe((o) => {
             this.currentUser = o;
           })));
+      try {
+        const params = new URLSearchParams(window.location.search);
+        this.idPrmrj = params.get("idprmrj") || "";
+      } catch (error) {
+        this.idPrmrj = "";
+      }
     }
     ngOnInit() {
       this.initValues();
@@ -29544,6 +29554,7 @@ var Wv = (() => {
         .inputResep({
           dataResep: this.dataResep,
           dataObat: this.inputForm.value,
+          idPrmrj: this.idPrmrj,
         })
         .subscribe(() => this.initValue.emit(this.dataResep)),
         (this.dataStock$ = []),
@@ -30037,6 +30048,7 @@ var qv = (() => {
     constructor(e, a) {
       ((this.farmasiService = e),
         (this.toastr = a),
+        (this.idPrmrj = ""),
         (this.initValue = new Bt()),
         (this.inputForm = new ji({
           sumberStock: new mt("", [b.required]),
@@ -30060,6 +30072,12 @@ var qv = (() => {
           .subscribe((o) => {
             this.currentUser = o;
           })));
+      try {
+        const params = new URLSearchParams(window.location.search);
+        this.idPrmrj = params.get("idprmrj") || "";
+      } catch (error) {
+        this.idPrmrj = "";
+      }
     }
     ngOnInit() {
       this.initValues();
@@ -30154,6 +30172,7 @@ var qv = (() => {
           dataResep: this.dataResep,
           dataObat: this.inputForm.value,
           dataRacikan: this.dataRacikan,
+          idPrmrj: this.idPrmrj,
         })
         .subscribe(() => this.initValue.emit(this.dataResep)),
         (this.dataStock$ = []),
@@ -30880,6 +30899,7 @@ var Xv = (() => {
         (this.farmasiService = o),
         (this.route = d),
         (this.dataPasienService = p),
+        (this.idPrmrj = this.route.snapshot.queryParamMap.get("idprmrj") || ""),
         (this.hapusResep = new Bt()),
         (this.initValues = new Bt()),
         (this.store = T(ge)),
@@ -30913,6 +30933,7 @@ var Xv = (() => {
       this.farmasiService
         .getDataResepByNoCheckin({
           noCheckin: e,
+          idPrmrj: this.idPrmrj || undefined,
         })
         .subscribe((a) => {
           this.dataResep = a;
@@ -30922,6 +30943,7 @@ var Xv = (() => {
       this.farmasiService
         .tambahResep({
           noCheckin: this.noCheckin(),
+          idPrmrj: this.idPrmrj || undefined,
           user: this.currentUser.nama,
         })
         .subscribe({
@@ -31054,6 +31076,7 @@ var Ds = (() => {
         (this.farmasiService = a),
         (this.toastr = o),
         (this.noCheckin = this.route.snapshot.params.nocheckin),
+        (this.idPrmrj = this.route.snapshot.queryParamMap.get("idprmrj") || ""),
         (this.showInput = !1),
         (this.store = T(ge)),
         (this.userSelector = this.store
@@ -31065,6 +31088,90 @@ var Ds = (() => {
     }
     ngOnInit() {
       this.initValues();
+    }
+    ngAfterViewInit() {
+      // tab e resep
+      const root = document.querySelector("app-pel-farmasi-input");
+      if (!root || root.dataset.tabsReady === "true") return;
+
+      const card = root.querySelector(".card");
+      if (!card) return;
+
+      const currentHeader = card.querySelector(".card-header");
+      const currentBody = card.querySelector(".card-body");
+      if (!currentHeader || !currentBody) return;
+
+      const targetTab = currentBody.querySelector("app-list-resep");
+      const nav = document.createElement("ul");
+      nav.className = "nav nav-tabs mb-3 farmasi-input-tabs";
+      nav.setAttribute("role", "tablist");
+      nav.innerHTML = `
+        <li class="nav-item" role="presentation">
+          <button class="nav-link tab-btn-bmhp active" type="button" data-bs-toggle="tab" data-bs-target="#farmasi-tab-obat-bmhp" aria-selected="true">Input Obat / BMHP</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link tab-btn-kronis" type="button" data-bs-toggle="tab" data-bs-target="#farmasi-tab-obat-kronis" aria-selected="false">Input Obat Kronis</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link tab-btn-eresept" type="button" data-bs-toggle="tab" data-bs-target="#farmasi-tab-eresept" aria-selected="false">E-Resep</button>
+        </li>
+      `;
+
+      const style = document.createElement("style");
+      style.textContent = `
+        .farmasi-input-tabs .nav-link {
+          transition: all 0.2s ease;
+        }
+        .farmasi-input-tabs .nav-link.active {
+          background: #198754;
+          color: #fff;
+          border-color: #198754;
+        }
+      `;
+
+      const wrap = document.createElement("div");
+      wrap.className = "tab-content";
+
+      const tabObat = document.createElement("div");
+      tabObat.id = "farmasi-tab-obat-bmhp";
+      tabObat.className = "tab-pane fade show active";
+      tabObat.setAttribute("role", "tabpanel");
+
+      const tabKronis = document.createElement("div");
+      tabKronis.id = "farmasi-tab-obat-kronis";
+      tabKronis.className = "tab-pane fade";
+      tabKronis.setAttribute("role", "tabpanel");
+      tabKronis.innerHTML = `
+        <div class="border rounded p-3 text-muted small" style="background:#f59e0b;color:#fff;">
+          Input Obat Kronis: masih dalam pengembangan.
+        </div>
+      `;
+
+      const tabEresep = document.createElement("div");
+      tabEresep.id = "farmasi-tab-eresept";
+      tabEresep.className = "tab-pane fade";
+      tabEresep.setAttribute("role", "tabpanel");
+      tabEresep.innerHTML = `
+        <div class="border rounded p-3 bg-light text-muted small">
+          E-Resep
+        </div>
+      `;
+
+      if (targetTab) {
+        tabObat.appendChild(targetTab);
+      } else {
+        tabObat.innerHTML = '<div class="text-muted small">Belum ada data obat.</div>';
+      }
+
+      currentBody.innerHTML = "";
+      currentBody.appendChild(style);
+      currentBody.appendChild(nav);
+      currentBody.appendChild(wrap);
+      wrap.appendChild(tabObat);
+      wrap.appendChild(tabKronis);
+      wrap.appendChild(tabEresep);
+      root.dataset.tabsReady = "true";
+      // END tab 
     }
     getDataItems(e) {
       this.dataItems$ = this.farmasiService.getRincianFarmasi(e);
@@ -31078,6 +31185,7 @@ var Ds = (() => {
       this.farmasiService
         .tambahResep({
           noCheckin: e,
+          idPrmrj: this.idPrmrj || undefined,
           user: this.currentUser.nama,
         })
         .subscribe({
@@ -31089,6 +31197,7 @@ var Ds = (() => {
     getResepByNoCheckin(e) {
       this.dataResep$ = this.farmasiService.getDataResepByNoCheckin({
         noCheckin: e,
+        idPrmrj: this.idPrmrj || undefined,
       });
     }
     onDeleteResep(e) {
@@ -31131,7 +31240,7 @@ var Ds = (() => {
           [1, "row"],
           [1, "col"],
           [1, "card", "mb-2"],
-          [1, "card-header", "bg-warning", "fw-bold"],
+          [1, "card-header", "bg-primary", "fw-bold", "text-white"],
           [1, "card-body"],
           [3, "hapusResep", "initValues"],
         ],
@@ -136769,6 +136878,12 @@ var rb = [
         canActivate: [st],
       },
       {
+        path: "rujukbalik/:nocheckin",
+        loadComponent: () =>
+          import("./surat/chunk-RUJUK-BALIK.js").then((t) => t.RujukBalikComponent),
+        canActivate: [st],
+      },
+      {
         path: "edukasi-poli/:nocheckin",
         loadComponent: () =>
           import("./surat/chunk-EDUKASI-POLI.js").then((t) => t.EdukasiPoliComponent),
@@ -136961,6 +137076,12 @@ var rb = [
         canActivate: [st],
       },
       {
+        path: "rujukbalik/:nocheckin",
+        loadComponent: () =>
+          import("./surat/chunk-RUJUK-BALIK.js").then((t) => t.RujukBalikComponent),
+        canActivate: [st],
+      },
+      {
         path: "transferinap/:nocheckin",
         component: Ak,
         canActivate: [st],
@@ -137034,6 +137155,12 @@ var rb = [
       {
         path: "rujukinap/:nocheckin",
         component: pk,
+      },
+      {
+        path: "rujukbalik/:nocheckin",
+        loadComponent: () =>
+          import("./surat/chunk-RUJUK-BALIK.js").then((t) => t.RujukBalikComponent),
+        canActivate: [st],
       },
       {
         path: "transferinapinap/:nocheckin",

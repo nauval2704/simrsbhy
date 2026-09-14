@@ -2819,6 +2819,7 @@ module.exports = {
     try {
       const addResep = await new ResepModel({
         noCheckin: req.body.noCheckin,
+        idPrmrj: req.body.idPrmrj || null,
         createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
         user: req.body.user,
       });
@@ -2841,9 +2842,34 @@ module.exports = {
 
   getResepByNoCheckin: async (req, res) => {
     try {
-      const getDetailResep = await ResepModel.find({
-        noCheckin: req.body.noCheckin,
-      });
+      const query = {};
+      const noCheckin = req.body?.noCheckin;
+      const norm = req.body?.norm || req.body?.noMr || req.body?.noMR;
+      const idPrmrj = req.body?.idPrmrj;
+
+      const candidateNoCheckins = [];
+      if (noCheckin && String(noCheckin).trim() !== "") {
+        candidateNoCheckins.push(String(noCheckin).trim());
+      }
+
+      if (norm && String(norm).trim() !== "") {
+        const normValue = String(norm).trim();
+        const checkinList = await CheckinModel.find({ noMr: normValue }).distinct("noCheckin");
+        checkinList
+          .filter((value) => value && String(value).trim() !== "")
+          .forEach((value) => candidateNoCheckins.push(String(value).trim()));
+      }
+
+      const uniqueNoCheckins = [...new Set(candidateNoCheckins)];
+      if (uniqueNoCheckins.length > 0) {
+        query.noCheckin = { $in: uniqueNoCheckins };
+      }
+
+      if (idPrmrj && String(idPrmrj).trim() !== "") {
+        query.idPrmrj = String(idPrmrj).trim();
+      }
+
+      const getDetailResep = await ResepModel.find(query).sort({ createdAt: -1 });
       return res.status(200).send({
         status: "success",
         message: "Resep berhasil di tambah",
@@ -3263,9 +3289,28 @@ module.exports = {
           .sort({ createdAt: 1 });
       }
 
+      if (!findItem) {
+        return res.status(400).send({
+          status: "error",
+          message: "Obat tidak ditemukan pada stock yang dipilih",
+          data: null,
+        });
+      }
+
       const getResep = await ResepModel.findById(
         ObjectId(req.body.dataResep._id)
       );
+      if (!getResep) {
+        return res.status(400).send({
+          status: "error",
+          message: "Resep tidak ditemukan",
+          data: null,
+        });
+      }
+      const idPrmrj = req.body.idPrmrj || (req.body.dataResep && req.body.dataResep.idPrmrj) || null;
+      if (idPrmrj) {
+        getResep.idPrmrj = idPrmrj;
+      }
       const obatData = {
         idObat: findItem._id,
         noFaktur: findItem.noFaktur,
@@ -3290,8 +3335,10 @@ module.exports = {
         hargaJualYANKES: findItem.hargaJualYANKES,
         createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
         noCheckin: req.body.dataResep.noCheckin,
+        idPrmrj: idPrmrj,
         sumberStock: req.body.dataObat.sumberStock,
         user: req.body.user,
+        kronis:req.body.kronis || false,  
       };
 
       getResep.obat.push(obatData);
@@ -3416,6 +3463,10 @@ module.exports = {
       const getResep = await ResepModel.findById(
         ObjectId(req.body.dataResep._id)
       );
+      const idPrmrj = req.body.idPrmrj || (req.body.dataResep && req.body.dataResep.idPrmrj) || null;
+      if (idPrmrj) {
+        getResep.idPrmrj = idPrmrj;
+      }
 
       /* idObat: "",
         noFaktur: "", 
@@ -3447,8 +3498,10 @@ module.exports = {
         hargaJualYANKES: hargaJualYANKES,
         createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
         noCheckin: req.body.dataResep.noCheckin,
+        idPrmrj: idPrmrj,
         sumberStock: req.body.dataObat.sumberStock,
         user: req.body.user,
+        kronis: req.body.kronis || false,
       });
       await getResep.save();
 

@@ -153,7 +153,7 @@ app.use("/radiologi", movies);
 // private route
 app.use("/simrsba", simrsba);
 app.use("/gudang", validateUser, gudang);
-app.use("/farmasi", validateUser, farmasi);
+app.use("/farmasi", farmasi);
 app.use("/apotek", validateUser, apotek);
 app.use("/antreanrs", antreanrs);
 // app.use("/import", importStock);

@@ -4912,4 +4912,50 @@ module.exports = {
         });
       });
   },
+  vclaimApiIcd9Parameter: async (req, res) => {
+    const Icd9 = require("../models/icd9");
+    const term = req.params.term || "";
+    try {
+      const data = await Icd9.find({
+        $or: [
+          { kode: { $regex: "(?i).*" + term + ".*" } },
+          { deskripsi: { $regex: "(?i).*" + term + ".*" } },
+        ],
+      })
+        .sort({ kode: 1 })
+        .limit(100)
+        .lean();
+      res.json(data);
+    } catch (err) {
+      res.status(400).send({
+        error: err,
+        status: "error",
+        message: "ERROR_ICD9",
+        data: null,
+      });
+    }
+  },
+  vclaimApiIcd10Parameter: async (req, res) => {
+    const Icd10 = require("../models/icd10");
+    const term = req.params.term || "";
+    try {
+      const data = await Icd10.find({
+        $or: [
+          { kode: { $regex: "(?i).*" + term + ".*" } },
+          { deskripsi: { $regex: "(?i).*" + term + ".*" } },
+        ],
+      })
+        .sort({ kode: 1 })
+        .limit(100)
+        .lean();
+      res.json(data);
+    } catch (err) {
+      res.status(400).send({
+        error: err,
+        status: "error",
+        message: "ERROR_ICD10",
+        data: null,
+      });
+    }
+  },
 };

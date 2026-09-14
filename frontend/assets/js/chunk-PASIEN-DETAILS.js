@@ -54,6 +54,7 @@ class SimrsPatientSidebar extends HTMLElement {
                     <a href="javascript:void(0)" data-path="checkout" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Checkout</a>
                     <a href="javascript:void(0)" data-path="transferinap" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Transfer Inap</a>
                     <a href="javascript:void(0)" data-path="rujuk" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Rujuk Inap</a>
+                    <a href="javascript:void(0)" data-path="rujukbalik" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Rujuk Balik</a>
                 </div>
             `;
     } else if (this._moduleType === "POLI") {
@@ -82,6 +83,7 @@ class SimrsPatientSidebar extends HTMLElement {
                     <a href="javascript:void(0)" data-path="checkoutpoli" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Checkout</a>
                     <a href="javascript:void(0)" data-path="transferinap" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Transfer Inap</a>
                     <a href="javascript:void(0)" data-path="rujuk" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Rujuk</a>
+                    <a href="javascript:void(0)" data-path="rujukbalik" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Rujuk Balik</a>
                 </div>
             `;
     } else {
@@ -101,6 +103,7 @@ class SimrsPatientSidebar extends HTMLElement {
                     <a href="javascript:void(0)" data-path="rincianinap" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Billing</a>
                     <a href="javascript:void(0)" data-path="checkoutinap" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Checkout</a>
                     <a href="javascript:void(0)" data-path="rujukinap" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Rujuk</a>
+                    <a href="javascript:void(0)" data-path="rujukbalik" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Rujuk Balik</a>
                 </div>
             `;
     }
@@ -154,13 +157,18 @@ class SimrsPatientSidebar extends HTMLElement {
         `;
 
     this.querySelectorAll("a[data-path]").forEach((a) => {
-      a.addEventListener("click", (e) => {
+      a.addEventListener("click", async (e) => {
         e.preventDefault();
         this.querySelectorAll("a[data-path]").forEach((el) =>
           el.classList.remove("active"),
         );
         a.classList.add("active");
-        this.navigate(a.getAttribute("data-path"));
+        const path = a.getAttribute("data-path");
+        if (path === "rujukbalik") {
+          this.navigate(path);
+        } else {
+          this.navigate(path);
+        }
       });
     });
 

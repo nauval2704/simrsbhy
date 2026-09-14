@@ -7,6 +7,10 @@ const ResepSchema = new Schema({
     type: String,
     default: null,
   },
+  idPrmrj: {
+    type: String,
+    default: null,
+  },
   obat: {
     type: [],
     default: [],

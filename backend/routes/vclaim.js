@@ -22,6 +22,8 @@ router.get("/api/propinsi", simrsController.vclaimApiPropinsi);
 router.get("/api/kabupaten/:kode", simrsController.vclaimApiKabupaten);
 router.get("/api/kecamatan/:kode", simrsController.vclaimApiKecamatan);
 router.get("/api/tindakan/:kode", simrsController.vclaimApiProcedure);
+router.get("/api/icd9/:term", simrsController.vclaimApiIcd9Parameter);
+router.get("/api/icd10/:term", simrsController.vclaimApiIcd10Parameter);
 router.get("/api/kelasrawat", simrsController.vclaimApiKelasRawat);
 router.get("/api/dokter/:nama", simrsController.vclaimApiDokter);
 router.get("/api/spesialistik", simrsController.vclaimApiSpesialistik);
