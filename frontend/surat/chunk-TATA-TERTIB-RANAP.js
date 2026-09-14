@@ -1,5 +1,6 @@
 import { a as i } from "../chunk-W7XVFZVJ.js";
 import { y as HttpClient } from "../chunk-CFNDTNZN.js";
+import { k as ToastrService } from "../chunk-QJBCP6KK.js";
 import {
   Db as _cmp,
   gc as _elementStart,
@@ -11,9 +12,7 @@ import {
   createSuratShell,
   bindSuratPrintButton,
   hospitalHeaderRow,
-  footerLabel,
-  showSuccessToast,
-  showErrorAlert
+  footerLabel
 } from "./chunk-SURAT-LAYOUT.js";
 
 function renderTemplate(t, s) {
@@ -27,6 +26,8 @@ export var SimrsTataTertibRanap = (() => {
   class t {
     constructor() {
       this.http = inject(HttpClient);
+      this.toastr = inject(ToastrService);
+      if (typeof window !== "undefined") window.__toastr = this.toastr;
       this.patient = null;
       this.loading = true;
       this.saving = false;
@@ -119,7 +120,7 @@ export var SimrsTataTertibRanap = (() => {
               btn.innerHTML = '<i class="bi bi-save me-1"></i>Simpan Peraturan &amp; Tata Tertib';
             }, 2000);
           }
-          showSuccessToast("Peraturan & Tata Tertib Pasien Rawat Inap berhasil disimpan");
+          this.toastr.success("Peraturan & Tata Tertib Pasien Rawat Inap berhasil disimpan", "Sukses");
         },
         error: () => {
           this.saving = false;
@@ -127,7 +128,7 @@ export var SimrsTataTertibRanap = (() => {
             btn.disabled = false;
             btn.innerHTML = '<i class="bi bi-save me-1"></i>Simpan Peraturan &amp; Tata Tertib';
           }
-          showErrorAlert("Gagal menyimpan Peraturan & Tata Tertib");
+          this.toastr.error("Gagal menyimpan Peraturan & Tata Tertib", "Error");
         }
       });
     }

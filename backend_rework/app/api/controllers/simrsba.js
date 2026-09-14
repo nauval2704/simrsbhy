@@ -4323,6 +4323,21 @@ module.exports = {
     try {
       const payload = req.body;
       delete payload._id;
+      if (payload.data && payload.noCheckin) {
+        const existing = await GeneralConsent.findOne({ noCheckin: payload.noCheckin });
+        if (existing && existing.data) {
+          if (!payload.data.filesKtp || !Array.isArray(payload.data.filesKtp) || payload.data.filesKtp.length === 0) {
+            if (Array.isArray(existing.data.filesKtp) && existing.data.filesKtp.length > 0) {
+              payload.data.filesKtp = existing.data.filesKtp;
+            } else if (existing.data.fileKtp) {
+              payload.data.filesKtp = [existing.data.fileKtp];
+            }
+          }
+          if (!payload.data.fileKtp && existing.data.fileKtp) {
+            payload.data.fileKtp = existing.data.fileKtp;
+          }
+        }
+      }
       const saved = await GeneralConsent.findOneAndUpdate(
         { noCheckin: payload.noCheckin },
         { $set: payload },
@@ -4352,13 +4367,19 @@ module.exports = {
       } else if (req.body.fileKtp || req.body.file || req.body.image) {
         const raw = req.body.fileKtp || req.body.file || req.body.image;
         if (typeof raw === "string" && raw.startsWith("data:")) {
-          const matches = raw.match(/^data:([A-Za-z0-9\-\+\/\.]+);base64,(.+)$/);
-          if (matches) {
-            mime = matches[1];
-            fileBuffer = Buffer.from(matches[2], "base64");
+          const commaIdx = raw.indexOf(",");
+          if (commaIdx !== -1) {
+            const meta = raw.substring(0, commaIdx);
+            const base64Str = raw.substring(commaIdx + 1).replace(/\s/g, "");
+            const mimeMatch = meta.match(/data:([^;,]+)/);
+            if (mimeMatch) mime = mimeMatch[1];
+            fileBuffer = Buffer.from(base64Str, "base64");
+          } else {
+            fileBuffer = Buffer.from(raw.replace(/\s/g, ""), "base64");
+            mime = "image/jpeg";
           }
         } else if (typeof raw === "string") {
-          fileBuffer = Buffer.from(raw, "base64");
+          fileBuffer = Buffer.from(raw.replace(/\s/g, ""), "base64");
           mime = "image/jpeg";
         }
       }
@@ -4370,7 +4391,8 @@ module.exports = {
       const noCheckin = req.body.noCheckin || "temp";
       const noMr = (req.body.noMr || "").replace(/[^a-zA-Z0-9]/g, "");
       const tglClean = (req.body.tglCheckin || req.body.tglMasuk || "").replace(/[^0-9]/g, "");
-      const basePrefix = noMr ? `ktp_${noMr}_${tglClean || noCheckin}` : `ktp_${noCheckin}_${Date.now()}`;
+      const uniqueSuffix = Date.now() + "_" + Math.random().toString(36).substring(2, 7);
+      const basePrefix = noMr ? `ktp_${noMr}_${tglClean || noCheckin}_${uniqueSuffix}` : `ktp_${noCheckin}_${uniqueSuffix}`;
       const uploadDir = path.join(process.cwd(), "uploads", "ktp");
       if (!fs.existsSync(uploadDir)) {
         fs.mkdirSync(uploadDir, { recursive: true });
@@ -4379,7 +4401,10 @@ module.exports = {
       let fileName = "";
       let filePath = "";
 
-      if (mime.includes("pdf") || (req.body.fileName && req.body.fileName.endsWith(".pdf"))) {
+      const origName = (req.body.fileName || (req.file && req.file.originalname) || "").toLowerCase();
+      const isPdf = mime.includes("pdf") || origName.endsWith(".pdf");
+
+      if (isPdf) {
         fileName = `${basePrefix}.pdf`;
         filePath = path.join(uploadDir, fileName);
         fs.writeFileSync(filePath, fileBuffer);
@@ -4390,8 +4415,8 @@ module.exports = {
           try {
             await sharp(fileBuffer)
               .rotate()
-              .resize({ width: 1280, height: 1280, fit: "inside", withoutEnlargement: true })
-              .jpeg({ quality: 80, progressive: true })
+              .resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true })
+              .jpeg({ quality: 82, progressive: true })
               .toFile(filePath);
           } catch (sharpErr) {
             fs.writeFileSync(filePath, fileBuffer);
@@ -4402,29 +4427,57 @@ module.exports = {
       }
 
       const fileUrl = `/uploads/ktp/${fileName}`;
+      let filesKtp = [];
 
       if (req.body.noCheckin) {
         const existing = await GeneralConsent.findOne({ noCheckin: req.body.noCheckin });
-        if (existing && existing.data && existing.data.fileKtp) {
-          const oldRelative = existing.data.fileKtp.replace(/^\//, '');
-          const oldFilePath = path.join(process.cwd(), oldRelative);
-          if (fs.existsSync(oldFilePath) && oldFilePath !== filePath) {
-            try { fs.unlinkSync(oldFilePath); } catch (e) {}
+        if (existing && existing.data) {
+          if (Array.isArray(existing.data.filesKtp)) {
+            filesKtp = [...existing.data.filesKtp];
+          } else if (existing.data.fileKtp) {
+            filesKtp = [existing.data.fileKtp];
           }
         }
+        let existingList = req.body.existingFiles;
+        if (typeof existingList === "string") {
+          try {
+            existingList = JSON.parse(existingList);
+          } catch (e) {
+            existingList = [existingList];
+          }
+        }
+        if (Array.isArray(existingList)) {
+          existingList.forEach((u) => {
+            if (u && typeof u === "string" && !filesKtp.includes(u)) {
+              filesKtp.push(u);
+            }
+          });
+        }
+        if (!filesKtp.includes(fileUrl)) {
+          filesKtp.push(fileUrl);
+        }
+
         await GeneralConsent.findOneAndUpdate(
           { noCheckin: req.body.noCheckin },
-          { $set: { "data.fileKtp": fileUrl } },
+          {
+            $set: {
+              "data.filesKtp": filesKtp,
+              "data.fileKtp": filesKtp[0] || fileUrl
+            }
+          },
           { new: true, upsert: true }
         );
+      } else {
+        filesKtp = [fileUrl];
       }
 
       return res.status(200).send({
         status: 200,
-        message: "File KTP berhasil diunggah dan dikompresi",
+        message: "File KTP berhasil diunggah",
         data: {
           url: fileUrl,
-          fileName: fileName
+          fileName: fileName,
+          filesKtp: filesKtp
         }
       });
     } catch (error) {
@@ -4435,15 +4488,29 @@ module.exports = {
     try {
       const { noCheckin, fileUrl } = req.body;
       let targetUrl = fileUrl;
+      let remainingFiles = [];
 
       if (noCheckin) {
         const doc = await GeneralConsent.findOne({ noCheckin });
-        if (doc && doc.data && doc.data.fileKtp) {
-          targetUrl = doc.data.fileKtp;
+        if (doc && doc.data) {
+          if (Array.isArray(doc.data.filesKtp)) {
+            remainingFiles = doc.data.filesKtp.filter((u) => u !== targetUrl);
+          } else if (doc.data.fileKtp && doc.data.fileKtp !== targetUrl) {
+            remainingFiles = [doc.data.fileKtp];
+          }
+          if (!targetUrl && doc.data.fileKtp) {
+            targetUrl = doc.data.fileKtp;
+          }
         }
+
         await GeneralConsent.findOneAndUpdate(
           { noCheckin },
-          { $set: { "data.fileKtp": "" } }
+          {
+            $set: {
+              "data.filesKtp": remainingFiles,
+              "data.fileKtp": remainingFiles[0] || ""
+            }
+          }
         );
       }
 
@@ -4460,7 +4527,7 @@ module.exports = {
       return res.status(200).send({
         status: 200,
         message: "File KTP berhasil dihapus",
-        data: null
+        data: { filesKtp: remainingFiles }
       });
     } catch (error) {
       return res.status(500).send({ status: 500, message: "Gagal menghapus file KTP", error: error.message });

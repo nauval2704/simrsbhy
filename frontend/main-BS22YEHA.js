@@ -136998,7 +136998,7 @@ var rb = [
       {
         path: "general-consent/:nocheckin",
         loadComponent: () =>
-          import("./surat/chunk-GENERAL-CONSENT.js").then((t) => t.GeneralConsentComponent),
+          import("./surat/chunk-GENERAL-CONSENT.js?v=" + Date.now()).then((t) => t.GeneralConsentComponent),
         canActivate: [st],
       },
       {

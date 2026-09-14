@@ -1,5 +1,6 @@
 import { a as i } from "../chunk-W7XVFZVJ.js";
 import { y as HttpClient } from "../chunk-CFNDTNZN.js";
+import { k as ToastrService } from "../chunk-QJBCP6KK.js";
 import {
   Db as _cmp,
   gc as _elementStart,
@@ -13,9 +14,7 @@ import {
   hospitalHeaderRow,
   signatureFooterRows,
   createMultiPageSurat,
-  footerLabel,
-  showSuccessToast,
-  showErrorAlert
+  footerLabel
 } from "./chunk-SURAT-LAYOUT.js";
 
 function renderTemplate(t, s) {
@@ -29,6 +28,8 @@ export var GeneralConsentComponent = (() => {
   class t {
     constructor() {
       this.http = inject(HttpClient);
+      this.toastr = inject(ToastrService);
+      if (typeof window !== "undefined") window.__toastr = this.toastr;
       this.patient = null;
       this.loading = true;
       this.saving = false;
@@ -52,6 +53,7 @@ export var GeneralConsentComponent = (() => {
         namaPetugas: "",
         namaTtdPasien: "",
         fileKtp: "",
+        filesKtp: [],
         sigPetugas: null,
         sigPasien: null
       };
@@ -114,6 +116,14 @@ export var GeneralConsentComponent = (() => {
             delete raw.createdAt;
             delete raw.updatedAt;
             this.formData = Object.assign(this.formData, raw);
+            if (Array.isArray(this.formData.filesKtp) && this.formData.filesKtp.filter(Boolean).length > 0) {
+              this.formData.filesKtp = this.formData.filesKtp.filter(Boolean);
+            } else if (this.formData.fileKtp) {
+              this.formData.filesKtp = [this.formData.fileKtp];
+            } else {
+              this.formData.filesKtp = [];
+            }
+            this.formData.fileKtp = this.formData.filesKtp[0] || "";
           }
           this.initDefaults();
           this.loading = false;
@@ -175,7 +185,7 @@ export var GeneralConsentComponent = (() => {
               btn.innerHTML = '<i class="bi bi-save me-1"></i>Simpan General Consent';
             }, 2000);
           }
-          showSuccessToast("Formulir Persetujuan Umum (General Consent) berhasil disimpan");
+          this.toastr.success("Formulir Persetujuan Umum (General Consent) berhasil disimpan", "Sukses");
         },
         error: () => {
           this.saving = false;
@@ -183,7 +193,7 @@ export var GeneralConsentComponent = (() => {
             btn.disabled = false;
             btn.innerHTML = '<i class="bi bi-save me-1"></i>Simpan General Consent';
           }
-          showErrorAlert("Gagal menyimpan General Consent");
+          this.toastr.error("Gagal menyimpan General Consent", "Error");
         }
       });
     }
@@ -279,22 +289,18 @@ export var GeneralConsentComponent = (() => {
                 <div class="row g-2 mt-2">
                   <div class="col-md-12">
                     <label class="f-label">Foto / Berkas KTP Pasien / Wali</label>
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                      <input type="file" id="gc-input-ktp" accept="image/*,application/pdf" class="d-none">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                      <input type="file" id="gc-input-ktp" accept="image/*,application/pdf,.pdf,.jpg,.jpeg,.png,.webp,.bmp,.gif" multiple class="d-none">
                       <button type="button" class="btn btn-sm btn-outline-primary" id="gc-btn-upload-ktp">
-                        <i class="bi bi-camera me-1"></i>Pilih / Ambil Foto KTP
+                        <i class="bi bi-cloud-arrow-up me-1"></i>Pilih / Tambah Foto / Berkas KTP
                       </button>
                       <span id="gc-ktp-status" class="small text-muted"></span>
                     </div>
-                    <div id="gc-ktp-preview-container" style="${d.fileKtp ? '' : 'display:none;'}">
-                      <div class="border rounded p-2 bg-light d-inline-flex align-items-center gap-3">
-                        <div id="gc-ktp-preview-content">
-                          ${d.fileKtp ? (d.fileKtp.endsWith('.pdf') ? `<a href="${d.fileKtp.startsWith('http') ? d.fileKtp : (i.apiUrl + d.fileKtp)}" target="_blank" class="btn btn-sm btn-outline-danger"><i class="bi bi-file-earmark-pdf me-1"></i>Lihat Dokumen PDF KTP</a>` : `<div style="position:relative;display:inline-block;cursor:pointer;"><img src="${d.fileKtp.startsWith('http') ? d.fileKtp : (i.apiUrl + d.fileKtp)}" class="gc-ktp-img-preview" style="max-height:120px;max-width:200px;object-fit:contain;border:1px solid #ddd;border-radius:4px;display:block;" alt="KTP"><div style="position:absolute;inset:0;background:rgba(0,0,0,0.3);color:#fff;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s;border-radius:4px;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0"><i class="bi bi-zoom-in me-1"></i>Perbesar</div></div>`) : ''}
-                        </div>
-                        <button type="button" class="btn btn-sm btn-outline-danger" id="gc-btn-hapus-ktp">
-                          <i class="bi bi-trash me-1"></i>Hapus
-                        </button>
-                      </div>
+                    <div class="form-text text-muted mb-2" style="font-size:11px;">
+                      Mendukung banyak file sekaligus (Multiple Files). Format: Semua format gambar (JPG, JPEG, PNG, WEBP, GIF, BMP) &amp; Berkas Dokumen PDF.
+                    </div>
+                    <div id="gc-ktp-preview-container" class="d-flex flex-wrap gap-2" style="${(d.filesKtp && d.filesKtp.length > 0) ? '' : 'display:none;'}">
+                      ${this.renderKtpItemsHtml(d.filesKtp || [])}
                     </div>
                   </div>
                 </div>
@@ -433,152 +439,94 @@ export var GeneralConsentComponent = (() => {
 
       const btnUploadKtp = root.querySelector("#gc-btn-upload-ktp");
       const inputKtp = root.querySelector("#gc-input-ktp");
-      const btnHapusKtp = root.querySelector("#gc-btn-hapus-ktp");
-      const previewContainer = root.querySelector("#gc-ktp-preview-container");
-      const previewContent = root.querySelector("#gc-ktp-preview-content");
       const ktpStatus = root.querySelector("#gc-ktp-status");
 
       if (btnUploadKtp && inputKtp) {
         btnUploadKtp.addEventListener("click", () => inputKtp.click());
       }
 
+      this.bindKtpPreviewEvents(root);
+
       if (inputKtp) {
-        inputKtp.addEventListener("change", (e) => {
-          const file = e.target.files?.[0];
-          if (!file) return;
+        inputKtp.addEventListener("change", async (e) => {
+          const files = Array.from(e.target.files || []);
+          if (files.length === 0) return;
 
           if (btnUploadKtp) {
             btnUploadKtp.disabled = true;
-            btnUploadKtp.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Mengunggah &amp; Mengompresi...';
+            btnUploadKtp.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Mengunggah...';
           }
-          if (ktpStatus) ktpStatus.textContent = "Sedang mengompresi...";
 
-          const reader = new FileReader();
-          reader.onload = () => {
-            const base64Data = reader.result;
-            const payload = {
-              fileKtp: base64Data,
-              fileName: file.name,
-              noCheckin: this.noCheckin,
-              noMr: this.patient?.noMr || this.patient?.norm || "",
-              tglCheckin: this.patient?.tglCheckin || this.patient?.tglInput || ""
-            };
+          let uploadedCount = 0;
+          let failedCount = 0;
 
-            this.http.post(i.apiUrl + "/simrsba/general-consent/upload-ktp", payload).subscribe({
-              next: (res) => {
-                if (btnUploadKtp) {
-                  btnUploadKtp.disabled = false;
-                  btnUploadKtp.innerHTML = '<i class="bi bi-camera me-1"></i>Ganti Foto KTP';
-                }
-                if (ktpStatus) ktpStatus.textContent = "";
+          for (let idx = 0; idx < files.length; idx++) {
+            const file = files[idx];
+            if (ktpStatus) {
+              ktpStatus.textContent = `Mengunggah ${idx + 1} dari ${files.length} file...`;
+            }
 
-                if (res && res.data && res.data.url) {
-                  this.formData.fileKtp = res.data.url;
-                  const fullUrl = res.data.url.startsWith("http") ? res.data.url : (i.apiUrl + res.data.url);
-                  if (previewContent) {
-                    if (res.data.url.endsWith(".pdf")) {
-                      previewContent.innerHTML = `<a href="${fullUrl}" target="_blank" class="btn btn-sm btn-outline-danger"><i class="bi bi-file-earmark-pdf me-1"></i>Lihat Dokumen PDF KTP</a>`;
-                    } else {
-                      previewContent.innerHTML = `<div style="position:relative;display:inline-block;cursor:pointer;"><img src="${fullUrl}" class="gc-ktp-img-preview" style="max-height:120px;max-width:200px;object-fit:contain;border:1px solid #ddd;border-radius:4px;display:block;" alt="KTP"><div style="position:absolute;inset:0;background:rgba(0,0,0,0.3);color:#fff;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s;border-radius:4px;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0"><i class="bi bi-zoom-in me-1"></i>Perbesar</div></div>`;
+            try {
+              const base64Data = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+              });
+
+              const payload = {
+                fileKtp: base64Data,
+                fileName: file.name,
+                noCheckin: this.noCheckin,
+                noMr: this.patient?.noMr || this.patient?.norm || "",
+                tglCheckin: this.patient?.tglCheckin || this.patient?.tglInput || "",
+                existingFiles: this.formData.filesKtp || []
+              };
+
+              await new Promise((resolve) => {
+                this.http.post(i.apiUrl + "/simrsba/general-consent/upload-ktp", payload).subscribe({
+                  next: (res) => {
+                    if (res && res.data) {
+                      if (Array.isArray(res.data.filesKtp) && res.data.filesKtp.length > 0) {
+                        this.formData.filesKtp = [...res.data.filesKtp];
+                      } else if (res.data.url) {
+                        if (!this.formData.filesKtp) this.formData.filesKtp = [];
+                        if (!this.formData.filesKtp.includes(res.data.url)) {
+                          this.formData.filesKtp.push(res.data.url);
+                        }
+                      }
+                      this.formData.fileKtp = (this.formData.filesKtp && this.formData.filesKtp[0]) || (res.data && res.data.url) || "";
+                      uploadedCount++;
+                      this.refreshKtpPreviews();
                     }
+                    resolve();
+                  },
+                  error: () => {
+                    failedCount++;
+                    resolve();
                   }
-                  if (previewContainer) previewContainer.style.display = "";
-                  showSuccessToast("Foto KTP berhasil diunggah");
-                }
-              },
-              error: () => {
-                if (btnUploadKtp) {
-                  btnUploadKtp.disabled = false;
-                  btnUploadKtp.innerHTML = '<i class="bi bi-camera me-1"></i>Pilih / Ambil Foto KTP';
-                }
-                if (ktpStatus) ktpStatus.textContent = "";
-                showErrorAlert("Gagal mengunggah file KTP");
-              }
-            });
-          };
-          reader.readAsDataURL(file);
-        });
-      }
-
-      if (previewContent) {
-        previewContent.addEventListener("click", (e) => {
-          const img = previewContent.querySelector("img");
-          if (img && img.src && !e.target.closest("a") && !e.target.closest("#gc-btn-hapus-ktp")) {
-            const existing = document.getElementById("gc-ktp-lightbox");
-            if (existing) existing.remove();
-
-            const overlay = document.createElement("div");
-            overlay.id = "gc-ktp-lightbox";
-            overlay.style.cssText = "position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.92);z-index:999999;display:flex;align-items:center;justify-content:center;padding:20px;cursor:zoom-out;backdrop-filter:blur(3px);";
-
-            const closeBtn = document.createElement("button");
-            closeBtn.type = "button";
-            closeBtn.innerHTML = "&times;";
-            closeBtn.title = "Tutup (Esc)";
-            closeBtn.style.cssText = "position:absolute;top:15px;right:25px;background:none;border:none;color:#ffffff;font-size:42px;font-weight:300;line-height:1;cursor:pointer;padding:0 10px;z-index:1000000;opacity:0.85;transition:opacity 0.2s;";
-            closeBtn.onmouseover = () => { closeBtn.style.opacity = "1"; };
-            closeBtn.onmouseout = () => { closeBtn.style.opacity = "0.85"; };
-
-            const fullImg = document.createElement("img");
-            fullImg.src = img.src;
-            fullImg.alt = "KTP Fullscreen";
-            fullImg.style.cssText = "max-width:92vw;max-height:90vh;object-fit:contain;border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,0.9);cursor:default;";
-            fullImg.addEventListener("click", (ev) => ev.stopPropagation());
-
-            const closeLightbox = () => {
-              window.removeEventListener("keydown", onKeyDown);
-              overlay.remove();
-            };
-
-            const onKeyDown = (ev) => {
-              if (ev.key === "Escape" || ev.keyCode === 27) {
-                closeLightbox();
-              }
-            };
-
-            closeBtn.addEventListener("click", closeLightbox);
-            overlay.addEventListener("click", closeLightbox);
-            window.addEventListener("keydown", onKeyDown);
-
-            overlay.appendChild(closeBtn);
-            overlay.appendChild(fullImg);
-            document.body.appendChild(overlay);
+                });
+              });
+            } catch (err) {
+              failedCount++;
+            }
           }
-        });
-      }
 
-      if (btnHapusKtp) {
-        btnHapusKtp.addEventListener("click", () => {
-          const currentUrl = this.formData.fileKtp;
-          if (currentUrl) {
-            btnHapusKtp.disabled = true;
-            btnHapusKtp.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Menghapus...';
-            this.http.post(i.apiUrl + "/simrsba/general-consent/delete-ktp", {
-              noCheckin: this.noCheckin,
-              fileUrl: currentUrl
-            }).subscribe({
-              next: () => {
-                btnHapusKtp.disabled = false;
-                btnHapusKtp.innerHTML = '<i class="bi bi-trash me-1"></i>Hapus';
-                this.formData.fileKtp = "";
-                if (inputKtp) inputKtp.value = "";
-                if (previewContent) previewContent.innerHTML = "";
-                if (previewContainer) previewContainer.style.display = "none";
-                if (btnUploadKtp) btnUploadKtp.innerHTML = '<i class="bi bi-camera me-1"></i>Pilih / Ambil Foto KTP';
-                showSuccessToast("File KTP berhasil dihapus");
-              },
-              error: () => {
-                btnHapusKtp.disabled = false;
-                btnHapusKtp.innerHTML = '<i class="bi bi-trash me-1"></i>Hapus';
-                showErrorAlert("Gagal menghapus file KTP dari server");
-              }
-            });
+          if (btnUploadKtp) {
+            btnUploadKtp.disabled = false;
+            btnUploadKtp.innerHTML = '<i class="bi bi-cloud-arrow-up me-1"></i>Pilih / Tambah Foto / Berkas KTP';
+          }
+          if (ktpStatus) ktpStatus.textContent = "";
+          inputKtp.value = "";
+
+          this.refreshKtpPreviews();
+
+          if (uploadedCount > 0 && failedCount === 0) {
+            this.toastr.success(`${uploadedCount} berkas KTP berhasil diunggah`, "Sukses");
+          } else if (uploadedCount > 0 && failedCount > 0) {
+            this.toastr.warning(`${uploadedCount} berkas berhasil diunggah, ${failedCount} gagal`, "Peringatan");
           } else {
-            this.formData.fileKtp = "";
-            if (inputKtp) inputKtp.value = "";
-            if (previewContent) previewContent.innerHTML = "";
-            if (previewContainer) previewContainer.style.display = "none";
-            if (btnUploadKtp) btnUploadKtp.innerHTML = '<i class="bi bi-camera me-1"></i>Pilih / Ambil Foto KTP';
+            this.toastr.error("Gagal mengunggah berkas KTP", "Error");
           }
         });
       }
@@ -605,6 +553,157 @@ export var GeneralConsentComponent = (() => {
       }
 
       this.renderPrintLayout(noMr, nama, tglLahir, kelamin);
+    }
+
+    renderKtpItemsHtml(files) {
+      if (!files || !Array.isArray(files) || files.length === 0) return "";
+      return files.map((fileUrl, index) => {
+        const fullUrl = fileUrl.startsWith("http") ? fileUrl : (i.apiUrl + fileUrl);
+        const cleanPath = fileUrl.split("?")[0].toLowerCase();
+        const isPdf = cleanPath.endsWith(".pdf");
+        const rawName = fileUrl.split("/").pop().split("?")[0];
+        const fileName = rawName || `Berkas KTP ${index + 1}`;
+        if (isPdf) {
+          return `
+            <div class="border rounded p-2 bg-light d-flex align-items-center gap-2 position-relative gc-ktp-item gc-ktp-pdf-item shadow-sm" data-url="${fullUrl}" style="min-width:220px;max-width:300px;background:#f8f9fa;cursor:pointer;" title="Klik untuk membuka berkas PDF">
+              <i class="bi bi-file-earmark-pdf-fill text-danger fs-2 flex-shrink-0"></i>
+              <div class="overflow-hidden flex-grow-1">
+                <div class="small fw-semibold text-truncate" title="${fileName}" style="font-size:12px;">${fileName}</div>
+                <a href="${fullUrl}" target="_blank" rel="noopener noreferrer" class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 mt-1 text-decoration-none d-inline-flex align-items-center" style="font-size:10px;padding:2px 6px;">
+                  <i class="bi bi-box-arrow-up-right me-1"></i>Buka PDF
+                </a>
+              </div>
+              <button type="button" class="btn btn-sm btn-outline-danger gc-btn-del-file flex-shrink-0 ms-1" data-url="${fileUrl}" title="Hapus berkas PDF ini" style="padding:2px 7px;">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="border rounded p-1 bg-white position-relative d-inline-block text-center gc-ktp-item shadow-sm" style="width:130px;">
+              <div class="gc-ktp-preview-img-wrapper" data-src="${fullUrl}" style="position:relative;cursor:pointer;height:95px;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:4px;background:#f1f1f1;" title="Klik untuk memperbesar foto">
+                <img src="${fullUrl}" class="gc-ktp-img-preview" style="max-height:95px;max-width:100%;object-fit:cover;" alt="KTP">
+                <div style="position:absolute;inset:0;background:rgba(0,0,0,0.4);color:#fff;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s;font-size:11px;font-weight:500;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">
+                  <i class="bi bi-zoom-in me-1"></i>Perbesar
+                </div>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mt-1 px-1">
+                <span class="text-truncate text-muted" style="font-size:10px;max-width:80px;" title="${fileName}">${fileName}</span>
+                <button type="button" class="btn btn-xs btn-outline-danger gc-btn-del-file" data-url="${fileUrl}" title="Hapus foto ini" style="padding:0 4px;font-size:11px;line-height:1.2;">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
+          `;
+        }
+      }).join("");
+    }
+
+    refreshKtpPreviews(root) {
+      const container = (root && root.querySelector ? root.querySelector("#gc-ktp-preview-container") : null) || document.getElementById("gc-ktp-preview-container");
+      if (!container) return;
+      const files = (this.formData && Array.isArray(this.formData.filesKtp)) ? this.formData.filesKtp.filter(Boolean) : [];
+      if (files.length === 0) {
+        container.innerHTML = "";
+        container.style.display = "none";
+      } else {
+        container.innerHTML = this.renderKtpItemsHtml(files);
+        container.style.display = "flex";
+      }
+      this.bindKtpPreviewEvents(container);
+    }
+
+    bindKtpPreviewEvents(scope) {
+      const host = scope || document.getElementById("gc-ktp-preview-container") || document;
+      host.querySelectorAll(".gc-btn-del-file").forEach((btn) => {
+        btn.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const targetUrl = btn.getAttribute("data-url");
+          if (!targetUrl) return;
+          btn.disabled = true;
+          btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+          this.http.post(i.apiUrl + "/simrsba/general-consent/delete-ktp", {
+            noCheckin: this.noCheckin,
+            fileUrl: targetUrl
+          }).subscribe({
+            next: (res) => {
+              if (res && res.data && Array.isArray(res.data.filesKtp)) {
+                this.formData.filesKtp = [...res.data.filesKtp];
+              } else {
+                this.formData.filesKtp = (this.formData.filesKtp || []).filter((u) => u !== targetUrl);
+              }
+              this.formData.fileKtp = (this.formData.filesKtp && this.formData.filesKtp[0]) || "";
+              this.refreshKtpPreviews();
+              this.toastr.success("Berkas KTP berhasil dihapus", "Sukses");
+            },
+            error: () => {
+              btn.disabled = false;
+              btn.innerHTML = '<i class="bi bi-trash"></i>';
+              this.toastr.error("Gagal menghapus berkas KTP dari server", "Error");
+            }
+          });
+        };
+      });
+
+      host.querySelectorAll(".gc-ktp-pdf-item").forEach((card) => {
+        card.onclick = (e) => {
+          if (e.target.closest(".gc-btn-del-file") || e.target.closest("a")) return;
+          const url = card.getAttribute("data-url");
+          if (url) window.open(url, "_blank");
+        };
+      });
+
+      host.querySelectorAll(".gc-ktp-preview-img-wrapper").forEach((wrapper) => {
+        wrapper.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const src = wrapper.getAttribute("data-src") || wrapper.querySelector("img")?.src;
+          if (src) this.openLightbox(src);
+        };
+      });
+    }
+
+    openLightbox(src) {
+      const existing = document.getElementById("gc-ktp-lightbox");
+      if (existing) existing.remove();
+
+      const overlay = document.createElement("div");
+      overlay.id = "gc-ktp-lightbox";
+      overlay.style.cssText = "position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.92);z-index:999999;display:flex;align-items:center;justify-content:center;padding:20px;cursor:zoom-out;backdrop-filter:blur(3px);";
+
+      const closeBtn = document.createElement("button");
+      closeBtn.type = "button";
+      closeBtn.innerHTML = "&times;";
+      closeBtn.title = "Tutup (Esc)";
+      closeBtn.style.cssText = "position:absolute;top:15px;right:25px;background:none;border:none;color:#ffffff;font-size:42px;font-weight:300;line-height:1;cursor:pointer;padding:0 10px;z-index:1000000;opacity:0.85;transition:opacity 0.2s;";
+      closeBtn.onmouseover = () => { closeBtn.style.opacity = "1"; };
+      closeBtn.onmouseout = () => { closeBtn.style.opacity = "0.85"; };
+
+      const fullImg = document.createElement("img");
+      fullImg.src = src;
+      fullImg.alt = "KTP Fullscreen";
+      fullImg.style.cssText = "max-width:92vw;max-height:90vh;object-fit:contain;border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,0.9);cursor:default;";
+      fullImg.addEventListener("click", (ev) => ev.stopPropagation());
+
+      const closeLightbox = () => {
+        window.removeEventListener("keydown", onKeyDown);
+        overlay.remove();
+      };
+
+      const onKeyDown = (ev) => {
+        if (ev.key === "Escape" || ev.keyCode === 27) {
+          closeLightbox();
+        }
+      };
+
+      closeBtn.addEventListener("click", closeLightbox);
+      overlay.addEventListener("click", closeLightbox);
+      window.addEventListener("keydown", onKeyDown);
+
+      overlay.appendChild(closeBtn);
+      overlay.appendChild(fullImg);
+      document.body.appendChild(overlay);
     }
 
     initCanvas(id, fieldKey) {

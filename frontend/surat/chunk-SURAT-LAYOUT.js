@@ -1,15 +1,12 @@
-function getOrCreateToastContainer() {
-  let container = document.getElementById("custom-surat-toast-container");
-  if (!container) {
-    container = document.createElement("div");
-    container.id = "custom-surat-toast-container";
-    container.style.cssText = "position:fixed; top:20px; right:20px; z-index:999999; display:flex; flex-direction:column; gap:10px; pointer-events:none;";
-    document.body.appendChild(container);
-  }
-  return container;
-}
-
 export function showSuccessToast(title = 'Berhasil disimpan!') {
+  if (typeof window !== 'undefined' && window.__toastr) {
+    window.__toastr.success(title, 'Sukses');
+    return;
+  }
+  if (typeof window !== 'undefined' && window.toastr) {
+    window.toastr.success(title, 'Sukses');
+    return;
+  }
   if (typeof window !== 'undefined' && window.Swal) {
     window.Swal.fire({
       icon: 'success',
@@ -20,26 +17,18 @@ export function showSuccessToast(title = 'Berhasil disimpan!') {
       timer: 2500,
       timerProgressBar: true
     });
-    return;
   }
-  const container = getOrCreateToastContainer();
-  const toast = document.createElement("div");
-  toast.className = "custom-surat-toast";
-  toast.style.cssText = "pointer-events:auto; background:#198754; color:#fff; padding:12px 20px; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,0.2); font-family:sans-serif; font-size:14px; font-weight:600; display:flex; align-items:center; gap:10px; transition:all 0.3s ease; transform:translateY(-10px); opacity:0;";
-  toast.innerHTML = `<i class="bi bi-check-circle-fill" style="font-size:18px;"></i><span>${title}</span>`;
-  container.appendChild(toast);
-  requestAnimationFrame(() => {
-    toast.style.transform = "translateY(0)";
-    toast.style.opacity = "1";
-  });
-  setTimeout(() => {
-    toast.style.opacity = "0";
-    toast.style.transform = "translateY(-10px)";
-    setTimeout(() => toast.remove(), 300);
-  }, 2500);
 }
 
 export function showErrorAlert(title = 'Gagal menyimpan data!') {
+  if (typeof window !== 'undefined' && window.__toastr) {
+    window.__toastr.error(title, 'Error');
+    return;
+  }
+  if (typeof window !== 'undefined' && window.toastr) {
+    window.toastr.error(title, 'Error');
+    return;
+  }
   if (typeof window !== 'undefined' && window.Swal) {
     window.Swal.fire({
       icon: 'error',
@@ -47,23 +36,7 @@ export function showErrorAlert(title = 'Gagal menyimpan data!') {
       text: title,
       confirmButtonColor: '#dc3545'
     });
-    return;
   }
-  const container = getOrCreateToastContainer();
-  const toast = document.createElement("div");
-  toast.className = "custom-surat-toast";
-  toast.style.cssText = "pointer-events:auto; background:#dc3545; color:#fff; padding:12px 20px; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,0.2); font-family:sans-serif; font-size:14px; font-weight:600; display:flex; align-items:center; gap:10px; transition:all 0.3s ease; transform:translateY(-10px); opacity:0;";
-  toast.innerHTML = `<i class="bi bi-exclamation-triangle-fill" style="font-size:18px;"></i><span>${title}</span>`;
-  container.appendChild(toast);
-  requestAnimationFrame(() => {
-    toast.style.transform = "translateY(0)";
-    toast.style.opacity = "1";
-  });
-  setTimeout(() => {
-    toast.style.opacity = "0";
-    toast.style.transform = "translateY(-10px)";
-    setTimeout(() => toast.remove(), 300);
-  }, 3500);
 }
 
 export function showConfirmDialog(title, callback) {
@@ -181,7 +154,7 @@ ${getStandardGridCSS()}
 ${extraCss}
 </style>
 
-<ul class="nav nav-tabs mb-3 ${tabsClass}" role="tablist">
+<ul class="nav nav-tabs ${tabsClass}" role="tablist" style="margin-bottom:0;">
   <li class="nav-item" role="presentation">
     <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#${inputPaneId}" type="button" role="tab">
       <i class="bi bi-pencil-square me-1"></i>Input Data
@@ -196,7 +169,7 @@ ${extraCss}
 
 <div class="tab-content">
   <div class="tab-pane fade show active" id="${inputPaneId}" role="tabpanel"
-       style="padding:20px;background:#fff;border:1px solid #ddd;border-top:none;border-radius:0 0 5px 5px;">
+       style="padding:15px;background:#fff;border:1px solid #dee2e6;border-top:none;border-radius:0 0 5px 5px;">
     ${inputContent}
   </div>
 
