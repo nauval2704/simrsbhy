@@ -6,6 +6,7 @@ var a = {
   // antreanUrl: "https://rsbhyaceh.com:8889"
   // dev
   // apiUrl: "http://localhost:1822",
-  antreanUrl: "http://localhost:8889",
+  //antreanUrl: "http://localhost:8889",
+  antreanUrl: "https://36.66.36.106:8889",
 };
 export { a };

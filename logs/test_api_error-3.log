@@ -7931,3 +7931,306 @@ TypeError: Cannot read properties of undefined (reading 'obat')
     at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
     at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
     at SendStream.error (/home/test-simrsba/backend/node_modules/serve-static/index.js:121:7)
+2026-09-14 22:24 +07:00: Error: Not Found
+    at /home/test-simrsba/backend/app.js:202:13
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:635:15
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:260:14)
+    at Function.handle (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:174:3)
+    at router (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:47:12)
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at serveStatic (/home/test-simrsba/backend/node_modules/serve-static/index.js:75:16)
+2026-09-14 22:24 +07:00: Error: Not Found
+    at /home/test-simrsba/backend/app.js:202:13
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:635:15
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:260:14)
+    at Function.handle (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:174:3)
+    at router (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:47:12)
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at serveStatic (/home/test-simrsba/backend/node_modules/serve-static/index.js:75:16)
+2026-09-14 22:45 +07:00: Error: Not Found
+    at /home/test-simrsba/backend/app.js:202:13
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:635:15
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:260:14)
+    at Function.handle (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:174:3)
+    at router (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:47:12)
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at SendStream.error (/home/test-simrsba/backend/node_modules/serve-static/index.js:121:7)
+2026-09-15 00:13 +07:00: Error: Not Found
+    at /home/test-simrsba/backend/app.js:202:13
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:635:15
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:260:14)
+    at Function.handle (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:174:3)
+    at router (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:47:12)
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at serveStatic (/home/test-simrsba/backend/node_modules/serve-static/index.js:75:16)
+2026-09-15 00:38 +07:00: Error: Not Found
+    at /home/test-simrsba/backend/app.js:203:13
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:635:15
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:260:14)
+    at Function.handle (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:174:3)
+    at router (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:47:12)
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at SendStream.error (/home/test-simrsba/backend/node_modules/serve-static/index.js:121:7)
+2026-09-15 00:42 +07:00: Error: Not Found
+    at /home/test-simrsba/backend/app.js:203:13
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:635:15
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:260:14)
+    at Function.handle (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:174:3)
+    at router (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:47:12)
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at SendStream.error (/home/test-simrsba/backend/node_modules/serve-static/index.js:121:7)
+2026-09-15 00:49 +07:00: Error: Not Found
+    at /home/test-simrsba/backend/app.js:203:13
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:635:15
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:260:14)
+    at Function.handle (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:174:3)
+    at router (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:47:12)
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at SendStream.error (/home/test-simrsba/backend/node_modules/serve-static/index.js:121:7)
+2026-09-15 00:50 +07:00: Error: Not Found
+    at /home/test-simrsba/backend/app.js:203:13
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at SendStream.error (/home/test-simrsba/backend/node_modules/serve-static/index.js:121:7)
+    at SendStream.emit (node:events:517:28)
+    at SendStream.error (/home/test-simrsba/backend/node_modules/send/index.js:270:17)
+    at SendStream.onStatError (/home/test-simrsba/backend/node_modules/send/index.js:421:12)
+    at next (/home/test-simrsba/backend/node_modules/send/index.js:735:16)
+    at onstat (/home/test-simrsba/backend/node_modules/send/index.js:724:14)
+    at FSReqCallback.oncomplete (node:fs:210:21)
+2026-09-15 00:50 +07:00: Error: Not Found
+    at /home/test-simrsba/backend/app.js:203:13
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:635:15
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:260:14)
+    at Function.handle (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:174:3)
+    at router (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:47:12)
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at SendStream.error (/home/test-simrsba/backend/node_modules/serve-static/index.js:121:7)
+2026-09-15 00:52 +07:00: Error: Not Found
+    at /home/test-simrsba/backend/app.js:203:13
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:635:15
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:260:14)
+    at Function.handle (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:174:3)
+    at router (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:47:12)
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at SendStream.error (/home/test-simrsba/backend/node_modules/serve-static/index.js:121:7)
+2026-09-15 00:52 +07:00: Error: Not Found
+    at /home/test-simrsba/backend/app.js:203:13
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:635:15
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:260:14)
+    at Function.handle (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:174:3)
+    at router (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:47:12)
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at SendStream.error (/home/test-simrsba/backend/node_modules/serve-static/index.js:121:7)
+2026-09-15 00:57 +07:00: Error: Not Found
+    at /home/test-simrsba/backend/app.js:203:13
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at SendStream.error (/home/test-simrsba/backend/node_modules/serve-static/index.js:121:7)
+    at SendStream.emit (node:events:517:28)
+    at SendStream.error (/home/test-simrsba/backend/node_modules/send/index.js:270:17)
+    at SendStream.onStatError (/home/test-simrsba/backend/node_modules/send/index.js:421:12)
+    at next (/home/test-simrsba/backend/node_modules/send/index.js:735:16)
+    at onstat (/home/test-simrsba/backend/node_modules/send/index.js:724:14)
+    at FSReqCallback.oncomplete (node:fs:210:21)
+2026-09-15 00:57 +07:00: Error: Not Found
+    at /home/test-simrsba/backend/app.js:203:13
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at SendStream.error (/home/test-simrsba/backend/node_modules/serve-static/index.js:121:7)
+    at SendStream.emit (node:events:517:28)
+    at SendStream.error (/home/test-simrsba/backend/node_modules/send/index.js:270:17)
+    at SendStream.onStatError (/home/test-simrsba/backend/node_modules/send/index.js:421:12)
+    at next (/home/test-simrsba/backend/node_modules/send/index.js:735:16)
+    at onstat (/home/test-simrsba/backend/node_modules/send/index.js:724:14)
+    at FSReqCallback.oncomplete (node:fs:210:21)
+2026-09-15 00:57 +07:00: Error: Not Found
+    at /home/test-simrsba/backend/app.js:203:13
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at SendStream.error (/home/test-simrsba/backend/node_modules/serve-static/index.js:121:7)
+    at SendStream.emit (node:events:517:28)
+    at SendStream.error (/home/test-simrsba/backend/node_modules/send/index.js:270:17)
+    at SendStream.onStatError (/home/test-simrsba/backend/node_modules/send/index.js:421:12)
+    at next (/home/test-simrsba/backend/node_modules/send/index.js:735:16)
+    at onstat (/home/test-simrsba/backend/node_modules/send/index.js:724:14)
+    at FSReqCallback.oncomplete (node:fs:210:21)
+2026-09-15 00:57 +07:00: Error: Not Found
+    at /home/test-simrsba/backend/app.js:203:13
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at SendStream.error (/home/test-simrsba/backend/node_modules/serve-static/index.js:121:7)
+    at SendStream.emit (node:events:517:28)
+    at SendStream.error (/home/test-simrsba/backend/node_modules/send/index.js:270:17)
+    at SendStream.onStatError (/home/test-simrsba/backend/node_modules/send/index.js:421:12)
+    at next (/home/test-simrsba/backend/node_modules/send/index.js:735:16)
+    at onstat (/home/test-simrsba/backend/node_modules/send/index.js:724:14)
+    at FSReqCallback.oncomplete (node:fs:210:21)
+2026-09-15 09:39 +07:00: Error: Not Found
+    at /home/test-simrsba/backend/app.js:211:13
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:635:15
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:260:14)
+    at Function.handle (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:174:3)
+    at router (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:47:12)
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:635:15
+You have triggered an unhandledRejection, you may have forgotten to catch a Promise rejection:
+TypeError: Cannot read properties of undefined (reading 'obat')
+    at /home/test-simrsba/backend/app/api/controllers/farmasi.js:3104:56
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+You have triggered an unhandledRejection, you may have forgotten to catch a Promise rejection:
+TypeError: Cannot read properties of undefined (reading 'obat')
+    at /home/test-simrsba/backend/app/api/controllers/farmasi.js:3104:56
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+You have triggered an unhandledRejection, you may have forgotten to catch a Promise rejection:
+TypeError: Cannot read properties of undefined (reading 'obat')
+    at /home/test-simrsba/backend/app/api/controllers/farmasi.js:3104:56
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2026-09-15 14:30 +07:00: Error: Not Found
+    at /home/test-simrsba/backend/app.js:211:13
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:635:15
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:260:14)
+    at Function.handle (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:174:3)
+    at router (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:47:12)
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:635:15
+2026-09-15 15:34 +07:00: Error: Not Found
+    at /home/test-simrsba/backend/app.js:211:13
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:635:15
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:260:14)
+    at Function.handle (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:174:3)
+    at router (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:47:12)
+    at Layer.handle [as handle_request] (/home/test-simrsba/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:317:13)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:284:7
+    at Function.process_params (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:335:12)
+    at next (/home/test-simrsba/backend/node_modules/express/lib/router/index.js:275:10)
+    at /home/test-simrsba/backend/node_modules/express/lib/router/index.js:635:15

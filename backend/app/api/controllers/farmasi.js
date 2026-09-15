@@ -3005,6 +3005,69 @@ module.exports = {
       });
     }
   },
+  deleteObatKronis: async (req, res) => { // start obat kronis 
+    try {
+      const { idObat, resepId, noCheckin } = req.body;
+      if (!idObat || !noCheckin) {
+        return res.status(400).send({
+          status: "error",
+          message: "idObat dan noCheckin wajib diisi",
+          data: null,
+        });
+      }
+
+      const resepQuery = { noCheckin: String(noCheckin).trim() };
+      if (resepId) {
+        resepQuery._id = ObjectId(resepId);
+      }
+
+      const resep = await ResepModel.findOne(resepQuery);
+      if (!resep) {
+        return res.status(404).send({
+          status: "error",
+          message: "Obat kronis tidak ditemukan pada resep pasien",
+          data: null,
+        });
+      }
+
+      const chronicItem = resep.obat.find(
+        (item) => String(item?.idObat ?? "") === String(idObat) && item?.kronis === true
+      );
+
+      if (!chronicItem) {
+        return res.status(404).send({
+          status: "error",
+          message: "Obat kronis tidak ditemukan pada resep pasien",
+          data: null,
+        });
+      }
+
+      const stockModels = { APOTEK: stockApotek, IGD: stockIgd, INAP: stockInap };
+      const stockModel = stockModels[chronicItem.sumberStock] || stockApotek;
+      await stockModel.findByIdAndUpdate(chronicItem.idObat, {
+        $inc: { jumlah: Number(chronicItem.jumlah || 0) },
+        updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+      });
+
+      resep.obat = resep.obat.filter(
+        (item) => !(String(item?.idObat ?? "") === String(idObat) && item?.kronis === true)
+      );
+      await resep.save();
+
+      return res.status(200).send({
+        status: "success",
+        message: "Obat kronis berhasil dihapus",
+        data: { idObat },
+      });
+    } catch (error) {
+      return res.status(400).send({
+        error,
+        status: "error",
+        message: "Gagal menghapus obat kronis",
+        data: null,
+      });
+    }
+  },   //end delete obat kronis
   deletObatResep: async (req, res) => {
     try {
         let nama=''; 
@@ -3249,276 +3312,326 @@ module.exports = {
       });
     }
   },
-  inputResep: async (req, res) => {
+  inputResep: async (req, res) => { // start input resep
     try {
-      const item = req.body.dataObat;
-      let findItem;
-
-      if (item.sumberStock === "IGD") {
-        findItem = await stockIgd
-          .findOneAndUpdate(
-            { _id: item.idObat },
-            {
-              $inc: { jumlah: -item.qty },
-              updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-            },
-            { new: true }
-          )
-          .sort({ createdAt: 1 });
-      } else if (item.sumberStock === "INAP") {
-        findItem = await stockInap
-          .findOneAndUpdate(
-            { _id: item.idObat },
-            {
-              $inc: { jumlah: -item.qty },
-              updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-            },
-            { new: true }
-          )
-          .sort({ createdAt: 1 });
-      } else {
-        findItem = await stockApotek
-          .findOneAndUpdate(
-            { _id: item.idObat },
-            {
-              $inc: { jumlah: -item.qty },
-              updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-            },
-            { new: true }
-          )
-          .sort({ createdAt: 1 });
-      }
-
-      if (!findItem) {
-        return res.status(400).send({
-          status: "error",
-          message: "Obat tidak ditemukan pada stock yang dipilih",
-          data: null,
-        });
-      }
-
-      const getResep = await ResepModel.findById(
-        ObjectId(req.body.dataResep._id)
-      );
-      if (!getResep) {
-        return res.status(400).send({
-          status: "error",
-          message: "Resep tidak ditemukan",
-          data: null,
-        });
-      }
-      const idPrmrj = req.body.idPrmrj || (req.body.dataResep && req.body.dataResep.idPrmrj) || null;
-      if (idPrmrj) {
-        getResep.idPrmrj = idPrmrj;
-      }
-      const obatData = {
-        idObat: findItem._id,
-        noFaktur: findItem.noFaktur,
-        tglFaktur: findItem.tglFaktur,
-        distributor: findItem.distributor,
-        kategori: findItem.kategori,
-        batch: findItem.batch,
-        nama: findItem.nama,
-        expired: findItem.expired,
-        satuan: findItem.satuan,
-        jenis: findItem.jenis,
-        jenisObat: item.jenisObat,
-        takaran: item.takaran,
-        quantity: item.quantity,
-        kapan: item.kapan,
-        jam: item.jam,
-        deskripsi: item.deskripsi,
-        jumlah: item.qty,
-        hargaBeli: findItem.hargaBeli,
-        hargaSatuan: findItem.hargaSatuan,
-        hargaJualBPJS: findItem.hargaJualBPJS,
-        hargaJualYANKES: findItem.hargaJualYANKES,
-        createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-        noCheckin: req.body.dataResep.noCheckin,
-        idPrmrj: idPrmrj,
-        sumberStock: req.body.dataObat.sumberStock,
-        user: req.body.user,
-        kronis:req.body.kronis || false,  
-      };
-
-      getResep.obat.push(obatData);
-      await getResep.save();
-
-      return res.status(200).send({
-        status: "success",
-        message: "Obat berhasil ditambahkan",
-        data: req.body,
-      });
-    } catch (error) {
-      return res.status(400).send({
-        error: error,
-        status: "error",
-        message: "Terjadi kesalahan saat menambahkan obat",
-        data: null,
-      });
-    }
-  },
-  inputResepRacikan: async (req, res) => {
-    try {
-      const item = await req.body.dataObat;
-
-      const getCabar = await CheckinModel.findOne({
-        noCheckin: req.body.dataResep.noCheckin,
-      });
-
-      const getMargin = await MarginModel.findOne({});
-
-      var cabar = getCabar.cabar;
-
-      const namaObat = [];
-      let jumlah = 0;
-      let hargaBeli = 0;
-      let hargaSatuan = 0;
-      let hargaJualBPJS = 0;
-      let hargaJualYANKES = 0;
-      let namaobat="";
-
-      for (let index = 0; index < req.body.dataRacikan.length; index++) {
-        const element = req.body.dataRacikan[index];
+        const item = req.body.dataObat;
         let findItem;
+        const payloadResep = req.body.dataResep || {};
+        const idPrmrj = req.body.idPrmrj || (payloadResep && payloadResep.idPrmrj) || null;
+  
         if (item.sumberStock === "IGD") {
           findItem = await stockIgd
             .findOneAndUpdate(
-              { _id: element.idObat },
+              { _id: item.idObat },
               {
-                $inc: { jumlah: -element.qty },
+                $inc: { jumlah: -item.qty },
                 updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
               },
-              {
-                new: true,
-              }
+              { new: true }
             )
             .sort({ createdAt: 1 });
         } else if (item.sumberStock === "INAP") {
           findItem = await stockInap
             .findOneAndUpdate(
-              { _id: element.idObat },
+              { _id: item.idObat },
               {
-                $inc: { jumlah: -element.qty },
+                $inc: { jumlah: -item.qty },
                 updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
               },
-              {
-                new: true,
-              }
+              { new: true }
             )
             .sort({ createdAt: 1 });
         } else {
           findItem = await stockApotek
             .findOneAndUpdate(
-              { _id: element.idObat },
+              { _id: item.idObat },
               {
-                $inc: { jumlah: -element.qty },
+                $inc: { jumlah: -item.qty },
                 updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
               },
-              {
-                new: true,
-              }
+              { new: true }
             )
             .sort({ createdAt: 1 });
         }
-
-
-        hargaBeli += findItem.hargaBeli;
-        hargaSatuan += findItem.hargaSatuan;
-        hargaJualBPJS += findItem.hargaJualBPJS * element.qty;
-        hargaJualYANKES += findItem.hargaJualYANKES * element.qty;
-        jumlah += element.qty;
-        namaobat=element.nama; 
-        if (cabar == "UMUM") {
-          let jumlah =
-            findItem.hargaJualBPJS +
-            (findItem.hargaJualBPJS * getMargin.marginUmum) / 100;
-
-          namaObat.push(
-            element.nama +
-            " | Jumlah: " +
-            element.qty +
-            " | Satuan: " +
-            findItem.satuan +
-            " | Harga: " +
-            (element.qty * findItem.hargaJualYANKES).toLocaleString()
-          );
-        } else {
-          let jumlah =
-            findItem.hargaJualYANKES +
-            (findItem.hargaJualBPJS * getMargin.marginBpjsYankes) / 100;
-
-          namaObat.push(
-            element.nama +
-            " | Jumlah: " +
-            element.qty +
-            " | Satuan: " +
-            findItem.satuan +
-            " | Harga: " +
-            (element.qty * findItem.hargaJualBPJS).toLocaleString()
-          );
+  
+        if (!findItem) {
+          return res.status(400).send({
+            status: "error",
+            message: "Obat tidak ditemukan pada stock yang dipilih",
+            data: null,
+          });
         }
+  
+        // Fallback penting untuk flow kronis: kadang frontend mengirim dataResep
+        // tanpa _id atau dengan _id stale, sehingga server harus mencari resep
+        // berdasarkan noCheckin/idPrmrj terlebih dahulu dan baru bikin jika belum ada.
+        let getResep = null;
+        const resepId = payloadResep._id || payloadResep.id || payloadResep.resepId;
+        if (resepId) {
+          try {
+            getResep = await ResepModel.findById(ObjectId(resepId));
+          } catch (error) {
+            getResep = null;
+          }
+        }
+  
+        if (!getResep) {
+          const searchQuery = { noCheckin: payloadResep.noCheckin };
+          if (idPrmrj) {
+            searchQuery.idPrmrj = String(idPrmrj);
+          }
+          getResep = await ResepModel.findOne(searchQuery).sort({ createdAt: -1 });
+        }
+  
+        if (!getResep) {
+          getResep = await new ResepModel({
+            noCheckin: payloadResep.noCheckin,
+            idPrmrj: idPrmrj || null,
+            createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+            user: req.body.user || "system",
+          }).save();
+        }
+  
+        if (idPrmrj) {
+          getResep.idPrmrj = idPrmrj;
+        }
+        const obatData = {
+          idObat: findItem._id,
+          noFaktur: findItem.noFaktur,
+          tglFaktur: findItem.tglFaktur,
+          distributor: findItem.distributor,
+          kategori: findItem.kategori,
+          batch: findItem.batch,
+          nama: findItem.nama,
+          expired: findItem.expired,
+          satuan: findItem.satuan,
+          jenis: findItem.jenis,
+          jenisObat: item.jenisObat,
+          takaran: item.takaran,
+          quantity: item.quantity,
+          kapan: item.kapan,
+          jam: item.jam,
+          deskripsi: item.deskripsi,
+          jumlah: item.qty,
+          hargaBeli: findItem.hargaBeli,
+          hargaSatuan: findItem.hargaSatuan,
+          hargaJualBPJS: findItem.hargaJualBPJS,
+          hargaJualYANKES: findItem.hargaJualYANKES,
+          createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          noCheckin: req.body.dataResep.noCheckin,
+          idPrmrj: idPrmrj,
+          sumberStock: req.body.dataObat.sumberStock,
+          user: req.body.user,
+          kronis:req.body.kronis || false,  
+        };
+  
+        getResep.obat.push(obatData);
+        await getResep.save();
+  
+        return res.status(200).send({
+          status: "success",
+          message: "Obat berhasil ditambahkan",
+          data: req.body,
+        });
+      } catch (error) {
+        return res.status(400).send({
+          error: error,
+          status: "error",
+          message: "Terjadi kesalahan saat menambahkan obat",
+          data: null,
+        });
       }
-
-      const getResep = await ResepModel.findById(
-        ObjectId(req.body.dataResep._id)
-      );
-      const idPrmrj = req.body.idPrmrj || (req.body.dataResep && req.body.dataResep.idPrmrj) || null;
-      if (idPrmrj) {
-        getResep.idPrmrj = idPrmrj;
+  },// end input resep
+  inputResepRacikan: async (req, res) => { // start input racikan
+    try {
+        const item = await req.body.dataObat;
+        const payloadResep = req.body.dataResep || {};
+        const idPrmrj = req.body.idPrmrj || (payloadResep && payloadResep.idPrmrj) || null;
+  
+        const getCabar = await CheckinModel.findOne({
+          noCheckin: payloadResep.noCheckin,
+        });
+  
+        const getMargin = await MarginModel.findOne({});
+  
+        var cabar = getCabar.cabar;
+  
+        const namaObat = [];
+        let jumlah = 0;
+        let hargaBeli = 0;
+        let hargaSatuan = 0;
+        let hargaJualBPJS = 0;
+        let hargaJualYANKES = 0;
+        let namaobat="";
+  
+        for (let index = 0; index < req.body.dataRacikan.length; index++) {
+          const element = req.body.dataRacikan[index];
+          let findItem;
+          if (item.sumberStock === "IGD") {
+            findItem = await stockIgd
+              .findOneAndUpdate(
+                { _id: element.idObat },
+                {
+                  $inc: { jumlah: -element.qty },
+                  updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+                },
+                {
+                  new: true,
+                }
+              )
+              .sort({ createdAt: 1 });
+          } else if (item.sumberStock === "INAP") {
+            findItem = await stockInap
+              .findOneAndUpdate(
+                { _id: element.idObat },
+                {
+                  $inc: { jumlah: -element.qty },
+                  updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+                },
+                {
+                  new: true,
+                }
+              )
+              .sort({ createdAt: 1 });
+          } else {
+            findItem = await stockApotek
+              .findOneAndUpdate(
+                { _id: element.idObat },
+                {
+                  $inc: { jumlah: -element.qty },
+                  updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+                },
+                {
+                  new: true,
+                }
+              )
+              .sort({ createdAt: 1 });
+          }
+  
+  
+          hargaBeli += findItem.hargaBeli;
+          hargaSatuan += findItem.hargaSatuan;
+          hargaJualBPJS += findItem.hargaJualBPJS * element.qty;
+          hargaJualYANKES += findItem.hargaJualYANKES * element.qty;
+          jumlah += element.qty;
+          namaobat=element.nama; 
+          if (cabar == "UMUM") {
+            let jumlah =
+              findItem.hargaJualBPJS +
+              (findItem.hargaJualBPJS * getMargin.marginUmum) / 100;
+  
+            namaObat.push(
+              element.nama +
+              " | Jumlah: " +
+              element.qty +
+              " | Satuan: " +
+              findItem.satuan +
+              " | Harga: " +
+              (element.qty * findItem.hargaJualYANKES).toLocaleString()
+            );
+          } else {
+            let jumlah =
+              findItem.hargaJualYANKES +
+              (findItem.hargaJualBPJS * getMargin.marginBpjsYankes) / 100;
+  
+            namaObat.push(
+              element.nama +
+              " | Jumlah: " +
+              element.qty +
+              " | Satuan: " +
+              findItem.satuan +
+              " | Harga: " +
+              (element.qty * findItem.hargaJualBPJS).toLocaleString()
+            );
+          }
+        }
+  
+        // Untuk racikan, proses yang sama berlaku: cari resep yang cocok berdasarkan
+        // noCheckin/idPrmrj, atau buat baru agar tidak terhalang oleh missing _id.
+        let getResep = null;
+        const resepId = payloadResep._id || payloadResep.id || payloadResep.resepId;
+        if (resepId) {
+          try {
+            getResep = await ResepModel.findById(ObjectId(resepId));
+          } catch (error) {
+            getResep = null;
+          }
+        }
+  
+        if (!getResep) {
+          const searchQuery = { noCheckin: payloadResep.noCheckin };
+          if (idPrmrj) {
+            searchQuery.idPrmrj = String(idPrmrj);
+          }
+          getResep = await ResepModel.findOne(searchQuery).sort({ createdAt: -1 });
+        }
+  
+        // Jika resep belum ada, buat instance baru agar input racikan tetap bisa
+        // disimpan tanpa refresh halaman.
+        if (!getResep) {
+          getResep = await new ResepModel({
+            noCheckin: payloadResep.noCheckin,
+            idPrmrj: idPrmrj || null,
+            createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+            user: req.body.user || "system",
+          }).save();
+        }
+  
+        if (idPrmrj) {
+          getResep.idPrmrj = idPrmrj;
+        }
+  
+        /* idObat: "",
+          noFaktur: "", 
+          tglFaktur: "",
+          distributor: "", */ 
+  
+        getResep.obat.push({
+          idObat:"",
+          noFaktur: req.body.dataObat.noFaktur,
+          tglFaktur: "",
+          distributor: req.body.dataObat.distributor,
+          kategori: "OBAT",
+          batch: "",
+          nama: namaObat,
+          namaobat:namaobat, 
+          expired: "",
+          satuan: "",
+          jenis: "RACIKAN",
+          jenisObat: req.body.dataObat.jenisObat,
+          takaran: req.body.dataObat.takaran,
+          quantity: req.body.dataObat.quantity,
+          kapan: req.body.dataObat.kapan,
+          jam: req.body.dataObat.jam,
+          deskripsi: req.body.dataObat.deskripsi,
+          jumlah: jumlah,
+          hargaBeli: hargaBeli, 
+          hargaSatuan: hargaSatuan,
+          hargaJualBPJS: hargaJualBPJS,
+          hargaJualYANKES: hargaJualYANKES,
+          createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+          noCheckin: req.body.dataResep.noCheckin,
+          idPrmrj: idPrmrj,
+          sumberStock: req.body.dataObat.sumberStock,
+          user: req.body.user,
+          kronis: req.body.kronis || false,
+        });
+        await getResep.save();
+  
+        return res.status(200).send({
+          status: "success",
+          message: "Obat berhasil di tambah",
+          data: req.body,
+        });
+      } catch (error) {
+        return res.status(400).send({
+          error: error,
+          status: "error",
+          message: "error add distributor",
+          data: null,
+        });
       }
-
-      /* idObat: "",
-        noFaktur: "", 
-        tglFaktur: "",
-        distributor: "", */ 
-
-      getResep.obat.push({
-        idObat:"",
-        noFaktur: req.body.dataObat.noFaktur,
-        tglFaktur: "",
-        distributor: req.body.dataObat.distributor,
-        kategori: "OBAT",
-        batch: "",
-        nama: namaObat,
-        namaobat:namaobat, 
-        expired: "",
-        satuan: "",
-        jenis: "RACIKAN",
-        jenisObat: req.body.dataObat.jenisObat,
-        takaran: req.body.dataObat.takaran,
-        quantity: req.body.dataObat.quantity,
-        kapan: req.body.dataObat.kapan,
-        jam: req.body.dataObat.jam,
-        deskripsi: req.body.dataObat.deskripsi,
-        jumlah: jumlah,
-        hargaBeli: hargaBeli, 
-        hargaSatuan: hargaSatuan,
-        hargaJualBPJS: hargaJualBPJS,
-        hargaJualYANKES: hargaJualYANKES,
-        createdAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-        noCheckin: req.body.dataResep.noCheckin,
-        idPrmrj: idPrmrj,
-        sumberStock: req.body.dataObat.sumberStock,
-        user: req.body.user,
-        kronis: req.body.kronis || false,
-      });
-      await getResep.save();
-
-      return res.status(200).send({
-        status: "success",
-        message: "Obat berhasil di tambah",
-        data: req.body,
-      });
-    } catch (error) {
-      return res.status(400).send({
-        error: error,
-        status: "error",
-        message: "error add distributor",
-        data: null,
-      });
-    }
-  },
+  }, // end input racikan 
   detailResep: async (req, res) => {
     try {
       const getDetailResep = await ResepModel.aggregate([

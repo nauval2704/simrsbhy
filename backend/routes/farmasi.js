@@ -35,6 +35,7 @@ router.post("/input/resep", farmasiController.inputResep);
 router.post("/input/resep/racikan", farmasiController.inputResepRacikan);
 // hapus obar resep
 router.post("/delete/obat/resep", farmasiController.deletObatResep);
+router.post("/delete/obat/kronis", farmasiController.deleteObatKronis);
 // get detail resep by nocheckin
 router.post("/detail/resep", farmasiController.detailResep);
 //edit resep

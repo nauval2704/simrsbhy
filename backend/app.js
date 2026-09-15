@@ -83,9 +83,13 @@ const satusehatCondition = require("./routes/satusehat/condition/condition");
 const icare = require("./routes/icare");
 const keuangan = require("./routes/keuangan/keuangan");
 
+const admisi = require("./routes/admisi");// penambahan untuk antrian
+const auth = require("./routes/auth"); // penambahan untuk antrian
+const antrean = require("./routes/antrean"); // penambahan untuk antrian 
 
 const bodyParser = require("body-parser");
 const mongoose = require("./config/database"); //database configuration
+
 
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
@@ -142,6 +146,10 @@ app.get("/dashboard", function (req, res) {
 });
 
 // public route
+app.use("/admisi", admisi); // penambahan untuk antrian 
+app.use("/", auth); // penambahan untuk antrian
+app.use("/api",  antrean);// penambahan untuk antrian
+
 app.use("/mansis", mansis);
 app.use("/users", users);
 app.use("/simrs", simrs);
@@ -156,6 +164,7 @@ app.use("/gudang", validateUser, gudang);
 app.use("/farmasi", farmasi);
 app.use("/apotek", validateUser, apotek);
 app.use("/antreanrs", antreanrs);
+//app.use("/admisi", admisi);
 // app.use("/import", importStock);
 app.use("/ro", ro);
 /* app.use("/simrsba", validateUser, simrsba); */

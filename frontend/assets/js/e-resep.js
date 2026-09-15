@@ -476,19 +476,32 @@
   window.__ERESPEP_ITEMS__ = window.__ERESPEP_ITEMS__ || [];
 
   function startObserver() {
-    const trigger = function () {
+    const trigger = function (forceRefresh = false) {
       const tab = document.querySelector('#farmasi-tab-eresept');
-      if (tab) {
-        if (!tab.dataset.eResepReady || tab.dataset.eResepReady === 'false') {
-          loadEResepFromBackend().finally(() => renderEResep());
-        } else {
-          renderEResep();
-        }
+      if (!tab) return;
+
+      if (forceRefresh || !tab.dataset.eResepReady || tab.dataset.eResepReady === 'false') {
+        tab.dataset.eResepReady = 'false';
+        loadEResepFromBackend().finally(() => renderEResep());
+      } else {
+        renderEResep();
       }
     };
 
-    trigger();
-    const observer = new MutationObserver(trigger);
+    const handleTabShown = (event) => {
+      const target = event && event.target ? event.target : null;
+      if (!target) return;
+
+      const targetSelector = target.getAttribute?.('data-bs-target') || target.getAttribute?.('href') || '';
+      const isEResepTab = targetSelector.includes('#farmasi-tab-eresept') || target.id === 'farmasi-tab-eresept' || target.matches?.('#farmasi-tab-eresept');
+      if (isEResepTab) {
+        trigger(true);
+      }
+    };
+
+    document.addEventListener('shown.bs.tab', handleTabShown);
+    trigger(true);
+    const observer = new MutationObserver(() => trigger(false));
     if (document.body) {
       observer.observe(document.body, { childList: true, subtree: true });
     }
