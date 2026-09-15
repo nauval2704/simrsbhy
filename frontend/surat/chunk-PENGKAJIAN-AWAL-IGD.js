@@ -115,13 +115,6 @@ var PengkajianAwalIgdComponent = (() => {
               this.formData.namaPerawat = tr.namaPerawat;
             }
 
-            if (!this.formData.keluhanUtama) {
-              if (Array.isArray(tr.symptoms) && tr.symptoms.length > 0) {
-                this.formData.keluhanUtama = tr.symptoms.join(', ');
-              } else if (tr.situasiBerbahaya) {
-                this.formData.keluhanUtama = tr.situasiBerbahaya;
-              }
-            }
 
             if (!this.formData.tglMasukTime && tr.pukulPemeriksaan) {
               this.formData.tglMasukTime = tr.pukulPemeriksaan.substring(0, 5);
@@ -171,12 +164,13 @@ var PengkajianAwalIgdComponent = (() => {
         next: (res) => {
           if (res && res.data) {
             const rp = res.data;
-            if (!this.formData.keluhanUtama && rp.keluhanUtama) {
-              this.formData.keluhanUtama = rp.keluhanUtama;
-            } else if (!this.formData.keluhanUtama && rp.indikasiMasuk) {
+            // A: Keluhan Utama (Pengkajian Awal) <- rp.indikasiMasuk (A pada Ringkasan Pulang)
+            if (!this.formData.keluhanUtama && rp.indikasiMasuk && !String(rp.indikasiMasuk).startsWith("L1_")) {
               this.formData.keluhanUtama = rp.indikasiMasuk;
             }
-            if (!this.formData.riwayatPenyakitSekarang && rp.keluhanUtama) {
+
+            // B: Riwayat Penyakit Sekarang (Pengkajian Awal) <- rp.keluhanUtama (B pada Ringkasan Pulang)
+            if (!this.formData.riwayatPenyakitSekarang && rp.keluhanUtama && !String(rp.keluhanUtama).startsWith("L1_")) {
               this.formData.riwayatPenyakitSekarang = rp.keluhanUtama;
             }
             if (!this.formData.fisik && rp.pemeriksaanFisik) {
