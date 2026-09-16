@@ -67,39 +67,46 @@ export var GeneralConsentComponent = (() => {
     }
 
     fetchPatient() {
-      this.http
-        .get(
-          i.apiUrl +
-          "/simrsba/caripasien/pelayanan/IGD/nocheckin/" +
-          this.noCheckin
-        )
-        .subscribe({
-          next: (res) => {
-            if (res && res.length > 0) {
-              this.patient = res[0];
-              this.fetchDraft();
-            } else {
-              this.fetchPatientFallback();
-            }
-          },
-          error: () => {
-            this.fetchPatientFallback();
+      const isPoli = window.location.pathname.includes("/poli/");
+      const isInap = window.location.pathname.includes("/inap/");
+
+      let primaryUrl = i.apiUrl + "/simrsba/caripasien/pelayanan/IGD/nocheckin/" + this.noCheckin;
+      let fallbackUrl = i.apiUrl + "/simrsba/caripasienpolinocheckin/" + this.noCheckin;
+
+      if (isPoli) {
+        primaryUrl = i.apiUrl + "/simrsba/caripasienpolinocheckin/" + this.noCheckin;
+        fallbackUrl = i.apiUrl + "/simrsba/caripasien/pelayanan/IGD/nocheckin/" + this.noCheckin;
+      } else if (isInap) {
+        primaryUrl = i.apiUrl + "/simrsba/caripasien/pelayanan/INAP/nocheckin/" + this.noCheckin;
+        fallbackUrl = i.apiUrl + "/simrsba/caripasienpolinocheckin/" + this.noCheckin;
+      }
+
+      this.http.get(primaryUrl).subscribe({
+        next: (res) => {
+          if (res && res.length > 0) {
+            this.patient = res[0];
+            this.fetchDraft();
+          } else {
+            this.fetchPatientFallback(fallbackUrl);
           }
-        });
+        },
+        error: () => {
+          this.fetchPatientFallback(fallbackUrl);
+        }
+      });
     }
 
-    fetchPatientFallback() {
-      this.http
-        .get(i.apiUrl + "/simrsba/caripasienpolinocheckin/" + this.noCheckin)
-        .subscribe({
-          next: (res) => {
-            if (res && res.length > 0) this.patient = res[0];
-            this.fetchDraft();
-          },
-          error: () => {
-            this.fetchDraft();
-          }
-        });
+    fetchPatientFallback(targetUrl) {
+      const url = targetUrl || (i.apiUrl + "/simrsba/caripasienpolinocheckin/" + this.noCheckin);
+      this.http.get(url).subscribe({
+        next: (res) => {
+          if (res && res.length > 0) this.patient = res[0];
+          this.fetchDraft();
+        },
+        error: () => {
+          this.fetchDraft();
+        }
+      });
     }
 
     fetchDraft() {

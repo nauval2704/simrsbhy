@@ -136862,6 +136862,12 @@ var rb = [
         canActivate: [st],
       },
       {
+        path: "general-consent/:nocheckin",
+        loadComponent: () =>
+          import("./surat/chunk-GENERAL-CONSENT.js?v=" + Date.now()).then((t) => t.GeneralConsentComponent),
+        canActivate: [st],
+      },
+      {
         path: "poli/:nocheckin",
         component: B_,
         children: [
@@ -137116,6 +137122,12 @@ var rb = [
       {
         path: "satusehat",
         component: Td,
+        canActivate: [st],
+      },
+      {
+        path: "general-consent/:nocheckin",
+        loadComponent: () =>
+          import("./surat/chunk-GENERAL-CONSENT.js?v=" + Date.now()).then((t) => t.GeneralConsentComponent),
         canActivate: [st],
       },
       {
