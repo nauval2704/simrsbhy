@@ -3,7 +3,7 @@ module.exports = {
     {
       name: "simrs_api_test",
       script: "app.js",
-      cwd: "/home/test-simrsba/backend_rework",
+      cwd: "/home/test-simrsba/backend",
       watch: false,
       instances: 1,
       autorestart: true,
