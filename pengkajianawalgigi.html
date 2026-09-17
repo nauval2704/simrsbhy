@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Pengkajian Awal Rawat Jalan Poli Gigi - Legal 3 Halaman</title>
+  <style>
+    @page {
+      size: 215.9mm 355.6mm;
+      margin: 15mm 18mm;
+    }
+    
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 13px;
+      color: #000;
+      margin: 0;
+      padding: 0;
+      background: #e5e5e5;
+      line-height: 1.4;
+    }
+
+    .page {
+      width: 215.9mm;
+      min-height: 355.6mm;
+      padding: 15mm 18mm;
+      margin: 15px auto;
+      background: #fff;
+      border: 1px solid #ccc;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      position: relative;
+    }
+
+    @media print {
+      body {
+        background: transparent;
+        margin: 0;
+        padding: 0;
+      }
+      .page {
+        width: 100%;
+        min-height: 100%;
+        margin: 0;
+        padding: 0;
+        border: none;
+        page-break-after: always;
+        break-after: page;
+      }
+      .page:last-child {
+        page-break-after: avoid;
+        break-after: avoid;
+      }
+    }
+
+    .header-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 12px;
+    }
+
+    .header-table td {
+      vertical-align: middle;
+      border: none;
+    }
+
+    .logo-placeholder {
+      width: 95px;
+      height: 95px;
+      border: 1.5px dashed #444;
+      background: #fafafa;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 11px;
+      font-weight: bold;
+      color: #444;
+      padding: 4px;
+    }
+
+    .kop-hospital {
+      font-size: 13px;
+      line-height: 1.35;
+      padding-left: 12px;
+    }
+
+    .kop-hospital h2 {
+      margin: 0 0 3px 0;
+      font-size: 17px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+    }
+
+    .patient-box {
+      border: 1.5px solid #000;
+      padding: 8px 10px;
+      font-size: 12px;
+      width: 270px;
+    }
+
+    .patient-box table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .patient-box td {
+      padding: 2.5px 0;
+      border: none;
+      vertical-align: top;
+    }
+
+    .main-title {
+      text-align: center;
+      font-weight: bold;
+      font-size: 14px;
+      border-top: 2px solid #000;
+      border-bottom: 2px solid #000;
+      padding: 6px;
+      margin: 10px 0 16px 0;
+      letter-spacing: 0.8px;
+    }
+
+    .section-title {
+      font-weight: bold;
+      margin: 14px 0 6px 0;
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 12px;
+    }
+
+    table.data-table th, 
+    table.data-table td {
+      border: 1px solid #000;
+      padding: 5px 8px;
+      font-size: 12px;
+    }
+
+    table.data-table th {
+      background: #f2f2f2;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    .sub-item {
+      padding-left: 22px;
+    }
+
+    .vital-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 8px 0 14px 0;
+    }
+
+    .vital-table td {
+      border: none;
+      padding: 5px 4px;
+      font-size: 12.5px;
+    }
+
+    /* Alignment utilities for form fields */
+    .field-align-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 4px 0;
+    }
+
+    .field-align-table td {
+      border: none;
+      padding: 3px 0;
+      vertical-align: top;
+      font-size: 12.5px;
+    }
+
+    .field-align-table td.label-col {
+      white-space: nowrap;
+    }
+
+    .field-align-table td.colon-col {
+      width: 20px;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .field-align-table td.value-col {
+      width: 100%;
+    }
+
+    .odontogram-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 6px 0;
+    }
+
+    .odontogram-table td {
+      border: 1px solid #000;
+      height: 22px;
+      padding: 3px 6px;
+      font-size: 12px;
+      vertical-align: middle;
+    }
+
+    .image-placeholder {
+      width: 100%;
+      height: 180px;
+      border: 1.5px dashed #444;
+      background: #fafafa;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      margin: 12px 0;
+      padding: 10px;
+      color: #333;
+    }
+
+    .image-placeholder .title {
+      font-weight: bold;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .image-placeholder .subtitle {
+      font-size: 11px;
+      color: #666;
+      line-height: 1.4;
+    }
+
+    .dotted-line {
+      display: inline-block;
+      border-bottom: 1px dotted #000;
+      min-height: 14px;
+    }
+
+    .signature-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 30px;
+    }
+
+    .signature-table td {
+      border: none;
+      text-align: center;
+      vertical-align: top;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PAGE 1 -->
+  <div class="page">
+    <table class="header-table">
+      <tr>
+        <td style="width: 100px;">
+          <div class="logo-placeholder">
+            <span>[ LOGO RS ]</span>
+          </div>
+        </td>
+        <td>
+          <div class="kop-hospital">
+            <h2>RUMAH SAKIT BHAYANGKARA</h2>
+            <strong>BANDA ACEH</strong><br>
+            Jl. Cut Nyak Dhien No. 23<br>
+            Lamteumen Barat, Banda Aceh<br>
+            Telp. 0651-41355, 0651-41470
+          </div>
+        </td>
+        <td style="width: 270px;">
+          <div class="patient-box">
+            <table>
+              <tr>
+                <td style="width: 95px;">NRM</td>
+                <td>: <span class="dotted-line" style="width: 140px;"></span></td>
+              </tr>
+              <tr>
+                <td>Nama</td>
+                <td>: <span class="dotted-line" style="width: 140px;"></span></td>
+              </tr>
+              <tr>
+                <td>Tgl. Lahir</td>
+                <td>: <span class="dotted-line" style="width: 140px;"></span></td>
+              </tr>
+              <tr>
+                <td>Jenis Kelamin</td>
+                <td>: <span class="dotted-line" style="width: 140px;"></span></td>
+              </tr>
+            </table>
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <div class="main-title">
+      PENGKAJIAN AWAL RAWAT JALAN POLI GIGI
+    </div>
+
+    <div class="section-title">PEMERIKSAAN</div>
+    <div style="margin: 4px 0 10px 0;">
+      Keluhan Utama : <span class="dotted-line" style="width: 86%;"></span><br>
+      <span class="dotted-line" style="width: 100%; margin-top: 6px;"></span>
+    </div>
+
+    <div class="section-title">Tanda Vital (perawat)</div>
+    <table class="vital-table">
+      <tr>
+        <td style="width: 33%;">TD : <span class="dotted-line" style="width: 100px;"></span> mmHg</td>
+        <td style="width: 33%;">RR : <span class="dotted-line" style="width: 95px;"></span> x/menit</td>
+        <td style="width: 34%;">Berat Badan : <span class="dotted-line" style="width: 80px;"></span> Kg</td>
+      </tr>
+      <tr>
+        <td>Nadi : <span class="dotted-line" style="width: 88px;"></span> x/menit</td>
+        <td>Suhu : <span class="dotted-line" style="width: 82px;"></span> &deg;C</td>
+        <td></td>
+      </tr>
+    </table>
+
+    <div class="section-title">Keluhan Umum</div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th style="width: 6%;">NO</th>
+          <th style="width: 26%;">DEWASA</th>
+          <th style="width: 18%;">STATUS</th>
+          <th style="width: 6%;">NO</th>
+          <th style="width: 26%;">ANAK</th>
+          <th style="width: 18%;">STATUS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="text-center">1</td>
+          <td>Penyakit Jantung</td>
+          <td class="text-center">Tidak ada / Ada</td>
+          <td class="text-center">1</td>
+          <td>Penyakit Jantung</td>
+          <td class="text-center">Tidak ada / Ada</td>
+        </tr>
+        <tr>
+          <td class="text-center">2</td>
+          <td>Penyakit Diabetes Melitus</td>
+          <td class="text-center">Tidak ada / Ada</td>
+          <td class="text-center">2</td>
+          <td>Penyakit Diabetes Melitus</td>
+          <td class="text-center">Tidak ada / Ada</td>
+        </tr>
+        <tr>
+          <td class="text-center">3</td>
+          <td>Penyakit Haemophilia</td>
+          <td class="text-center">Tidak ada / Ada</td>
+          <td class="text-center">3</td>
+          <td>Penyakit Haemophilia</td>
+          <td class="text-center">Tidak ada / Ada</td>
+        </tr>
+        <tr>
+          <td class="text-center">4</td>
+          <td>Penyakit Hepatitis</td>
+          <td class="text-center">Tidak ada / Ada</td>
+          <td class="text-center">4</td>
+          <td>Penyakit Hepatitis</td>
+          <td class="text-center">Tidak ada / Ada</td>
+        </tr>
+        <tr>
+          <td class="text-center">5</td>
+          <td>Penyakit Gastritis</td>
+          <td class="text-center">Tidak ada / Ada</td>
+          <td class="text-center">5</td>
+          <td>Penyakit Gastritis</td>
+          <td class="text-center">Tidak ada / Ada</td>
+        </tr>
+        <tr>
+          <td class="text-center">6</td>
+          <td>Penyakit Lainnya</td>
+          <td class="text-center">Tidak ada / Ada</td>
+          <td class="text-center">6</td>
+          <td>Penyakit Lainnya</td>
+          <td class="text-center">Tidak ada / Ada</td>
+        </tr>
+        <tr>
+          <td class="text-center">7</td>
+          <td>Alergi terhadap obat</td>
+          <td class="text-center">Tidak ada / Ada</td>
+          <td class="text-center">7</td>
+          <td>Alergi terhadap obat</td>
+          <td class="text-center">Tidak ada / Ada</td>
+        </tr>
+        <tr>
+          <td class="text-center">8</td>
+          <td>Alergi terhadap makanan</td>
+          <td class="text-center">Tidak ada / Ada</td>
+          <td class="text-center">8</td>
+          <td>Alergi terhadap makanan</td>
+          <td class="text-center">Tidak ada / Ada</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PAGE 2 -->
+  <div class="page">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th style="width: 80%; text-align: left;">RIWAYAT KESEHATAN UMUM</th>
+          <th style="width: 10%;">YA</th>
+          <th style="width: 10%;">TIDAK</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Pasien merasa dalam keadaan sehat</td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>
+            Selama 5 tahun terakhir ini, pasien pernah dinyatakan mengalami penyakit serius, menjalani operasi atau dirawat inap di rumah sakit ? JIKA YA&hellip;&hellip;.<br>
+            Tulis nama penyakitnya : <span class="dotted-line" style="width: 70%;"></span>
+          </td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>Pasien mempunyai kelainan pembekuan darah</td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>
+            Pasien mempunyai reaksi alergi terhadap hal-hal sebagai berikut :<br>
+            - Makanan<br>
+            - Obat-obatan<br>
+            - Obat yang disuntik (obat bius)<br>
+            - Cuaca dan lainnya
+          </td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>Pasien sedang dalam perawatan/mengonsumsi obat yang diresepkan / tidak diresepkan oleh dokter / dokter gigi</td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr style="background: #f2f2f2;">
+          <th colspan="3" style="text-align: left; padding: 4px 8px;">RIWAYAT KESEHATAN GIGI (perawat)</th>
+        </tr>
+        <tr>
+          <td>Pasien pernah dirawat gigi sebelumnya</td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>Jika sudah pernah dirawat sebelumnya, apakah pengalaman perawatannya tidak memuaskan/menjadi cemas/takut diperiksa ulang</td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>Pasien mengetahui bagaimana cara memelihara Kesehatan gigi dan mulut yang baik dan benar</td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>Pasien menyikat gigi sebanyak 2 kali sehari atau lebih dan waktunya adalah sesudah makan dan sebelum tidur</td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>Pasien menjaga Kesehatan gigi dengan mengurangi makanan yang lengket dan manis-manis serta memperbanyak makanan buah-buahan</td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>Pasien mempunyai kebiasaan sebagai berikut :</td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td class="sub-item">- Minum teh/kopi</td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td class="sub-item">- Minum beralkohol</td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td class="sub-item">- Minuman bersoda</td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td class="sub-item">- Merokok</td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td class="sub-item">- Mengunyah satu sisi</td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td class="sub-item">- Mengunyah siri/tembakau</td>
+          <td></td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="section-title">PEMERIKSAAN OBYEKTIF</div>
+    
+    <div style="margin-left: 4px;">
+      <strong>A. Pemeriksaan Ekstra Oral</strong>
+      <table class="field-align-table" style="margin-left: 15px; width: calc(100% - 15px);">
+        <tr>
+          <td class="label-col" style="width: 140px;">1. Muka</td>
+          <td class="colon-col">:</td>
+          <td class="value-col"><span class="dotted-line" style="width: 95%;"></span></td>
+        </tr>
+        <tr>
+          <td class="label-col">2. Kelenjar Lymphe</td>
+          <td class="colon-col">:</td>
+          <td class="value-col"><span class="dotted-line" style="width: 95%;"></span></td>
+        </tr>
+      </table>
+
+      <strong>B. Pemeriksaan Intra Oral</strong><br>
+      <div style="margin-left: 15px; margin-top: 4px;">
+        <strong>1. Jaringan Lunak Mulut</strong>
+        <table class="field-align-table" style="margin-left: 15px; width: calc(100% - 15px);">
+          <tr>
+            <td class="label-col" style="width: 180px;">- Bibir</td>
+            <td class="colon-col">:</td>
+            <td class="value-col">Normal / ada kelainan</td>
+          </tr>
+          <tr>
+            <td class="label-col">- Ludah</td>
+            <td class="colon-col">:</td>
+            <td class="value-col">Normal / ada kelainan</td>
+          </tr>
+          <tr>
+            <td class="label-col">- Mukosa Bukal</td>
+            <td class="colon-col">:</td>
+            <td class="value-col">Normal / ada kelainan</td>
+          </tr>
+          <tr>
+            <td class="label-col">- Mukosa Patatinal</td>
+            <td class="colon-col">:</td>
+            <td class="value-col">Normal / ada kelainan</td>
+          </tr>
+          <tr>
+            <td class="label-col">- Gingiva</td>
+            <td class="colon-col">:</td>
+            <td class="value-col">Normal / ada kelainan</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 3 -->
+  <div class="page">
+    <div class="section-title" style="margin-top: 0;">ODONTOGRAM</div>
+    
+    <!-- Upper Teeth Table -->
+    <table class="odontogram-table">
+      <tr>
+        <td style="width: 14%;">11 [51]</td>
+        <td style="width: 36%;"></td>
+        <td style="width: 36%;"></td>
+        <td style="width: 14%; text-align: right;">[61] 21</td>
+      </tr>
+      <tr>
+        <td>12 [52]</td>
+        <td></td>
+        <td></td>
+        <td style="text-align: right;">[62] 22</td>
+      </tr>
+      <tr>
+        <td>13 [53]</td>
+        <td></td>
+        <td></td>
+        <td style="text-align: right;">[63] 23</td>
+      </tr>
+      <tr>
+        <td>14 [54]</td>
+        <td></td>
+        <td></td>
+        <td style="text-align: right;">[64] 24</td>
+      </tr>
+      <tr>
+        <td>15 [55]</td>
+        <td></td>
+        <td></td>
+        <td style="text-align: right;">[65] 25</td>
+      </tr>
+      <tr>
+        <td>16</td>
+        <td></td>
+        <td></td>
+        <td style="text-align: right;">26</td>
+      </tr>
+      <tr>
+        <td>17</td>
+        <td></td>
+        <td></td>
+        <td style="text-align: right;">27</td>
+      </tr>
+      <tr>
+        <td>18</td>
+        <td></td>
+        <td></td>
+        <td style="text-align: right;">28</td>
+      </tr>
+    </table>
+
+    <!-- Odontogram Chart Image Placeholder -->
+    <div class="image-placeholder">
+      <div class="title">[ PLACEHOLDER SKEMA DIAGRAM ODONTOGRAM ]</div>
+      <div class="subtitle">
+        18 17 16 15 14 13 12 11 &nbsp;&nbsp;|&nbsp;&nbsp; 21 22 23 24 25 26 27 28<br>
+        55 54 53 52 51 &nbsp;&nbsp;|&nbsp;&nbsp; 61 62 63 64 65<br>
+        -------------------------------------------------------------<br>
+        85 84 83 82 81 &nbsp;&nbsp;|&nbsp;&nbsp; 71 72 73 74 75<br>
+        48 47 46 45 44 43 42 41 &nbsp;&nbsp;|&nbsp;&nbsp; 31 32 33 34 35 36 37 38
+      </div>
+    </div>
+
+    <!-- Lower Teeth Table -->
+    <table class="odontogram-table">
+      <tr>
+        <td style="width: 14%;">48</td>
+        <td style="width: 36%;"></td>
+        <td style="width: 36%;"></td>
+        <td style="width: 14%; text-align: right;">38</td>
+      </tr>
+      <tr>
+        <td>47</td>
+        <td></td>
+        <td></td>
+        <td style="text-align: right;">37</td>
+      </tr>
+      <tr>
+        <td>46</td>
+        <td></td>
+        <td></td>
+        <td style="text-align: right;">36</td>
+      </tr>
+      <tr>
+        <td>45 [85]</td>
+        <td></td>
+        <td></td>
+        <td style="text-align: right;">[75] 35</td>
+      </tr>
+      <tr>
+        <td>44 [84]</td>
+        <td></td>
+        <td></td>
+        <td style="text-align: right;">[74] 34</td>
+      </tr>
+      <tr>
+        <td>43 [83]</td>
+        <td></td>
+        <td></td>
+        <td style="text-align: right;">[73] 33</td>
+      </tr>
+      <tr>
+        <td>42 [82]</td>
+        <td></td>
+        <td></td>
+        <td style="text-align: right;">[72] 32</td>
+      </tr>
+      <tr>
+        <td>41 [81]</td>
+        <td></td>
+        <td></td>
+        <td style="text-align: right;">[71] 31</td>
+      </tr>
+    </table>
+
+    <!-- Additional Findings with Aligned Colons -->
+    <table class="field-align-table" style="margin-top: 10px;">
+      <tr>
+        <td class="label-col" style="width: 235px;">Occlusi</td>
+        <td class="colon-col">:</td>
+        <td class="value-col">Normal Bite / Cross Bite / Steep Bite</td>
+      </tr>
+      <tr>
+        <td class="label-col">Torus Palatinus</td>
+        <td class="colon-col">:</td>
+        <td class="value-col">Tidak Ada / Kecil / Sedang / Besar / Multiple</td>
+      </tr>
+      <tr>
+        <td class="label-col">Torus Mandibularis</td>
+        <td class="colon-col">:</td>
+        <td class="value-col">Tidak ada / sisi kiri / sisi kanan / kedua sisi</td>
+      </tr>
+      <tr>
+        <td class="label-col">Palatum</td>
+        <td class="colon-col">:</td>
+        <td class="value-col">Dalam / Sedang / Rendah</td>
+      </tr>
+      <tr>
+        <td class="label-col">Diastema</td>
+        <td class="colon-col">:</td>
+        <td class="value-col">Tidak Ada / Ada: (dijelaskan dimana dan berapa lebarnya)</td>
+      </tr>
+      <tr>
+        <td class="label-col">Gigi Anomali</td>
+        <td class="colon-col">:</td>
+        <td class="value-col">Tidak Ada / Ada: (dijelaskan gigi yang mana, dan bentuknya)</td>
+      </tr>
+      <tr>
+        <td class="label-col">Lain-lain</td>
+        <td class="colon-col">:</td>
+        <td class="value-col">(hal-hal yang tidak tercakup diatas)</td>
+      </tr>
+      <tr>
+        <td class="label-col">Jumlah photo yang diambil</td>
+        <td class="colon-col">:</td>
+        <td class="value-col"><span class="dotted-line" style="width: 140px;"></span> (digital/intraoral)*</td>
+      </tr>
+      <tr>
+        <td class="label-col">Jumlah rontgen photo yang diambil</td>
+        <td class="colon-col">:</td>
+        <td class="value-col"><span class="dotted-line" style="width: 140px;"></span> (Dental/PA/OPG/Ceph)*</td>
+      </tr>
+    </table>
+
+    <!-- Signatures -->
+    <table class="signature-table">
+      <tr>
+        <td style="width: 33%;">
+          DIPERIKSA OLEH :<br><br><br><br><br>
+          drg. <span class="dotted-line" style="width: 160px;"></span>
+        </td>
+        <td style="width: 33%;">
+          PADA TANGGAL :<br><br><br><br><br>
+          <span class="dotted-line" style="width: 140px;"></span>
+        </td>
+        <td style="width: 34%;">
+          TANDA TANGAN :<br><br><br><br><br>
+          (&nbsp;<span class="dotted-line" style="width: 150px;"></span>&nbsp;)
+        </td>
+      </tr>
+    </table>
+  </div>
+
+</body>
+</html>

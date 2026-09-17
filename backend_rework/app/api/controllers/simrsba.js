@@ -53,6 +53,7 @@ function getDoctorDpjpMatch(req) {
 }
 const PemberianObatIgd = require("../models/pemberianObatIgd");
 const PengkajianAwalPoli = require("../models/pengkajianAwalPoli");
+const PengkajianAwalGigi = require("../models/pengkajianAwalGigi");
 const PengkajianAwalIgd = require("../models/pengkajianAwalIgd");
 const PoliGigi = require("../models/poliGigi");
 const GeneralConsent = require("../models/generalConsent");
@@ -4228,6 +4229,27 @@ module.exports = {
       return res.status(200).send({ status: 200, message: "Ok", data: data });
     } catch (error) {
       return res.status(400).send({ status: 400, message: "Gagal mengambil data Pengkajian Awal Poliklinik", data: null });
+    }
+  },
+  savePengkajianAwalGigi: async (req, res) => {
+    try {
+      const payload = req.body;
+      const saved = await PengkajianAwalGigi.findOneAndUpdate(
+        { noCheckin: payload.noCheckin },
+        { $set: payload },
+        { upsert: true, new: true }
+      );
+      return res.status(200).send({ status: 200, message: "Pengkajian Awal Poli Gigi berhasil disimpan", data: saved });
+    } catch (error) {
+      return res.status(400).send({ status: 400, message: "Gagal menyimpan Pengkajian Awal Poli Gigi", data: null });
+    }
+  },
+  getPengkajianAwalGigi: async (req, res) => {
+    try {
+      const data = await PengkajianAwalGigi.findOne({ noCheckin: req.params.noCheckin });
+      return res.status(200).send({ status: 200, message: "Ok", data: data });
+    } catch (error) {
+      return res.status(400).send({ status: 400, message: "Gagal mengambil data Pengkajian Awal Poli Gigi", data: null });
     }
   },
   savePengkajianAwalIgd: async (req, res) => {

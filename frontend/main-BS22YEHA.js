@@ -136902,6 +136902,12 @@ var rb = [
         canActivate: [st],
       },
       {
+        path: "pengkajian-awal-gigi/:nocheckin",
+        loadComponent: () =>
+          import("./surat/chunk-PENGKAJIAN-AWAL-GIGI.js").then((t) => t.PengkajianAwalGigiComponent),
+        canActivate: [st],
+      },
+      {
         path: "pengkajian-awal-poli/:nocheckin",
         loadComponent: () =>
           import("./surat/chunk-PENGKAJIAN-AWAL-POLI.js").then((t) => t.PengkajianAwalPoliComponent),

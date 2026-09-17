@@ -87,6 +87,37 @@ var PrmrjComponent = (() => {
       });
     }
 
+    escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    parseDiagnoses(val) {
+      if (!val) return [];
+      if (Array.isArray(val)) return val.filter(Boolean);
+      return String(val)
+        .split('\n')
+        .map(s => s.trim())
+        .filter(Boolean);
+    }
+
+    renderDiagnosisChips(val, entryId, idx) {
+      const items = this.parseDiagnoses(val);
+      if (items.length === 0) return '';
+      return items.map((diag, itemIdx) => {
+        return `<span class="badge bg-light text-dark border d-inline-flex align-items-center py-1 px-2 icd10-chip" data-entry-id="${entryId}" data-idx="${idx}" data-item-idx="${itemIdx}" style="border-color:#0d6efd !important; background-color:#f0f8ff !important; font-size:12px; font-weight:500; border-radius:4px; max-width:100%; word-break:break-word; line-height:1.4;">
+          <i class="bi bi-tag-fill me-1 text-primary" style="font-size:11px;"></i>
+          <span class="chip-text">${this.escapeHtml(diag)}</span>
+          <button type="button" class="btn-close ms-2 icd10-chip-remove" data-entry-id="${entryId}" data-idx="${idx}" data-item-idx="${itemIdx}" data-diag="${this.escapeHtml(diag)}" aria-label="Hapus" style="font-size:0.6rem; cursor:pointer; flex-shrink:0;"></button>
+        </span>`;
+      }).join('');
+    }
+
     ngOnInit() {
       this.fetchPatient();
       window.addEventListener('pageshow', () => {
@@ -798,8 +829,12 @@ var PrmrjComponent = (() => {
                   <div class="col-md-8">
                     <label class="f-label">ICD 10 (Diagnosis)</label>
                     <div class="position-relative">
-                      <input type="text" class="f-input form-data-input icd10-autocomplete-input" data-entry-id="${entryId}" data-idx="${idx}" data-field="diagnosis" value="${e.diagnosis || ''}" placeholder="Ketik kode ICD-10 atau nama... (min. 3 karakter)">
-                      <div class="icd10-dropdown" data-entry-id="${entryId}" data-idx="${idx}" style="display:none; position:absolute; z-index:1000; max-height:200px; overflow-y:auto; border:1px solid #ced4da; background:#fff; width:100%;"></div>
+                      <input type="hidden" class="form-data-input icd10-hidden-value" data-entry-id="${entryId}" data-idx="${idx}" data-field="diagnosis" value="${this.escapeHtml(e.diagnosis || '')}">
+                      <input type="text" class="f-input icd10-autocomplete-input" data-entry-id="${entryId}" data-idx="${idx}" placeholder="Ketik kode ICD-10 atau nama... (pilih dari hasil atau tekan Enter)" autocomplete="off">
+                      <div class="icd10-dropdown" data-entry-id="${entryId}" data-idx="${idx}" style="display:none; position:absolute; z-index:1000; max-height:200px; overflow-y:auto; border:1px solid #ced4da; background:#fff; width:100%; box-shadow:0 4px 6px rgba(0,0,0,0.1); border-radius:0 0 4px 4px;"></div>
+                    </div>
+                    <div class="icd10-chips-container mt-1 d-flex flex-wrap gap-1" data-entry-id="${entryId}" data-idx="${idx}">
+                      ${this.renderDiagnosisChips(e.diagnosis, entryId, idx)}
                     </div>
                   </div>
                   <div class="col-md-12">
@@ -1050,7 +1085,7 @@ var PrmrjComponent = (() => {
         };
       });
 
-      root.addEventListener("input", (ev) => {
+      root.oninput = (ev) => {
         const target = ev.target;
         if (target.classList.contains("form-data-input")) {
           const entryId = target.getAttribute("data-entry-id");
@@ -1071,12 +1106,122 @@ var PrmrjComponent = (() => {
             }
           }
         }
-      });
+      };
 
-      // ICD-10 Autocomplete functionality
+      // ICD-10 Autocomplete functionality (Multi-Select Tag / Badge Chips)
+      const attachChipsContainerListener = (container) => {
+        if (!container) return;
+        container.onclick = (ev) => {
+          const removeBtn = ev.target.closest(".icd10-chip-remove");
+          if (removeBtn) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            const idx = parseInt(removeBtn.getAttribute("data-idx"));
+            const itemIdx = parseInt(removeBtn.getAttribute("data-item-idx"));
+            const diagText = removeBtn.getAttribute("data-diag") || "";
+            if (!isNaN(idx)) {
+              removeDiagnosis(idx, itemIdx, diagText);
+            }
+          }
+        };
+      };
+
+      const addDiagnosis = (idx, text) => {
+        const cleanText = (text || "").trim();
+        if (!cleanText) return;
+        if (!self.formData.entries[idx]) return;
+
+        const currentItems = self.parseDiagnoses(self.formData.entries[idx].diagnosis);
+        const newItems = cleanText.split("\n").map((s) => s.trim()).filter(Boolean);
+        newItems.forEach((item) => {
+          if (!currentItems.includes(item)) {
+            currentItems.push(item);
+          }
+        });
+
+        const newDiagnosis = currentItems.join("\n");
+        self.formData.entries[idx].diagnosis = newDiagnosis;
+
+        const entryId = self.formData.entries[idx].id || self.makeEntryId(idx);
+        const hiddenInput = root.querySelector(`.icd10-hidden-value[data-entry-id="${entryId}"]`) || root.querySelector(`.icd10-hidden-value[data-idx="${idx}"]`);
+        if (hiddenInput) {
+          hiddenInput.value = newDiagnosis;
+        }
+
+        const container = root.querySelector(`.icd10-chips-container[data-entry-id="${entryId}"]`) || root.querySelector(`.icd10-chips-container[data-idx="${idx}"]`);
+        if (container) {
+          container.innerHTML = self.renderDiagnosisChips(newDiagnosis, entryId, idx);
+          attachChipsContainerListener(container);
+        }
+      };
+
+      const removeDiagnosis = (idx, itemIdx, diagText) => {
+        if (!self.formData.entries[idx]) return;
+        const currentItems = self.parseDiagnoses(self.formData.entries[idx].diagnosis);
+        let removed = false;
+        if (diagText) {
+          const target = diagText.trim();
+          const matchIdx = currentItems.findIndex((s) => s.trim() === target);
+          if (matchIdx !== -1) {
+            currentItems.splice(matchIdx, 1);
+            removed = true;
+          }
+        }
+        if (!removed && itemIdx >= 0 && itemIdx < currentItems.length) {
+          currentItems.splice(itemIdx, 1);
+          removed = true;
+        }
+        if (!removed) return;
+
+        const newDiagnosis = currentItems.join("\n");
+        self.formData.entries[idx].diagnosis = newDiagnosis;
+
+        const entryId = self.formData.entries[idx].id || self.makeEntryId(idx);
+        const hiddenInput = root.querySelector(`.icd10-hidden-value[data-entry-id="${entryId}"]`) || root.querySelector(`.icd10-hidden-value[data-idx="${idx}"]`);
+        if (hiddenInput) {
+          hiddenInput.value = newDiagnosis;
+        }
+
+        const container = root.querySelector(`.icd10-chips-container[data-entry-id="${entryId}"]`) || root.querySelector(`.icd10-chips-container[data-idx="${idx}"]`);
+        if (container) {
+          container.innerHTML = self.renderDiagnosisChips(newDiagnosis, entryId, idx);
+          attachChipsContainerListener(container);
+        }
+      };
+
+      root.querySelectorAll(".icd10-chips-container").forEach(attachChipsContainerListener);
+
       let icd10SearchTimeout = null;
       root.querySelectorAll(".icd10-autocomplete-input").forEach((input) => {
+        input.addEventListener("keydown", (ev) => {
+          if (ev.key === "Enter") {
+            ev.preventDefault();
+            const target = ev.target;
+            const idx = parseInt(target.getAttribute("data-idx"));
+            const val = target.value.trim();
+            if (val) {
+              addDiagnosis(idx, val);
+              target.value = "";
+              const dropdown = root.querySelector(".icd10-dropdown[data-idx='" + idx + "']");
+              if (dropdown) {
+                dropdown.style.display = "none";
+                dropdown.innerHTML = "";
+              }
+            }
+          } else if (ev.key === "Escape") {
+            const idx = parseInt(ev.target.getAttribute("data-idx"));
+            const dropdown = root.querySelector(".icd10-dropdown[data-idx='" + idx + "']");
+            if (dropdown) {
+              dropdown.style.display = "none";
+              dropdown.innerHTML = "";
+            }
+          }
+        });
+
         input.addEventListener("keyup", (ev) => {
+          if (ev.key === "Enter" || ev.key === "Escape" || ev.key === "ArrowDown" || ev.key === "ArrowUp") {
+            return;
+          }
           const target = ev.target;
           const idx = parseInt(target.getAttribute("data-idx"));
           const searchTerm = target.value.trim();
@@ -1119,17 +1264,16 @@ var PrmrjComponent = (() => {
                   dropdown.style.display = "block";
 
                   dropdown.querySelectorAll(".icd10-result-item").forEach((item) => {
-                    item.addEventListener("click", () => {
+                    item.addEventListener("mousedown", (e) => {
+                      e.preventDefault();
                       const kode = item.getAttribute("data-kode");
                       const nama = item.getAttribute("data-nama");
                       const displayText = kode + " - " + nama;
-                      target.value = displayText;
-                      if (self.formData.entries[idx]) {
-                        const field = target.getAttribute("data-field") || "icd10";
-                        self.formData.entries[idx][field] = displayText;
-                      }
+                      addDiagnosis(idx, displayText);
+                      target.value = "";
                       dropdown.style.display = "none";
                       dropdown.innerHTML = "";
+                      target.focus();
                     });
                   });
                 } else {
@@ -1142,7 +1286,7 @@ var PrmrjComponent = (() => {
                 dropdown.style.display = "block";
               }
             });
-          }, 500);
+          }, 400);
         });
 
         input.addEventListener("blur", (ev) => {
@@ -1152,7 +1296,7 @@ var PrmrjComponent = (() => {
             setTimeout(() => {
               dropdown.style.display = "none";
               dropdown.innerHTML = "";
-            }, 200);
+            }, 250);
           }
         });
       });
@@ -1244,6 +1388,7 @@ var PrmrjComponent = (() => {
       const btnAdd = root.querySelector("#btn-add-prmrj");
       if (btnAdd) {
         btnAdd.onclick = () => {
+          self.syncEntriesFromDOM();
           const today = new Date();
           const tglDate = today.toISOString().split("T")[0];
           const tglTime = today.toTimeString().split(" ")[0].substring(0, 5);
@@ -1265,6 +1410,7 @@ var PrmrjComponent = (() => {
 
       root.querySelectorAll(".btn-remove-entry").forEach((btn) => {
         btn.onclick = (e) => {
+          self.syncEntriesFromDOM();
           const entryId = btn.getAttribute("data-entry-id");
           const idx = parseInt(btn.getAttribute("data-idx"));
           if (entryId) {
@@ -1425,6 +1571,7 @@ var PrmrjComponent = (() => {
     }
 
     renderPrintLayout(noMr, nama, tglLahir, kelamin, dpjp, getFontSize) {
+      this.syncEntriesFromDOM();
       const printContainer = document.getElementById("prmrj-print-container");
       if (!printContainer) return;
       printContainer.innerHTML = t.getPrintHtml(this.patient || { noMr, nama, tglLahir, kelamin, dpjp }, this.formData);

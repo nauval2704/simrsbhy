@@ -3,6 +3,7 @@ let PengkajianAwalIgdComponent = null;
 let RingkasanPulangComponent = null;
 let PrmrjComponent = null;
 let PoliGigiComponent = null;
+let PengkajianAwalGigiComponent = null;
 let PengkajianAwalPoliComponent = null;
 let CpptIgdComponent = null;
 let PemberianObatIgdComponent = null;
@@ -38,6 +39,10 @@ async function loadDependencies() {
   if (!PoliGigiComponent) {
     const modGigi = await import("./chunk-POLI-GIGI.js");
     PoliGigiComponent = modGigi.PoliGigiComponent;
+  }
+  if (!PengkajianAwalGigiComponent) {
+    const modGigiPk = await import("./chunk-PENGKAJIAN-AWAL-GIGI.js");
+    PengkajianAwalGigiComponent = modGigiPk.PengkajianAwalGigiComponent;
   }
   if (!PengkajianAwalPoliComponent) {
     const modPoli = await import("./chunk-PENGKAJIAN-AWAL-POLI.js");
@@ -681,6 +686,17 @@ class SimrsMassDownloader {
         render: (pt, data) => PrmrjComponent.getPrintHtml(pt, data)
       });
     } else if (isPoliGigi) {
+      docDefinitions.push({
+        id: "pengkajian-awal-gigi",
+        title: "Pengkajian Awal Rawat Jalan Poli Gigi",
+        filename: `PENGKAJIAN_AWAL_POLI_GIGI_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+        endpoint: `${baseApi}/simrsba/pengkajian-awal-gigi/${encodeURIComponent(noCheckin)}`,
+        checkFilled: (data) => data && data.formData && Object.keys(data.formData).length > 0,
+        render: (pt, data) => {
+          const fd = (data && data.formData) ? data.formData : (data || {});
+          return PengkajianAwalGigiComponent.getPrintHtml(pt, fd);
+        }
+      });
       docDefinitions.push({
         id: "poli-gigi",
         title: "PRMRJ Poli Gigi",
