@@ -7,7 +7,7 @@ import {
   ra as inject,
 } from "../chunk-UYVTZL26.js";
 import { c as Router } from "../chunk-YIQM4CGR.js";
-import { getStandardGridCSS, createSuratShell, createAutoPageSurat, bindSuratPrintButton, hospitalHeaderDiv, buildSuratPdfFilename } from "./chunk-SURAT-LAYOUT.js";
+import { getStandardGridCSS, createSuratShell, createAutoPageSurat, bindSuratPrintButton, hospitalHeaderDiv, buildSuratPdfFilename, setupSuratPagination } from "./chunk-SURAT-LAYOUT.js";
 
 function renderTemplate(t, s) {
   if (t & 1) {
@@ -1168,13 +1168,86 @@ var PoliGigiComponent = (() => {
         : rawEntries;
       const effectiveEntries = entries.length > 0 ? entries : rawEntries;
 
-      const ROWS_PER_PAGE = 8;
+      function countWrappedLines(text, maxChars) {
+        if (!text || !String(text).trim()) return 1;
+        const paragraphs = String(text).split(/\r?\n/);
+        let count = 0;
+        for (const p of paragraphs) {
+          const trimmed = p.trim();
+          if (!trimmed) {
+            count += 1;
+            continue;
+          }
+          const words = trimmed.split(/\s+/);
+          let currentLen = 0;
+          let pLines = 1;
+          for (const w of words) {
+            const wLen = w.length;
+            if (currentLen === 0) {
+              currentLen = wLen;
+            } else if (currentLen + 1 + wLen <= maxChars) {
+              currentLen += 1 + wLen;
+            } else {
+              pLines += 1;
+              currentLen = wLen;
+            }
+            while (currentLen > maxChars) {
+              pLines += 1;
+              currentLen -= maxChars;
+            }
+          }
+          count += pLines;
+        }
+        return count;
+      }
+
+      function estimateGigiEntryHeight(e) {
+        const keluhanDiag = e.uraianKlinis || e.keluhan || '';
+        const pengobatanTindakan = e.rencanaPenting || e.tindakan || '';
+        const kodeIcd10 = e.icd10 || e.diagnosis || '';
+        const drName = (e.drSp || e.parafName || '').trim();
+
+        const lKel = countWrappedLines(keluhanDiag, 32);
+        const lPeng = countWrappedLines(pengobatanTindakan, 30);
+        const lIcd = countWrappedLines(kodeIcd10, 10);
+        const maxTextLines = Math.max(lKel, lPeng, lIcd);
+        const textHeight = maxTextLines * 16 + 14;
+
+        let col7Height = countWrappedLines(drName, 14) * 16 + 14;
+        if (e.ttd || e.parafImg) {
+          col7Height += 58;
+        }
+
+        return Math.max(38, textHeight, col7Height);
+      }
+
+      const PAGE_ROW_BUDGET = 940;
+      const MAX_ROWS_PER_PAGE = 8;
       const chunks = [];
       if (effectiveEntries.length === 0) {
         chunks.push([]);
       } else {
-        for (let i = 0; i < effectiveEntries.length; i += ROWS_PER_PAGE) {
-          chunks.push(effectiveEntries.slice(i, i + ROWS_PER_PAGE));
+        let currentChunk = [];
+        let currentHeight = 0;
+
+        effectiveEntries.forEach((entry, idx) => {
+          entry._globalIndex = idx + 1;
+          const h = (Array.isArray(rowHeights) && typeof rowHeights[idx] === "number" && rowHeights[idx] > 0)
+            ? rowHeights[idx]
+            : estimateGigiEntryHeight(entry);
+
+          if (currentChunk.length > 0 && (currentHeight + h > PAGE_ROW_BUDGET || currentChunk.length >= MAX_ROWS_PER_PAGE)) {
+            chunks.push(currentChunk);
+            currentChunk = [entry];
+            currentHeight = h;
+          } else {
+            currentChunk.push(entry);
+            currentHeight += h;
+          }
+        });
+
+        if (currentChunk.length > 0) {
+          chunks.push(currentChunk);
         }
       }
 
@@ -1184,7 +1257,7 @@ var PoliGigiComponent = (() => {
       chunks.forEach((chunk, pageIdx) => {
         let rowsHtml = "";
         chunk.forEach((e, idx) => {
-          const globalIdx = pageIdx * ROWS_PER_PAGE + idx + 1;
+          const globalIdx = e._globalIndex || (idx + 1);
           const tglStr = (e.tglDate || e.tglKunjungan || '').trim();
           const jamStr = (e.tglTime || '').trim();
           const tglJamDisplay = (tglStr || jamStr) 
@@ -1247,7 +1320,8 @@ var PoliGigiComponent = (() => {
           ? 'PANDUAN PROFIL RINGKAS RAWAT JALAN (PRMRJ) POLI GIGI - LEMBAR ' + (pageIdx + 1) + ' DARI ' + totalPages
           : 'PANDUAN PROFIL RINGKAS RAWAT JALAN (PRMRJ) POLI GIGI';
 
-        pagesHtml += '<div class="surat-document" style="display:flex; flex-direction:column; height:1247px; page-break-after:always;">' +
+        const isLastPage = pageIdx === totalPages - 1;
+        pagesHtml += '<div class="surat-document" style="display:flex; flex-direction:column; min-height:1247px; ' + (isLastPage ? 'page-break-after:avoid;' : 'page-break-after:always;') + '">' +
             hospitalHeaderDiv(noMr, nama, tglLahir, kelamin, getFontSize, titleText) +
             '<div style="border:2px solid black; font-family:\'Times New Roman\',Times,serif; flex:1; display:flex; flex-direction:column; min-height:0; margin-top:10px;">' +
                 '<table class="gigi-table" style="border:none; border-top:1px solid black; flex:1;">' +
@@ -1283,7 +1357,53 @@ var PoliGigiComponent = (() => {
     renderPrintLayout(noMr, nama, tglLahir, kelamin, dpjp, getFontSize) {
       const printContainer = document.getElementById("poli-gigi-print-container");
       if (!printContainer) return;
-      printContainer.innerHTML = t.getPrintHtml(this.patient || { noMr, nama, tglLahir, kelamin, dpjp }, this.formData);
+
+      const rawEntries = (this.formData && Array.isArray(this.formData.entries)) ? this.formData.entries : [];
+      let rowHeights = null;
+
+      if (rawEntries.length > 0 && typeof document !== "undefined") {
+        try {
+          const measureDiv = document.createElement("div");
+          measureDiv.style.cssText = "position:absolute; left:-9999px; top:0; width:816px; padding:6mm; box-sizing:border-box; visibility:hidden; pointer-events:none;";
+
+          let testRowsHtml = "";
+          rawEntries.forEach((e, idx) => {
+            const tglStr = (e.tglDate || e.tglKunjungan || '').trim();
+            const jamStr = (e.tglTime || '').trim();
+            const tglJamDisplay = (tglStr || jamStr) ? (tglStr + (jamStr ? '<br>' + jamStr : '')) : '-';
+            const parafImgSrc = e.ttd || e.parafImg;
+            testRowsHtml += '<tr>' +
+                '<td style="text-align:center; padding: 6px 4px;">' + (idx + 1) + '</td>' +
+                '<td style="text-align:center; padding: 6px 4px; font-size:10px;">' + tglJamDisplay + '</td>' +
+                '<td style="text-align:center; padding: 6px 4px;">' + (e.gigi || '-') + '</td>' +
+                '<td style="white-space:pre-wrap; padding: 6px 6px;">' + (e.uraianKlinis || e.keluhan || '-') + '</td>' +
+                '<td style="white-space:pre-wrap; padding: 6px 6px;">' + (e.rencanaPenting || e.tindakan || '-') + '</td>' +
+                '<td style="text-align:center; padding: 6px 4px;">' + (e.icd10 || e.diagnosis || '-') + '</td>' +
+                '<td style="text-align:center; vertical-align:middle; padding: 4px 2px;">' +
+                    (parafImgSrc ? '<img src="' + parafImgSrc + '" style="height:50px; max-height:55px; max-width:95%; object-fit:contain; display:block; margin:2px auto;">' : '') +
+                '</td>' +
+            '</tr>';
+          });
+
+          measureDiv.innerHTML = '<div style="border:2px solid black; font-family:\'Times New Roman\',Times,serif;">' +
+              '<table class="gigi-table" style="width:100%; border-collapse:collapse; font-family:\'Times New Roman\',Times,serif; table-layout:fixed;">' +
+                '<colgroup><col style="width:4%"><col style="width:11%"><col style="width:10%"><col style="width:28%"><col style="width:26%"><col style="width:8%"><col style="width:13%"></colgroup>' +
+                '<thead><tr><th>NO</th><th>TGL/JAM</th><th>GIGI</th><th>KELUHAN/DIAGNOSA</th><th>PENGOBATAN/TINDAKAN</th><th>ICD 10</th><th>PARAF</th></tr></thead>' +
+                '<tbody>' + testRowsHtml + '</tbody>' +
+              '</table>' +
+          '</div>';
+
+          document.body.appendChild(measureDiv);
+          const trs = measureDiv.querySelectorAll("tbody tr");
+          rowHeights = Array.from(trs).map(tr => Math.ceil(tr.getBoundingClientRect().height));
+          document.body.removeChild(measureDiv);
+        } catch (err) {
+          rowHeights = null;
+        }
+      }
+
+      printContainer.innerHTML = t.getPrintHtml(this.patient || { noMr, nama, tglLahir, kelamin, dpjp }, this.formData, rowHeights);
+      setupSuratPagination(printContainer, { idPrefix: 'poli-gigi' });
     }
 
     static {

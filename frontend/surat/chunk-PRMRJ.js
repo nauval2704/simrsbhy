@@ -6,7 +6,7 @@ import {
   hc as ɵelementEnd,
   ra as inject,
 } from "../chunk-UYVTZL26.js";
-import { getStandardGridCSS, createSuratShell, createAutoPageSurat, bindSuratPrintButton, hospitalHeaderDiv, buildSuratPdfFilename } from "./chunk-SURAT-LAYOUT.js";
+import { getStandardGridCSS, createSuratShell, createAutoPageSurat, bindSuratPrintButton, hospitalHeaderDiv, buildSuratPdfFilename, setupSuratPagination } from "./chunk-SURAT-LAYOUT.js";
 
 function renderTemplate(t, s) {
   if (t & 1) {
@@ -1467,7 +1467,59 @@ var PrmrjComponent = (() => {
       updatePrint();
     }
 
-    static getPrintHtml(patient, formData) {
+    static estimateEntryHeight(e) {
+      function countWrappedLines(text, maxChars) {
+        if (!text || !String(text).trim()) return 1;
+        const paragraphs = String(text).split(/\r?\n/);
+        let count = 0;
+        for (const p of paragraphs) {
+          const trimmed = p.trim();
+          if (!trimmed) {
+            count += 1;
+            continue;
+          }
+          const words = trimmed.split(/\s+/);
+          let currentLen = 0;
+          let pLines = 1;
+          for (const w of words) {
+            const wLen = w.length;
+            if (currentLen === 0) {
+              currentLen = wLen;
+            } else if (currentLen + 1 + wLen <= maxChars) {
+              currentLen += 1 + wLen;
+            } else {
+              pLines += 1;
+              currentLen = wLen;
+            }
+            while (currentLen > maxChars) {
+              pLines += 1;
+              currentLen -= maxChars;
+            }
+          }
+          count += pLines;
+        }
+        return count;
+      }
+
+      const lDrSp = countWrappedLines(e.drSp, 14);
+      const lUraian = countWrappedLines(e.uraianKlinis, 24);
+      const lDiag = countWrappedLines(e.diagnosis, 16);
+      const lIcd9 = countWrappedLines(e.icd9, 11);
+      const lRencana = countWrappedLines(e.rencanaPenting, 16);
+      const lKet = countWrappedLines(e.ket, 18);
+
+      const maxTextLines = Math.max(lDrSp, lUraian, lDiag, lIcd9, lRencana);
+      const textHeight = maxTextLines * 16 + 14;
+
+      let col8Height = lKet * 16 + 14;
+      if (e.parafImg) {
+        col8Height += 58;
+      }
+
+      return Math.max(38, textHeight, col8Height);
+    }
+
+    static getPrintHtml(patient, formData, rowHeights = null) {
       const p = patient || {};
       const noMr = p.noMr || p.norm || '';
       const nama = p.nama || '';
@@ -1475,13 +1527,36 @@ var PrmrjComponent = (() => {
       const kelamin = p.kelamin || '';
       const fd = formData || {};
       const entries = fd.entries || [];
-      const ROWS_PER_PAGE = 8;
+
+      // Available vertical height budget for tbody rows inside 1247px F4/Folio page:
+      // Total 1247px - padding(46px) - header(135px) - title(36px) - thead(35px) - border(4px) - buffer(40px) = ~950px
+      const PAGE_ROW_BUDGET = 940;
+      const MAX_ROWS_PER_PAGE = 8;
       const chunks = [];
       if (entries.length === 0) {
         chunks.push([]);
       } else {
-        for (let i = 0; i < entries.length; i += ROWS_PER_PAGE) {
-          chunks.push(entries.slice(i, i + ROWS_PER_PAGE));
+        let currentChunk = [];
+        let currentHeight = 0;
+
+        entries.forEach((entry, idx) => {
+          entry._globalIndex = idx + 1;
+          const h = (Array.isArray(rowHeights) && typeof rowHeights[idx] === "number" && rowHeights[idx] > 0)
+            ? rowHeights[idx]
+            : (t.estimateEntryHeight ? t.estimateEntryHeight(entry) : 50);
+
+          if (currentChunk.length > 0 && (currentHeight + h > PAGE_ROW_BUDGET || currentChunk.length >= MAX_ROWS_PER_PAGE)) {
+            chunks.push(currentChunk);
+            currentChunk = [entry];
+            currentHeight = h;
+          } else {
+            currentChunk.push(entry);
+            currentHeight += h;
+          }
+        });
+
+        if (currentChunk.length > 0) {
+          chunks.push(currentChunk);
         }
       }
 
@@ -1491,7 +1566,7 @@ var PrmrjComponent = (() => {
       chunks.forEach((chunk, pageIdx) => {
         let rowsHtml = "";
         chunk.forEach((e, idx) => {
-          const globalIdx = pageIdx * ROWS_PER_PAGE + idx + 1;
+          const globalIdx = e._globalIndex || (idx + 1);
           const tglJam = (e.tglDate || e.tglTime) ? `${e.tglDate || ''}<br>${e.tglTime || ''}` : '-';
           const parafImgHtml = e.parafImg ? `<img src="${e.parafImg}" style="height:50px; max-height:55px; max-width:98%; object-fit:contain; display:block; margin:2px auto;">` : '';
           const ketText = e.ket || '';
@@ -1527,8 +1602,9 @@ var PrmrjComponent = (() => {
           ? `PANDUAN PROFIL RINGKAS RAWAT JALAN (PRMRJ) POLIKLINIK - LEMBAR ${pageIdx + 1} DARI ${totalPages}`
           : `PANDUAN PROFIL RINGKAS RAWAT JALAN (PRMRJ) POLIKLINIK`;
 
+        const isLastPage = pageIdx === totalPages - 1;
         pagesHtml += `
-        <div class="surat-document" style="display:flex; flex-direction:column; height:1247px; page-break-after:always;">
+        <div class="surat-document" style="display:flex; flex-direction:column; min-height:1247px; ${isLastPage ? 'page-break-after:avoid;' : 'page-break-after:always;'}">
             ${hospitalHeaderDiv(noMr, nama, tglLahir, kelamin)}
 
             <div style="border:2px solid black; font-family:'Times New Roman',Times,serif; flex:1; display:flex; flex-direction:column; min-height:0; margin-top:10px;">
@@ -1574,7 +1650,65 @@ var PrmrjComponent = (() => {
       this.syncEntriesFromDOM();
       const printContainer = document.getElementById("prmrj-print-container");
       if (!printContainer) return;
-      printContainer.innerHTML = t.getPrintHtml(this.patient || { noMr, nama, tglLahir, kelamin, dpjp }, this.formData);
+
+      const entries = (this.formData && Array.isArray(this.formData.entries)) ? this.formData.entries : [];
+      let rowHeights = null;
+
+      if (entries.length > 0 && typeof document !== "undefined") {
+        try {
+          const measureDiv = document.createElement("div");
+          measureDiv.style.cssText = "position:absolute; left:-9999px; top:0; width:816px; padding:6mm; box-sizing:border-box; visibility:hidden; pointer-events:none;";
+
+          let testRowsHtml = "";
+          entries.forEach((e, idx) => {
+            const tglJam = (e.tglDate || e.tglTime) ? `${e.tglDate || ''}<br>${e.tglTime || ''}` : '-';
+            const parafImgHtml = e.parafImg ? `<img src="${e.parafImg}" style="height:50px; max-height:55px; max-width:98%; object-fit:contain; display:block; margin:2px auto;">` : '';
+            const ketText = e.ket || '';
+            const ketHtml = (parafImgHtml || ketText) ? `${parafImgHtml}${ketText ? `<div>${ketText}</div>` : ''}` : '-';
+            testRowsHtml += `
+            <tr>
+                <td style="text-align:center; padding:6px 4px;">${idx + 1}</td>
+                <td style="text-align:center; padding:6px 4px;">${tglJam}</td>
+                <td style="text-align:center; padding:6px 4px;">${e.drSp || '-'}</td>
+                <td style="white-space:pre-wrap; padding:6px 6px;">${e.uraianKlinis || '-'}</td>
+                <td style="white-space:pre-wrap; padding:6px 6px;">${e.diagnosis || '-'}</td>
+                <td style="white-space:pre-wrap; padding:6px 6px;">${e.icd9 || '-'}</td>
+                <td style="white-space:pre-wrap; padding:6px 6px;">${e.rencanaPenting || '-'}</td>
+                <td style="text-align:center; vertical-align:middle; padding:4px 2px;">${ketHtml}</td>
+            </tr>`;
+          });
+
+          measureDiv.innerHTML = `
+            <div style="border:2px solid black; font-family:'Times New Roman',Times,serif;">
+              <table class="prmrj-table" style="width:100%; border-collapse:collapse; font-family:'Times New Roman',Times,serif; table-layout:fixed;">
+                 <colgroup>
+                     <col style="width:4%">
+                     <col style="width:10%">
+                     <col style="width:12%">
+                     <col style="width:20%">
+                     <col style="width:14%">
+                     <col style="width:10%">
+                     <col style="width:14%">
+                     <col style="width:16%">
+                 </colgroup>
+                 <thead>
+                    <tr><th>NO</th><th>TGL/JAM</th><th>DR.SP</th><th>URAIAN KLINIS PENTING</th><th>DIAGNOSIS</th><th>ICD-9</th><th>RENCANA PENTING</th><th>PARAF / KET</th></tr>
+                 </thead>
+                 <tbody>${testRowsHtml}</tbody>
+              </table>
+            </div>`;
+
+          document.body.appendChild(measureDiv);
+          const trs = measureDiv.querySelectorAll("tbody tr");
+          rowHeights = Array.from(trs).map(tr => Math.ceil(tr.getBoundingClientRect().height));
+          document.body.removeChild(measureDiv);
+        } catch (err) {
+          rowHeights = null;
+        }
+      }
+
+      printContainer.innerHTML = t.getPrintHtml(this.patient || { noMr, nama, tglLahir, kelamin, dpjp }, this.formData, rowHeights);
+      setupSuratPagination(printContainer, { idPrefix: 'prmrj' });
     }
 
     static {

@@ -104,11 +104,15 @@ export function getStandardGridCSS() {
 .surat-exporting-pdf .surat-document:last-child, .surat-exporting-pdf.surat-document:last-child, .surat-exporting-pdf .surat-page:last-child, .surat-exporting-pdf.surat-page:last-child { page-break-after: avoid !important; break-after: avoid !important; }
 .surat-exporting-pdf .surat-document-landscape, .surat-exporting-pdf.surat-document-landscape, .surat-exporting-pdf .surat-page-landscape, .surat-exporting-pdf.surat-page-landscape { box-sizing: border-box !important; width: 330.2mm !important; max-width: 330.2mm !important; margin: 0 !important; margin-bottom: 0 !important; padding: 5mm !important; box-shadow: none !important; overflow: hidden !important; page-break-inside: avoid !important; break-inside: avoid !important; page-break-after: always !important; break-after: page !important; }
 .surat-exporting-pdf .surat-document-landscape:last-child, .surat-exporting-pdf.surat-document-landscape:last-child, .surat-exporting-pdf .surat-page-landscape:last-child, .surat-exporting-pdf.surat-page-landscape:last-child { page-break-after: avoid !important; break-after: avoid !important; }
-@media print{.no-print{display:none !important;}}
+.surat-page-hidden { display: none !important; }
+.surat-exporting-pdf .surat-page-hidden { display: flex !important; }
+@media print{.no-print{display:none !important;} .surat-page-hidden { display: flex !important; } .surat-pagination-bar { display: none !important; }}
 @page{size: 215.9mm 330.2mm; margin: 0;}
 @page surat-landscape { size: 330.2mm 215.9mm; margin: 0; }
 @media print{
   body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .surat-page-hidden { display: flex !important; }
+  .surat-pagination-bar { display: none !important; }
   app-header, app-footer, app-sidebar, app-administrator-sidebar, simrs-patient-sidebar, .simrs-sidebar-col, .sidebar, .main-sidebar, #sidebar, #sidebar-wrapper, aside, header, footer, nav, .navbar, .surat-toolbar, .pap-tabs, .cppt-tabs, .tr-tabs, .rp-tabs, .fpo-tabs, .nav-tabs, .no-print, .d-print-none, .modal { display: none !important; visibility: hidden !important; height: 0 !important; width: 0 !important; opacity: 0 !important; overflow: hidden !important; position: absolute !important; left: -9999px !important; }
   .tab-pane:not(:has(.surat-document)):not(:has(.surat-document-landscape)):not(:has(.surat-page)):not(:has(.surat-page-landscape)), .card:not(:has(.surat-document)):not(:has(.surat-document-landscape)):not(:has(.surat-page)):not(:has(.surat-page-landscape)), .alert:not(:has(.surat-document)):not(:has(.surat-document-landscape)):not(:has(.surat-page)):not(:has(.surat-page-landscape)), .tab-content > *:not(:has(.surat-document)):not(:has(.surat-document-landscape)):not(:has(.surat-page)):not(:has(.surat-page-landscape)), .f-group, .form-group, .form-control, .form-select { display: none !important; }
   html, body, app-root, app-pasien-details, .content-wrapper, .container-fluid, .container, .main-content, .card:has(.surat-document), .card:has(.surat-document-landscape), .card:has(.surat-page), .card:has(.surat-page-landscape), .card-body:has(.surat-document), .card-body:has(.surat-document-landscape), .card-body:has(.surat-page), .card-body:has(.surat-page-landscape), .tab-content:has(.surat-document), .tab-content:has(.surat-page), .tab-pane:has(.surat-document), .tab-pane:has(.surat-document-landscape), .tab-pane:has(.surat-page), .tab-pane:has(.surat-page-landscape), .row, [class*="col-"]:not(.simrs-sidebar-col) { width: 100% !important; max-width: 100% !important; height: auto !important; min-height: 0 !important; max-height: none !important; overflow: visible !important; position: static !important; padding: 0 !important; margin: 0 !important; float: none !important; display: block !important; box-sizing: border-box !important; }
@@ -174,13 +178,16 @@ ${extraCss}
   </div>
 
   <div class="tab-pane fade" id="${printPaneId}" role="tabpanel">
-    <div class="mb-3 no-print d-flex gap-2 align-items-center mt-3">
-      <button type="button" class="btn btn-success surat-download-pdf-btn">
-        <i class="bi bi-file-earmark-pdf-fill me-1"></i>Simpan sebagai PDF
-      </button>
-      <button type="button" class="btn btn-primary surat-print-btn">
-        <i class="bi bi-printer me-1"></i>Cetak
-      </button>
+    <div class="surat-print-toolbar mb-3 no-print d-flex flex-wrap align-items-center justify-content-between p-2 bg-white border rounded shadow-sm mt-3" style="position:sticky; top:0; z-index:50; gap:10px;">
+      <div class="d-flex gap-2 align-items-center">
+        <button type="button" class="btn btn-sm btn-success surat-download-pdf-btn d-flex align-items-center gap-1.5 px-3 py-1.5 fw-semibold" style="font-size:13px;">
+          <i class="bi bi-file-earmark-pdf-fill"></i><span>Simpan sebagai PDF</span>
+        </button>
+        <button type="button" class="btn btn-sm btn-primary surat-print-btn d-flex align-items-center gap-1.5 px-3 py-1.5 fw-semibold" style="font-size:13px;">
+          <i class="bi bi-printer"></i><span>Cetak</span>
+        </button>
+      </div>
+      <div class="surat-pagination-slot d-flex align-items-center gap-2" id="${idPrefix}-pagination-slot"></div>
     </div>
     <div class="surat-print-bg" id="${idPrefix}-print-container">
       ${printContent}
@@ -267,6 +274,12 @@ export function forceChromePrintStyles(isLandscape = false) {
       .surat-document:last-child, .surat-page:last-child, .surat-document-landscape:last-child, .surat-page-landscape:last-child {
         page-break-after: avoid !important;
         break-after: avoid !important;
+      }
+      .surat-page-hidden {
+        display: flex !important;
+      }
+      .surat-pagination-bar {
+        display: none !important;
       }
       body.simrs-printing-mass > *:not(#simrs-mass-print-host) {
         display: none !important;
@@ -373,6 +386,8 @@ export async function downloadSuratAsPdf(targetElement, filename, isLandscape = 
 
   const docOrigStyles = [];
   const targetDocList = isTargetDoc ? [targetElement] : (docs.length > 0 ? docs : [targetElement]);
+  const hiddenDocsForPdf = docs.filter(d => d.classList.contains('surat-page-hidden'));
+  hiddenDocsForPdf.forEach(d => d.classList.remove('surat-page-hidden'));
   targetDocList.forEach((d, idx) => {
     docOrigStyles.push({
       margin: d.style.margin,
@@ -457,6 +472,7 @@ export async function downloadSuratAsPdf(targetElement, filename, isLandscape = 
   try {
     return await h2p().set(opt).from(captureEl).save();
   } finally {
+    hiddenDocsForPdf.forEach(d => d.classList.add('surat-page-hidden'));
     captureEl.classList.remove("surat-exporting-pdf");
     if (isLandscape) captureEl.classList.remove("surat-landscape");
 
@@ -500,7 +516,12 @@ export function bindSuratPrintButton(root, pdfConfig = {}) {
           bsTab.show();
         } catch (e) {}
       }
+      const hiddenDocs = Array.from(root.querySelectorAll('.surat-page-hidden'));
+      hiddenDocs.forEach(el => el.classList.remove('surat-page-hidden'));
       window.print();
+      setTimeout(() => {
+        hiddenDocs.forEach(el => el.classList.add('surat-page-hidden'));
+      }, 1000);
     });
   }
 
@@ -748,4 +769,175 @@ export function createMultiPageSurat(pages, footerLabelCode = 'RM/RSBHY/2026') {
       ${footerLabel(footerLabelCode)}
     </div>
   `).join('');
+}
+
+if (typeof window !== 'undefined' && !window._suratPaginationPrintHookBound) {
+  window._suratPaginationPrintHookBound = true;
+  let unhiddenForPrint = [];
+  window.addEventListener('beforeprint', () => {
+    unhiddenForPrint = Array.from(document.querySelectorAll('.surat-page-hidden'));
+    unhiddenForPrint.forEach(el => el.classList.remove('surat-page-hidden'));
+  });
+  window.addEventListener('afterprint', () => {
+    unhiddenForPrint.forEach(el => el.classList.add('surat-page-hidden'));
+    unhiddenForPrint = [];
+  });
+}
+
+export function setupSuratPagination(container, options = {}) {
+  if (!container) return;
+  const idPrefix = options.idPrefix || 'surat';
+  const pages = Array.from(container.querySelectorAll('.surat-document, .surat-page, .surat-document-landscape, .surat-page-landscape'));
+  const totalPages = pages.length;
+
+  const parentPane = container.closest('.tab-pane') || container.parentElement;
+
+  // Clean up any legacy standalone pagination bars
+  if (parentPane) {
+    const oldBars = parentPane.querySelectorAll(`.${idPrefix}-pagination-bar, .surat-pagination-bar`);
+    oldBars.forEach((bar) => bar.remove());
+  }
+
+  // Locate the pagination slot inside the toolbar
+  let slot = parentPane ? (parentPane.querySelector(`#${idPrefix}-pagination-slot`) || parentPane.querySelector('.surat-pagination-slot')) : null;
+
+  // If slot doesn't exist yet, try to attach to the print toolbar
+  if (!slot && parentPane) {
+    let toolbar = parentPane.querySelector('.surat-print-toolbar') || parentPane.querySelector('.no-print:has(.surat-print-btn)');
+    if (!toolbar) {
+      const printBtn = parentPane.querySelector('.surat-print-btn');
+      if (printBtn && printBtn.parentElement) {
+        toolbar = printBtn.parentElement;
+      }
+    }
+    if (toolbar) {
+      slot = document.createElement('div');
+      slot.className = 'surat-pagination-slot d-flex align-items-center gap-2 ms-auto';
+      slot.id = `${idPrefix}-pagination-slot`;
+      toolbar.classList.add('justify-content-between', 'align-items-center');
+      toolbar.appendChild(slot);
+    }
+  }
+
+  if (totalPages <= 1) {
+    if (slot) slot.innerHTML = '';
+    pages.forEach(p => p.classList.remove('surat-page-hidden'));
+    return;
+  }
+
+  // Fallback: if no toolbar exists, build a sleek sticky unified toolbar
+  if (!slot) {
+    const toolbar = document.createElement('div');
+    toolbar.className = `${idPrefix}-pagination-bar surat-print-toolbar no-print d-flex flex-wrap align-items-center justify-content-between p-2 mb-3 bg-white border rounded shadow-sm`;
+    toolbar.style.cssText = 'position: sticky; top: 0; z-index: 50; gap: 8px;';
+    slot = document.createElement('div');
+    slot.className = 'surat-pagination-slot d-flex align-items-center gap-2 ms-auto';
+    toolbar.appendChild(slot);
+    container.parentNode.insertBefore(toolbar, container);
+  }
+
+  let currentPage = (slot._currentPage && slot._currentPage <= totalPages) ? slot._currentPage : 1;
+  let viewMode = slot._viewMode || 'single';
+
+  slot._currentPage = currentPage;
+  slot._viewMode = viewMode;
+
+  function renderBar() {
+    let pillsHtml = '';
+    for (let i = 1; i <= totalPages; i++) {
+      const isActive = (viewMode === 'single' && i === currentPage);
+      pillsHtml += `<button type="button" class="btn btn-sm ${isActive ? 'btn-primary text-white fw-bold shadow-sm' : 'btn-outline-secondary'} surat-page-pill" data-page="${i}" ${viewMode === 'all' ? 'disabled' : ''} style="min-width:28px; padding:2px 7px; font-size:11px; line-height:1.4;">${i}</button>`;
+    }
+
+    slot.innerHTML = `
+      <div class="d-flex align-items-center flex-wrap gap-2">
+        <!-- Compact Prev / Status / Next Control Group -->
+        <div class="d-flex align-items-center bg-light border rounded px-1.5 py-0.5" style="font-size:12px;">
+          <button type="button" class="btn btn-sm btn-link text-secondary p-0 px-1 prev-page-btn" ${currentPage <= 1 || viewMode === 'all' ? 'disabled style="opacity:0.3; pointer-events:none;"' : ''} title="Halaman Sebelumnya" style="text-decoration:none; line-height:1;">
+            <i class="bi bi-chevron-left" style="font-size:12px;"></i>
+          </button>
+          <span class="px-2 text-muted" style="font-size:12px; font-weight:600; white-space:nowrap; user-select:none;">
+            Hal <strong class="text-dark">${currentPage}</strong> / ${totalPages}
+          </span>
+          <button type="button" class="btn btn-sm btn-link text-secondary p-0 px-1 next-page-btn" ${currentPage >= totalPages || viewMode === 'all' ? 'disabled style="opacity:0.3; pointer-events:none;"' : ''} title="Halaman Berikutnya" style="text-decoration:none; line-height:1;">
+            <i class="bi bi-chevron-right" style="font-size:12px;"></i>
+          </button>
+        </div>
+
+        <!-- Quick Jump Pill Buttons -->
+        <div class="btn-group btn-group-sm" role="group">
+          ${pillsHtml}
+        </div>
+
+        <div class="vr mx-1 d-none d-sm-block" style="height:20px; opacity:0.25;"></div>
+
+        <!-- Toggle View Mode Button -->
+        <button type="button" class="btn btn-sm ${viewMode === 'all' ? 'btn-secondary text-white' : 'btn-outline-secondary'} toggle-view-btn d-flex align-items-center gap-1.5 px-2.5 py-1" style="font-size:12px; font-weight:500;" title="${viewMode === 'all' ? 'Beralih ke mode tampilan 1 halaman per lembar' : 'Tampilkan seluruh halaman berurutan ke bawah'}">
+          <i class="bi ${viewMode === 'all' ? 'bi-file-earmark' : 'bi-files'}"></i>
+          <span>${viewMode === 'all' ? 'Mode 1 Hal' : 'Semua Hal'}</span>
+        </button>
+      </div>
+    `;
+
+    pages.forEach((p, idx) => {
+      if (viewMode === 'all') {
+        p.classList.remove('surat-page-hidden');
+      } else {
+        if (idx === currentPage - 1) {
+          p.classList.remove('surat-page-hidden');
+        } else {
+          p.classList.add('surat-page-hidden');
+        }
+      }
+    });
+
+    const prevBtn = slot.querySelector('.prev-page-btn');
+    if (prevBtn) {
+      prevBtn.onclick = () => {
+        if (currentPage > 1) {
+          currentPage--;
+          slot._currentPage = currentPage;
+          renderBar();
+          container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      };
+    }
+
+    const nextBtn = slot.querySelector('.next-page-btn');
+    if (nextBtn) {
+      nextBtn.onclick = () => {
+        if (currentPage < totalPages) {
+          currentPage++;
+          slot._currentPage = currentPage;
+          renderBar();
+          container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      };
+    }
+
+    const pillBtns = slot.querySelectorAll('.surat-page-pill');
+    pillBtns.forEach((btn) => {
+      btn.onclick = () => {
+        const pNum = parseInt(btn.getAttribute('data-page'), 10);
+        if (pNum && pNum !== currentPage) {
+          currentPage = pNum;
+          slot._currentPage = currentPage;
+          renderBar();
+          container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      };
+    });
+
+    const toggleBtn = slot.querySelector('.toggle-view-btn');
+    if (toggleBtn) {
+      toggleBtn.onclick = () => {
+        viewMode = (viewMode === 'single') ? 'all' : 'single';
+        slot._viewMode = viewMode;
+        renderBar();
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+    }
+  }
+
+  renderBar();
 }
