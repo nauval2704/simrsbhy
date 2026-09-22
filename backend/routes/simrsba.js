@@ -63,8 +63,8 @@ router.get(
 );
 
 router.get("/checknosep/:nosep", simrsBaController.checknosep);
-router.get("/caripasieninap", authenticateToken, simrsBaController.cariPasienInap);
-router.get("/caripasieninap/:norm", authenticateToken, simrsBaController.cariPasienInapNorm);
+router.get("/caripasieninap",  simrsBaController.cariPasienInap);//authenticateToken,
+router.get("/caripasieninap/:norm", simrsBaController.cariPasienInapNorm);//authenticateToken, 
 router.get("/caridatakunjungan/:nosep", simrsBaController.cariDataKunjungan);
 router.get(
   "/caridatakunjungannosep/:nosep",
@@ -72,9 +72,8 @@ router.get(
 );
 router.get(
   "/caripasieninapnocheckin/:noCheckin",
-  authenticateToken,
-  simrsBaController.caripasieninapnocheckin
-);
+   simrsBaController.caripasieninapnocheckin
+);// authenticateToken,
 router.get(
   "/caripasien/pelayanan/:pelayanan",
   authenticateToken,

@@ -286,16 +286,31 @@
     return stockItems.find((item) => item.nama === searchInput?.value);
   }
 
+  function getStockUnit(stock) {
+    return stock?.jenisObat || stock?.satuanObat || stock?.satuan || stock?.unit || 'TABLET';
+  }
+
+  function getUsageText(item) {
+    return [
+      item?.takaran ? `Takaran ${item.takaran}` : '',
+      item?.quantity ? `${item.quantity}x sehari` : '',
+      item?.kapan || '',
+      item?.jam || '',
+      item?.deskripsi || '',
+    ].filter(Boolean).join(' | ') || 'Sesuai instruksi dokter';
+  }
+
   function getKronisBillingRows() {
     const chronicItems = (currentResep?.obat || []).filter((item) => item.kronis === true);
     return chronicItems.map((item, index) => ({
       no: index + 1,
       nama: Array.isArray(item.nama) ? item.nama.join(', ') : item.nama || '-',
       qty: Number(item.jumlah ?? 0),
+      satuan: item.satuanObat || item.satuan || item.jenisObat || 'TABLET',
       harga: Number(item.hargaSatuan || 0),
       subtotal: Number(item.jumlah || 0) * Number(item.hargaSatuan || 0),
       tanggal: item.createdAt || '-',
-      keterangan: item.deskripsi || 'Obat kronis',
+      keterangan: getUsageText(item),
     }));
   }
 
@@ -325,6 +340,7 @@
             <th style="border:1px solid #000;">Tgl</th>
             <th style="border:1px solid #000;">Keterangan</th>
             <th style="border:1px solid #000;">Qty</th>
+            <th style="border:1px solid #000;">Satuan</th>
             <th style="border:1px solid #000;">Harga</th>
             <th style="border:1px solid #000;">Subtotal</th>
           </tr>
@@ -337,6 +353,7 @@
               <td style="border:1px solid #000;">${escapeHtml(row.tanggal)}</td>
               <td style="border:1px solid #000;">${escapeHtml(row.keterangan)}</td>
               <td style="border:1px solid #000;">${escapeHtml(row.qty)}</td>
+              <td style="border:1px solid #000;">${escapeHtml(row.satuan)}</td>
               <td style="border:1px solid #000;">Rp. ${row.harga.toLocaleString('id-ID')}</td>
               <td style="border:1px solid #000;">Rp. ${row.subtotal.toLocaleString('id-ID')}</td>
             </tr>
@@ -354,7 +371,7 @@
     const tableRows = rows.map((row) => `
       <tr>
         <td>${row.no}</td><td>${escapeHtml(row.nama)}</td><td>${escapeHtml(row.tanggal)}</td>
-        <td>${escapeHtml(row.keterangan)}</td><td>${row.qty}</td>
+        <td>${escapeHtml(row.keterangan)}</td><td>${row.qty}</td><td>${escapeHtml(row.satuan)}</td>
         <td>Rp. ${row.harga.toLocaleString('id-ID')}</td><td>Rp. ${row.subtotal.toLocaleString('id-ID')}</td>
       </tr>
     `).join('');
@@ -375,7 +392,7 @@
       <table class="patient"><tr><th>Nama Pasien</th><td>${escapeHtml(patient.namaPasien || '-')}</td><th>Jenis Rawatan</th><td>${escapeHtml(patient.jenisRawatan || '-')}</td></tr>
         <tr><th>Nomor RM</th><td>${escapeHtml(patient.nomorRM || '-')}</td><th>Tgl Masuk</th><td>${escapeHtml(patient.tglMasuk || '-')}</td></tr>
         <tr><th>Unit Layanan</th><td>${escapeHtml(patient.unitLayanan || '-')}</td><th>Dokter</th><td>${escapeHtml(patient.dokter || '-')}</td></tr></table>
-      <table class="billing"><thead><tr><th>No</th><th>Nama Obat</th><th>Tgl</th><th>Keterangan</th><th>Qty</th><th>Harga</th><th>Subtotal</th></tr></thead>
+      <table class="billing"><thead><tr><th>No</th><th>Nama Obat</th><th>Tgl</th><th>Keterangan</th><th>Qty</th><th>Satuan</th><th>Harga</th><th>Subtotal</th></tr></thead>
         <tbody>${tableRows}</tbody></table></div></body></html>`;
 
     const blob = new Blob([workbook], { type: 'application/vnd.ms-excel;charset=utf-8;' });
@@ -522,7 +539,7 @@
 
     const chronicItems = (currentResep?.obat || []).filter((item) => item.kronis === true);
     if (chronicItems.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">Belum ada obat kronis.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted">Belum ada obat kronis.</td></tr>';
       renderKronisBilling();
       return;
     }
@@ -534,8 +551,9 @@
         <td>${index + 1}</td>
         <td>${escapeHtml(Array.isArray(item.nama) ? item.nama.join(', ') : item.nama || '-')}</td>
         <td>${escapeHtml(item.createdAt || '-')}</td>
-        <td>${escapeHtml(item.deskripsi || 'Obat kronis')}</td>
+        <td>${escapeHtml(getUsageText(item))}</td>
         <td>${escapeHtml(item.jumlah ?? 0)}</td>
+        <td>${escapeHtml(item.satuanObat || item.satuan || item.jenisObat || 'TABLET')}</td>
         <td>Rp. ${Number(item.hargaSatuan || 0).toLocaleString('id-ID')}</td>
         <td>Rp. ${subtotal.toLocaleString('id-ID')}</td>
         <td>
@@ -550,7 +568,7 @@
     );
     tbody.innerHTML = `${rows}
       <tr class="table-light fw-bold">
-        <td colspan="6" class="text-end">Total Subtotal</td>
+        <td colspan="7" class="text-end">Total Subtotal</td>
         <td>Rp. ${totalSubtotal.toLocaleString('id-ID')}</td>
         <td></td>
       </tr>`;
@@ -563,6 +581,12 @@
     const stockSelect = document.querySelector('#obat-kronis-stock');
     const searchInput = document.querySelector('#obat-kronis-search');
     const qtyInput = document.querySelector('#obat-kronis-qty');
+    const unitInput = document.querySelector('#obat-kronis-unit');
+    const takaranInput = document.querySelector('#obat-kronis-takaran');
+    const quantityInput = document.querySelector('#obat-kronis-quantity');
+    const kapanInput = document.querySelector('#obat-kronis-kapan');
+    const jamInput = document.querySelector('#obat-kronis-jam');
+    const usageInput = document.querySelector('#obat-kronis-deskripsi');
     const selectedStock = getSelectedStock();
     const { noCheckin, idPrmrj } = getPageContext();
 
@@ -596,12 +620,13 @@
     const dataObat = {
       sumberStock: stockSelect.value,
       item: selectedStock.nama,
-      jenisObat: '',
-      takaran: '',
-      quantity: '',
-      kapan: '',
-      jam: '',
-      deskripsi: '',
+      jenisObat: unitInput?.value || getStockUnit(selectedStock),
+      satuanObat: unitInput?.value || getStockUnit(selectedStock),
+      takaran: takaranInput?.value || '1',
+      quantity: quantityInput?.value || '1',
+      kapan: kapanInput?.value || '',
+      jam: jamInput?.value || '',
+      deskripsi: usageInput?.value || '',
       noFaktur: selectedStock.noFaktur || '',
       idObat: selectedStock._id,
       distributor: selectedStock.dataDistributor?.[0]?.nama || selectedStock.distributor || '',
@@ -637,6 +662,11 @@
     window.Swal?.fire({ title: 'Berhasil', text: 'Obat kronis berhasil ditambahkan.', icon: 'success' });
     searchInput.value = '';
     qtyInput.value = '1';
+    document.querySelector('#obat-kronis-takaran').value = '1';
+    document.querySelector('#obat-kronis-quantity').value = '1';
+    document.querySelector('#obat-kronis-kapan').value = '';
+    document.querySelector('#obat-kronis-jam').value = '';
+    document.querySelector('#obat-kronis-deskripsi').value = '';
     await loadCurrentResep();
   }
 
@@ -656,6 +686,12 @@
     stockSelect.dataset.changeReady = 'true';
     stockSelect.addEventListener('change', (event) => {
       loadStock(event.target.value);
+    });
+
+    document.querySelector('#obat-kronis-search')?.addEventListener('change', (event) => {
+      const selectedStock = getSelectedStock();
+      const unitInput = document.querySelector('#obat-kronis-unit');
+      if (selectedStock && unitInput) unitInput.value = getStockUnit(selectedStock);
     });
   }
 
@@ -740,8 +776,58 @@
                 <datalist id="obat-kronis-stock-options"></datalist>
               </div>
               <div class="col-md-2">
+                <label class="form-label small fw-semibold mb-1">Satuan Obat</label>
+                <select id="obat-kronis-unit" class="form-select">
+                  <option value="TABLET">TABLET</option>
+                  <option value="KAPSUL">KAPSUL</option>
+                  <option value="BUNGKUS">BUNGKUS</option>
+                  <option value="TETES">TETES</option>
+                  <option value="SENDOK MAKAN">SENDOK MAKAN</option>
+                  <option value="SENDOK TEH">SENDOK TEH</option>
+                  <option value="ML (Mili)">ML (Mili)</option>
+                  <option value="SEMPROT">SEMPROT</option>
+                </select>
+              </div>
+              <div class="col-md-2">
                 <label class="form-label small fw-semibold mb-1">Qty</label>
                 <input id="obat-kronis-qty" type="number" class="form-control" value="1" min="1" />
+              </div>
+              <div class="col-md-2">
+                <label class="form-label small fw-semibold mb-1">Takaran</label>
+                <select id="obat-kronis-takaran" class="form-select">
+                  ${Array.from({ length: 12 }, (_, index) => `<option value="${index + 1}">${index + 1}</option>`).join('')}
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label class="form-label small fw-semibold mb-1">Frekuensi / Hari</label>
+                <select id="obat-kronis-quantity" class="form-select">
+                  ${Array.from({ length: 12 }, (_, index) => `<option value="${index + 1}">${index + 1}x</option>`).join('')}
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label small fw-semibold mb-1">Waktu Makan</label>
+                <select id="obat-kronis-kapan" class="form-select">
+                  <option value="">-- Pilih --</option>
+                  <option value="SEBELUM MAKAN">SEBELUM MAKAN</option>
+                  <option value="SESUDAH MAKAN">SESUDAH MAKAN</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label small fw-semibold mb-1">Waktu Pemberian</label>
+                <select id="obat-kronis-jam" class="form-select">
+                  <option value="">-- Pilih --</option>
+                  <option value="PAGI">PAGI</option>
+                  <option value="SIANG">SIANG</option>
+                  <option value="MALAM">MALAM</option>
+                  <option value="PAGI SIANG">PAGI SIANG</option>
+                  <option value="PAGI MALAM">PAGI MALAM</option>
+                  <option value="SIANG MALAM">SIANG MALAM</option>
+                  <option value="PAGI SIANG MALAM">PAGI SIANG MALAM</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold mb-1">Instruksi Tambahan</label>
+                <input id="obat-kronis-deskripsi" type="text" class="form-control" placeholder="Contoh: Habiskan sesuai anjuran dokter" />
               </div>
               <div class="col-md-2 d-grid">
                 <button id="obat-kronis-submit" type="button" class="btn btn-primary w-100">Tambah</button>
@@ -757,13 +843,14 @@
                     <th scope="col">Tgl</th>
                     <th scope="col">Keterangan</th>
                     <th scope="col">Qty</th>
+                    <th scope="col">Satuan</th>
                     <th scope="col">Harga</th>
                     <th scope="col">Subtotal</th>
                     <th scope="col">Aksi</th>
                   </tr>
                 </thead>
                 <tbody id="obat-kronis-table-body">
-                  <tr><td colspan="8" class="text-center text-muted">Memuat data obat kronis...</td></tr>
+                  <tr><td colspan="9" class="text-center text-muted">Memuat data obat kronis...</td></tr>
                 </tbody>
               </table>
             </div>
