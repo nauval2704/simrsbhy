@@ -1140,7 +1140,7 @@ var PoliGigiComponent = (() => {
       updatePrint();
     }
 
-    static getPrintHtml(patient, formData) {
+    static getPrintHtml(patient, formData, rowHeights = null) {
       const getFontSize = (str, maxLen = 16, defaultSize = 10, minSize = 7) => { if (!str || str.length <= maxLen) return defaultSize; return Math.max(minSize, defaultSize * (maxLen / str.length)).toFixed(1); };
       const p = patient || {};
       const noMr = p.noMr || p.norm || '';

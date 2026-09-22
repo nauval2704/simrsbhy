@@ -40,7 +40,7 @@ module.exports = {
     },
     listPractitioner: async (req, res) => {
         try {
-            const result = await practitionerModel.find({}).limit(5).sort({ nama: 1 })
+            const result = await practitionerModel.find({}).limit(100).sort({ nama: 1 })
             return res.status(200).send({
                 status: 200,
                 message: 'Ok.',
