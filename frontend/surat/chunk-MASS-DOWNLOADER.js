@@ -1003,6 +1003,7 @@ class SimrsMassDownloader {
             .footer-id { text-align: right; font-size: 9px !important; margin-top: 5px; font-style: italic; }
             .t-border{box-sizing:border-box; width:100%; border:2px solid black; border-top:none; display:flex;flex-direction:column;flex:1;font-family:'Times New Roman',Times,serif; background:white;}
             .t-border *{font-size:11px !important;line-height:1.25 !important;box-sizing:border-box;margin:0;padding:0;}
+            .t-border .terapi-content, .t-border .terapi-content * { font-size: inherit !important; line-height: inherit !important; }
             .t-border h3{font-size:13px !important;font-weight:bold;}
             .t-row{display:flex;border-bottom:1px solid black; break-inside: avoid; page-break-inside: avoid;}
             .t-inner-row{display:flex;border-bottom:1px solid black;}

@@ -7,3 +7,4 @@ backend_rework/.gitignore
 backend_rework/.env
 backend_old/
 logs
+logs/

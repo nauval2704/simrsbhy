@@ -555,6 +555,7 @@ var PengkajianAwalIgdComponent = (() => {
 .f-radio-label input { margin-right: 4px; }
 .t-border{box-sizing:border-box; width:100%; border:2px solid black; border-top:none; display:flex;flex-direction:column;flex:1;font-family:'Times New Roman',Times,serif; background:white;}
 .t-border *{font-size:11px !important;line-height:1.25 !important;box-sizing:border-box;margin:0;padding:0;}
+.t-border .terapi-content, .t-border .terapi-content * { font-size: inherit !important; line-height: inherit !important; }
 .t-border h3{font-size:13px !important;font-weight:bold;}
 .t-row{display:flex;border-bottom:1px solid black; break-inside: avoid; page-break-inside: avoid;}
 .t-inner-row{display:flex;border-bottom:1px solid black;}
@@ -988,6 +989,49 @@ var PengkajianAwalIgdComponent = (() => {
         </div>
       `;
 
+      const rawTerapi = String(getVal('terapi') || '').trim();
+      let terapiRenderHtml = '';
+      if (!rawTerapi) {
+        terapiRenderHtml = '<div style="white-space:pre-wrap; margin-top:2px;">-</div>';
+      } else {
+        const rawLines = rawTerapi.split(/\r?\n/).filter(line => line.trim().length > 0);
+        let estimatedLines = 0;
+        rawLines.forEach(l => {
+          estimatedLines += Math.max(1, Math.ceil(l.trim().length / 75));
+        });
+
+        const isLong = rawLines.length > 8 || estimatedLines > 10;
+        if (isLong) {
+          let fontSize = '10px';
+          let lineHeight = '1.25';
+          if (rawLines.length > 30 || estimatedLines > 30) {
+            fontSize = '9px';
+            lineHeight = '1.15';
+          } else if (rawLines.length > 20 || estimatedLines > 20) {
+            fontSize = '9.5px';
+            lineHeight = '1.2';
+          }
+
+          const mid = Math.ceil(rawLines.length / 2);
+          const col1 = rawLines.slice(0, mid).join('\n');
+          const col2 = rawLines.slice(mid).join('\n');
+
+          terapiRenderHtml = `
+            <div class="terapi-content" style="display:flex; gap:16px; width:100%; margin-top:2px; font-size:${fontSize} !important; line-height:${lineHeight} !important;">
+              <div style="flex:1; min-width:0; white-space:pre-wrap; word-break:break-word; font-size:${fontSize} !important; line-height:${lineHeight} !important;">${col1}</div>
+              <div style="flex:1; min-width:0; white-space:pre-wrap; word-break:break-word; font-size:${fontSize} !important; line-height:${lineHeight} !important;">${col2}</div>
+            </div>
+          `;
+        } else {
+          const fontSize = (rawLines.length > 5 || estimatedLines > 6) ? '10.5px' : '11px';
+          terapiRenderHtml = `
+            <div class="terapi-content" style="white-space:pre-wrap; word-break:break-word; margin-top:2px; font-size:${fontSize} !important; line-height:1.25 !important;">
+              ${rawTerapi}
+            </div>
+          `;
+        }
+      }
+
       const page2Html = `
         <div class="t-border" style="border-top:2px solid black;">
           <div class="t-row" style="flex-shrink:0; padding:0;">
@@ -1059,7 +1103,7 @@ var PengkajianAwalIgdComponent = (() => {
             </table>
           </div>
           <div class="t-row" style="flex-shrink:0;">
-            <div class="t-col t-f1" style="height:60px; padding:4px 6px;">
+            <div class="t-col t-f1" style="min-height:60px; height:auto; padding:4px 6px;">
               <strong>DIAGNOSIS KERJA :</strong>
               <div style="white-space:pre-wrap; margin-top:2px;">${getVal('diagnosisKerja')}</div>
             </div>
@@ -1073,25 +1117,25 @@ var PengkajianAwalIgdComponent = (() => {
             </div>
           </div>
           <div class="t-row" style="flex-shrink:0;">
-            <div class="t-col t-f1" style="height:60px; padding:4px 6px;">
+            <div class="t-col t-f1" style="min-height:60px; height:auto; padding:4px 6px;">
               <strong>PERMASALAHAN MEDIS/INDIKASI RAWAT :</strong>
               <div style="white-space:pre-wrap; margin-top:2px;">${getVal('permasalahanMedis')}</div>
             </div>
           </div>
           <div class="t-row" style="flex-shrink:0;">
-            <div class="t-col t-f1" style="height:60px; padding:4px 6px;">
+            <div class="t-col t-f1" style="min-height:60px; height:auto; padding:4px 6px;">
               <strong>DIAGNOSA KEPERAWATAN : (*perawat)</strong>
               <div style="white-space:pre-wrap; margin-top:2px;">${getVal('diagnosaKeperawatan')}</div>
             </div>
           </div>
           <div class="t-row" style="flex-shrink:0;">
-            <div class="t-col t-f1" style="height:140px; padding:4px 6px;">
+            <div class="t-col t-f1" style="min-height:140px; height:auto; padding:4px 6px;">
               <strong>TERAPI DAN TINDAKAN</strong>
-              <div style="white-space:pre-wrap; margin-top:2px;">${getVal('terapi')}</div>
+              ${terapiRenderHtml}
             </div>
           </div>
           <div class="t-row" style="flex-shrink:0;">
-            <div class="t-col t-f1" style="height:170px; padding:4px 6px;">
+            <div class="t-col t-f1" style="min-height:170px; height:auto; padding:4px 6px;">
               <strong>TINDAK LANJUT :</strong><br>
               <div style="margin-top:2px; line-height:1.5;">
                 ${sq('tl','APS')} Pulang Atas Permintaan Sendiri atau menolak rawat inap.<br>
