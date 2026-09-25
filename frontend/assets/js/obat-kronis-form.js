@@ -5,6 +5,34 @@
     INAP: 'inap',
   };
   let currentResep = null;
+  // diupdate oleh irwansyah tanggal 2026-09-24 - awal pengendalian pemuatan ulang data obat kronis
+  let resepLoading = false;
+  // diupdate oleh irwansyah tanggal 2026-09-24 - akhir pengendalian pemuatan ulang data obat kronis
+
+  // diupdate oleh irwansyah tanggal 2026-09-23 - awal perbaikan helper status obat kronis
+  function isChronicMedicine(item) {
+    return item?.kronis === true || item?.kronis === 'true';
+  }
+  // diupdate oleh irwansyah tanggal 2026-09-23 - akhir perbaikan helper status obat kronis
+
+  // diupdate oleh irwansyah tanggal 2026-09-23 - awal format tanggal Indonesia untuk footer billing kronis
+  function getIndonesianToday() {
+    return new Intl.DateTimeFormat('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(new Date());
+  }
+  // diupdate oleh irwansyah tanggal 2026-09-23 - akhir format tanggal Indonesia untuk footer billing kronis
+
+  // diupdate oleh irwansyah tanggal 2026-09-23 - awal format tanggal dan jam cetak billing kronis
+  function getIndonesianPrintDateTime() {
+    return new Intl.DateTimeFormat('id-ID', {
+      day: 'numeric', month: 'long', year: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+    }).format(new Date());
+  }
+  // diupdate oleh irwansyah tanggal 2026-09-23 - akhir format tanggal dan jam cetak billing kronis
 
   function getPageContext() {
     const params = new URLSearchParams(window.location.search);
@@ -137,7 +165,9 @@
     if (target) {
       mountForm();
       loadPatientMeta();
-      if (!currentResep) loadCurrentResep();
+      // diupdate oleh irwansyah tanggal 2026-09-24 - awal memuat data saat tab obat kronis dibuka
+      loadCurrentResep();
+      // diupdate oleh irwansyah tanggal 2026-09-24 - akhir memuat data saat tab obat kronis dibuka
     }
   }
 
@@ -190,15 +220,24 @@
       return [];
     };
 
+    // diupdate oleh irwansyah tanggal 2026-09-23 - awal perbaikan penggabungan seluruh resep pasien
     const findMatchingResep = (recipeList) => {
       const isMatch = (recipe) =>
         String(recipe?.noCheckin ?? '') === String(noCheckin) &&
         (!idPrmrj || String(recipe?.idPrmrj ?? '') === String(idPrmrj));
 
-      return recipeList.find(isMatch) || recipeList.find((recipe) =>
+      const matchingRecipes = recipeList.filter(isMatch);
+      const fallbackRecipes = matchingRecipes.length ? matchingRecipes : recipeList.filter((recipe) =>
         String(recipe?.noCheckin ?? '') === String(noCheckin)
-      ) || null;
+      );
+      if (!fallbackRecipes.length) return null;
+
+      return {
+        ...fallbackRecipes[0],
+        obat: fallbackRecipes.flatMap((recipe) => Array.isArray(recipe?.obat) ? recipe.obat : []),
+      };
     };
+    // diupdate oleh irwansyah tanggal 2026-09-23 - akhir perbaikan penggabungan seluruh resep pasien
 
     try {
       const response = await fetch(`${getBaseUrl()}/farmasi/resep`, {
@@ -273,11 +312,19 @@
 
   async function loadCurrentResep() {
     const { noCheckin, idPrmrj } = getPageContext();
-    if (!noCheckin) return;
+    if (!noCheckin || resepLoading) return;
 
-    currentResep = null;
-    currentResep = await ensureCurrentResep(noCheckin, idPrmrj);
-    renderChronicTable();
+    // diupdate oleh irwansyah tanggal 2026-09-24 - awal memastikan request data obat kronis tidak ganda
+    resepLoading = true;
+    try {
+      currentResep = null;
+      currentResep = await ensureCurrentResep(noCheckin, idPrmrj);
+      renderChronicTable();
+      filterRegularRecipeList();
+    } finally {
+      resepLoading = false;
+    }
+    // diupdate oleh irwansyah tanggal 2026-09-24 - akhir memastikan request data obat kronis tidak ganda
   }
 
   function getSelectedStock() {
@@ -285,6 +332,29 @@
     const stockItems = JSON.parse(searchInput?.dataset.stockItems || '[]');
     return stockItems.find((item) => item.nama === searchInput?.value);
   }
+
+  // START CUSTOM: Hide chronic medicines from recipe list and recipe modal
+  function filterRegularRecipeList() {
+    const chronicNames = (currentResep?.obat || [])
+      .filter((item) => isChronicMedicine(item))
+      .flatMap((item) => Array.isArray(item.nama) ? item.nama : [item.nama])
+      .filter(Boolean)
+      .map((name) => String(name).trim().toLowerCase());
+    if (chronicNames.length === 0) return;
+
+    document.querySelectorAll([
+      'app-list-resep tbody tr',
+      'ngb-modal-window tbody tr',
+      '.modal.show tbody tr',
+      '.modal-dialog tbody tr',
+    ].join(', ')).forEach((element) => {
+      const text = element.textContent.trim().toLowerCase();
+      if (chronicNames.some((name) => text.includes(name))) {
+        element.remove();
+      }
+    });
+  }
+  // END CUSTOM: Hide chronic medicines from recipe list and recipe modal
 
   function getStockUnit(stock) {
     return stock?.jenisObat || stock?.satuanObat || stock?.satuan || stock?.unit || 'TABLET';
@@ -301,7 +371,7 @@
   }
 
   function getKronisBillingRows() {
-    const chronicItems = (currentResep?.obat || []).filter((item) => item.kronis === true);
+    const chronicItems = (currentResep?.obat || []).filter((item) => isChronicMedicine(item));
     return chronicItems.map((item, index) => ({
       no: index + 1,
       nama: Array.isArray(item.nama) ? item.nama.join(', ') : item.nama || '-',
@@ -321,9 +391,11 @@
       <div class="kronis-hospital-header" style="display:flex;align-items:center;gap:16px;border-bottom:2px solid #000;padding:0 0 10px;margin-bottom:12px;text-align:center;">
         <img src="${logoUrl}" alt="Logo RS Bhayangkara" style="width:58px;height:76px;object-fit:contain;flex:0 0 auto;">
         <div style="flex:1;line-height:1.25;">
-          <div style="font-size:18px;font-weight:700;">RS BHAYANGKARA BANDA ACEH</div>
-          <div style="font-size:12px;">Jl. Cut Nyak Dhien No.23 Lamteumen Barat - Banda Aceh</div>
+        <div style="font-size:18px;font-weight:700;">KEPOLISIAN NEGARA REPUBLIK INDONESIA DAERAH ACEH </div>
+           <div style="font-size:18px;font-weight:700;">RUMAH SAKIT BHAYANGKARA BANDA ACEH </div>
+          <div style="font-size:12px;">Jln. Cut Nyak Dhien No.23 Lamteumen Barat - Banda Aceh</div>
           <div style="font-size:12px;">Telp (0651) 41470 - 41355, Fax. (0651) 41253</div>
+           <div style="font-size:12px;">Email: bhayangkara_bandara_banda_aceh@yahoo.co.id</div>
         </div>
         <img src="${rightLogoUrl}" alt="Logo Bhayangkara" style="width:58px;height:76px;object-fit:contain;flex:0 0 auto;">
       </div>
@@ -363,6 +435,93 @@
     `;
   }
 
+  // diupdate oleh irwansyah tanggal 2026-09-23 - awal penambahan tanda tangan dpjp billing obat kronis
+  function getDpjpSignatureStorageKey() {
+    return `e-resep-dpjp-signature-${getPageContext().noCheckin || 'default'}`;
+  }
+
+  // diupdate oleh irwansyah tanggal 2026-09-24 - awal placeholder tanda tangan billing kronis
+  function drawSignaturePlaceholder(canvas, context) {
+    context.save();
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = '#9ca3af';
+    context.font = '16px Arial';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillText('Tanda tangan di sini', canvas.width / 2, canvas.height / 2);
+    context.restore();
+  }
+  // diupdate oleh irwansyah tanggal 2026-09-24 - akhir placeholder tanda tangan billing kronis
+
+  function initKronisDpjpSignature(host) {
+    const canvas = host.querySelector('#kronis-dpjp-signature');
+    const clearButton = host.querySelector('[data-kronis-action="clear-signature"]');
+    if (!canvas || !clearButton) return;
+
+    const context = canvas.getContext('2d');
+    let drawing = false;
+    let hasDrawn = false;
+    const point = (event) => {
+      const rect = canvas.getBoundingClientRect();
+      const source = event.touches?.[0] || event;
+      return { x: source.clientX - rect.left, y: source.clientY - rect.top };
+    };
+    const start = (event) => {
+      event.preventDefault();
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      drawing = true;
+      hasDrawn = false;
+      const position = point(event);
+      context.beginPath();
+      context.moveTo(position.x, position.y);
+    };
+    const draw = (event) => {
+      if (!drawing) return;
+      event.preventDefault();
+      hasDrawn = true;
+      const position = point(event);
+      context.lineTo(position.x, position.y);
+      context.stroke();
+    };
+    const stop = () => {
+      drawing = false;
+      context.closePath();
+      if (hasDrawn) {
+        try { localStorage.setItem(getDpjpSignatureStorageKey(), canvas.toDataURL('image/png')); } catch (error) {}
+      } else {
+        drawSignaturePlaceholder(canvas, context);
+      }
+    };
+
+    context.strokeStyle = '#111827';
+    context.lineWidth = 2;
+    context.lineCap = 'round';
+    context.lineJoin = 'round';
+    canvas.addEventListener('mousedown', start);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stop);
+    canvas.addEventListener('mouseleave', stop);
+    canvas.addEventListener('touchstart', start, { passive: false });
+    canvas.addEventListener('touchmove', draw, { passive: false });
+    canvas.addEventListener('touchend', stop);
+
+    try {
+      const saved = localStorage.getItem(getDpjpSignatureStorageKey());
+      if (saved) {
+        const image = new Image();
+        image.onload = () => context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        image.src = saved;
+      } else drawSignaturePlaceholder(canvas, context);
+    } catch (error) { drawSignaturePlaceholder(canvas, context); }
+
+    clearButton.addEventListener('click', () => {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      try { localStorage.removeItem(getDpjpSignatureStorageKey()); } catch (error) {}
+      drawSignaturePlaceholder(canvas, context);
+    });
+  }
+  // diupdate oleh irwansyah tanggal 2026-09-23 - akhir penambahan tanda tangan dpjp billing obat kronis
+
   function exportKronisBillingToExcel(rows) {
     const { noCheckin } = getPageContext();
     const patient = getPatientMeta();
@@ -393,7 +552,11 @@
         <tr><th>Nomor RM</th><td>${escapeHtml(patient.nomorRM || '-')}</td><th>Tgl Masuk</th><td>${escapeHtml(patient.tglMasuk || '-')}</td></tr>
         <tr><th>Unit Layanan</th><td>${escapeHtml(patient.unitLayanan || '-')}</td><th>Dokter</th><td>${escapeHtml(patient.dokter || '-')}</td></tr></table>
       <table class="billing"><thead><tr><th>No</th><th>Nama Obat</th><th>Tgl</th><th>Keterangan</th><th>Qty</th><th>Satuan</th><th>Harga</th><th>Subtotal</th></tr></thead>
-        <tbody>${tableRows}</tbody></table></div></body></html>`;
+        <tbody>${tableRows}</tbody></table>
+      <!-- diupdate oleh irwansyah tanggal 2026-09-23 - awal penambahan footer waktu download billing kronis -->
+      <div style="text-align:left;margin-top:12px;">Tgl cetak: ${getIndonesianPrintDateTime()}</div>
+      <!-- diupdate oleh irwansyah tanggal 2026-09-23 - akhir penambahan footer waktu download billing kronis -->
+      </div></body></html>`;
 
     const blob = new Blob([workbook], { type: 'application/vnd.ms-excel;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -412,6 +575,38 @@
 
     const clone = host.cloneNode(true);
     clone.querySelector('.btn-group')?.remove();
+    // diupdate oleh irwansyah tanggal 2026-09-23 - awal pengubahan canvas tanda tangan menjadi gambar export
+    const sourceCanvas = host.querySelector('#kronis-dpjp-signature');
+    const clonedCanvas = clone.querySelector('#kronis-dpjp-signature');
+    // diupdate oleh irwansyah tanggal 2026-09-24 - awal menghapus placeholder dari hasil billing kronis
+    let hasSignature = false;
+    try {
+      hasSignature = Boolean(localStorage.getItem(getDpjpSignatureStorageKey()));
+    } catch (error) {
+      hasSignature = false;
+    }
+    if (sourceCanvas && clonedCanvas && hasSignature) {
+      const image = document.createElement('img');
+      image.src = sourceCanvas.toDataURL('image/png');
+      image.alt = 'Tanda tangan dokter DPJP';
+      image.style.width = '100%';
+      // diupdate oleh irwansyah tanggal 2026-09-23 - awal mengecilkan tanda tangan pada hasil billing kronis
+      image.style.maxWidth = '320px';
+      image.style.height = '90px';
+      // diupdate oleh irwansyah tanggal 2026-09-23 - akhir mengecilkan tanda tangan pada hasil billing kronis
+      image.style.objectFit = 'contain';
+      image.style.border = '0';
+      clonedCanvas.replaceWith(image);
+    } else if (clonedCanvas) {
+      clonedCanvas.remove();
+    }
+    // diupdate oleh irwansyah tanggal 2026-09-24 - akhir menghapus placeholder dari hasil billing kronis
+    clone.querySelector('[data-kronis-action="clear-signature"]')?.remove();
+    // diupdate oleh irwansyah tanggal 2026-09-23 - awal memastikan tanggal cetak tampil pada hasil billing kronis
+    const printDate = clone.querySelector('[data-print-date]');
+    if (printDate) printDate.textContent = `Tgl cetak: ${getIndonesianPrintDateTime()}`;
+    // diupdate oleh irwansyah tanggal 2026-09-23 - akhir memastikan tanggal cetak tampil pada hasil billing kronis
+    // diupdate oleh irwansyah tanggal 2026-09-23 - akhir pengubahan canvas tanda tangan menjadi gambar export
     return clone;
   }
 
@@ -421,12 +616,16 @@
 
     const content = document.createElement('div');
     content.appendChild(clone);
-    content.style.padding = '12px';
+    // diupdate oleh irwansyah tanggal 2026-09-23 - awal mengurangi padding hasil PDF billing kronis
+    content.style.padding = '4px 12px 12px';
+    // diupdate oleh irwansyah tanggal 2026-09-23 - akhir mengurangi padding hasil PDF billing kronis
 
     if (window.html2pdf) {
       window.html2pdf()
         .set({
-          margin: [0.3, 0.3, 0.3, 0.3],
+          // diupdate oleh irwansyah tanggal 2026-09-23 - awal menaikkan posisi konten PDF billing kronis
+          margin: [0.08, 0.3, 0.2, 0.3],
+          // diupdate oleh irwansyah tanggal 2026-09-23 - akhir menaikkan posisi konten PDF billing kronis
           filename: `billing-obat-kronis-${(getPageContext().noCheckin || 'pasien')}.pdf`,
           image: { type: 'jpeg', quality: 0.96 },
           html2canvas: { scale: 2 },
@@ -450,8 +649,10 @@
       .map((link) => `<link rel="stylesheet" href="${link.href}">`)
       .join('');
     printWindow.document.write(`<!doctype html><html><head><title>Billing Obat Kronis</title>${stylesheets}<style>
-      @page { size: A4 portrait; margin: 0.3in; }
-      body { margin: 0; padding: 12px; background: #fff; font-size: 14px; }
+      /* diupdate oleh irwansyah tanggal 2026-09-23 - awal menaikkan posisi konten cetak billing kronis */
+      @page { size: A4 portrait; margin: 0.08in 0.3in 0.2in; }
+      body { margin: 0; padding: 4px 12px; background: #fff; font-size: 14px; }
+      /* diupdate oleh irwansyah tanggal 2026-09-23 - akhir menaikkan posisi konten cetak billing kronis */
       #kronis-billing-export-root { width: 100%; }
     </style></head><body>${content.outerHTML}</body></html>`);
     printWindow.document.close();
@@ -521,6 +722,20 @@
         ${buildKronisBillingTable(rows)}
 
         <div class="text-end fw-bold">Total: Rp. ${total.toLocaleString('id-ID')}</div>
+
+        <!-- diupdate oleh irwansyah tanggal 2026-09-23 - awal pengembalian tanda tangan dan nama dokter -->
+        <div class="row mt-4 pt-3 border-top">
+          <div class="col-md-6 offset-md-6 text-center">
+            <div class="mt-2">Banda Aceh, ${getIndonesianToday()}</div>
+            <canvas id="kronis-dpjp-signature" width="420" height="120" style="display:block;width:100%;max-width:420px;height:120px;border:0;margin:auto;background:#fff;touch-action:none;"></canvas>
+            <button type="button" class="btn btn-sm btn-outline-secondary mt-2" data-kronis-action="clear-signature">Hapus Tanda Tangan</button>
+            <div class="mt-2 fw-bold">${escapeHtml(patient.dokter || 'N/A')}</div>
+          </div>
+        </div>
+        <!-- diupdate oleh irwansyah tanggal 2026-09-23 - awal penambahan footer waktu cetak billing kronis -->
+        <div class="text-start text-muted mt-3" data-print-date>Tgl cetak: ${getIndonesianPrintDateTime()}</div>
+        <!-- diupdate oleh irwansyah tanggal 2026-09-23 - akhir penambahan footer waktu cetak billing kronis -->
+        <!-- diupdate oleh irwansyah tanggal 2026-09-23 - akhir pengembalian tanda tangan dan nama dokter -->
       </div>
     `;
 
@@ -528,6 +743,9 @@
     const excelButton = host.querySelector('[data-kronis-action="excel"]');
     const printButton = host.querySelector('[data-kronis-action="print"]');
 
+    // diupdate oleh irwansyah tanggal 2026-09-23 - awal inisialisasi tanda tangan dpjp billing
+    initKronisDpjpSignature(host);
+    // diupdate oleh irwansyah tanggal 2026-09-23 - akhir inisialisasi tanda tangan dpjp billing
     pdfButton?.addEventListener('click', exportKronisBillingPdf);
     excelButton?.addEventListener('click', () => exportKronisBillingToExcel(rows));
     printButton?.addEventListener('click', printKronisBilling);
@@ -537,7 +755,7 @@
     const tbody = document.querySelector('#obat-kronis-table-body');
     if (!tbody) return;
 
-    const chronicItems = (currentResep?.obat || []).filter((item) => item.kronis === true);
+    const chronicItems = (currentResep?.obat || []).filter((item) => isChronicMedicine(item));
     if (chronicItems.length === 0) {
       tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted">Belum ada obat kronis.</td></tr>';
       renderKronisBilling();
@@ -918,6 +1136,7 @@
   function init() {
     injectStyles();
     loadCurrentResep();
+    filterRegularRecipeList();
     const target = document.querySelector('#farmasi-tab-obat-kronis');
     if (target) {
       mountForm();
@@ -939,9 +1158,20 @@
     }
 
     document.addEventListener('shown.bs.tab', (event) => {
-      if (event.target && event.target.dataset.bsTarget === '#farmasi-tab-obat-kronis') {
+      const tabTarget = event.target?.dataset?.bsTarget || event.target?.getAttribute?.('href');
+      // diupdate oleh irwansyah tanggal 2026-09-24 - awal pemuatan data berdasarkan target tab obat kronis
+      if (tabTarget === '#farmasi-tab-obat-kronis') {
         showForm();
       }
+      // diupdate oleh irwansyah tanggal 2026-09-24 - akhir pemuatan data berdasarkan target tab obat kronis
+    });
+
+    const recipeListObserver = new MutationObserver(() => {
+      filterRegularRecipeList();
+    });
+    recipeListObserver.observe(document.body, {
+      childList: true,
+      subtree: true,
     });
   }
 
