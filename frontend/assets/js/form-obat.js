@@ -8,6 +8,9 @@
   const state = {
     recipes: [],
     loading: false,
+    // diupdate oleh irwansyah tanggal 2026-09-26 - awal berbagi request pemuatan resep aktif
+    recipeLoadPromise: null,
+    // diupdate oleh irwansyah tanggal 2026-09-26 - akhir berbagi request pemuatan resep aktif
     detailLoading: false,
     activeModal: null,
     openModal: null,
@@ -55,8 +58,16 @@
     const pathParts = window.location.pathname.split('/').filter(Boolean);
     const checkinIndex = pathParts.findIndex((part) => part.toLowerCase() === 'nocheckin');
     const farmasiIndex = pathParts.findIndex((part) => part.toLowerCase() === 'farmasi');
+    // diupdate oleh irwansyah tanggal 2026-09-26 - awal fallback noCheckin dari DOM setelah browser refresh
+    const checkinNode = document.querySelector('#spd-noCheckin, #noCheckin, [data-no-checkin]');
+    const checkinValue = checkinNode?.value || checkinNode?.getAttribute('data-no-checkin') || checkinNode?.textContent || '';
+    const domNoCheckin = String(checkinValue).trim();
+    const domFallback = domNoCheckin && domNoCheckin !== '-' && domNoCheckin.toUpperCase() !== 'N/A'
+      ? domNoCheckin.match(/\d{3,}/)?.[0] || domNoCheckin
+      : '';
+    // diupdate oleh irwansyah tanggal 2026-09-26 - akhir fallback noCheckin dari DOM setelah browser refresh
     return {
-      noCheckin: params.get('nocheckin') || params.get('noCheckin') || (checkinIndex >= 0 ? pathParts[checkinIndex + 1] : '') || (farmasiIndex >= 0 ? pathParts[farmasiIndex + 1] : ''),
+      noCheckin: params.get('nocheckin') || params.get('noCheckin') || (checkinIndex >= 0 ? pathParts[checkinIndex + 1] : '') || (farmasiIndex >= 0 ? pathParts[farmasiIndex + 1] : '') || domFallback,
       idPrmrj: params.get('idprmrj') || '',
     };
   }
@@ -359,9 +370,9 @@
         }),
       });
       if (!response.ok) throw new Error(`Gagal menghapus obat (${response.status})`);
-      await loadRecipes();
-      modal.dataset.resepDetailLoaded = '';
-      updateOpenRecipeModal(modal);
+      // diupdate oleh irwansyah tanggal 2026-09-26 - awal memuat ulang data setelah obat resep dihapus
+      await loadRecipes({ refreshModal: true });
+      // diupdate oleh irwansyah tanggal 2026-09-26 - akhir memuat ulang data setelah obat resep dihapus
     } catch (error) {
       console.error('Gagal menghapus obat dari resep:', error);
     }
@@ -447,64 +458,90 @@
   }
   // diupdate oleh irwansyah tanggal 2026-09-23 - akhir penggunaan endpoint detail resep berdasarkan no checkin dan id resep
 
-  async function loadRecipes() {
+  // diupdate oleh irwansyah tanggal 2026-09-26 - awal invalidasi cache detail sebelum refresh resep aktif
+  function invalidateOpenRecipeDetail(modal) {
+    if (!modal) return;
+    const recipe = getRecipeForModal(modal);
+    if (recipe?._id) state.detailByRecipeId.delete(String(recipe._id));
+    delete modal.dataset.resepDetailLoaded;
+    delete modal.dataset.resepDetailLoading;
+  }
+  // diupdate oleh irwansyah tanggal 2026-09-26 - akhir invalidasi cache detail sebelum refresh resep aktif
+
+  // diupdate oleh irwansyah tanggal 2026-09-26 - awal memuat ulang resep dan detail modal dari server
+  async function loadRecipes(options = {}) {
     const context = getContext();
-    if (!context.noCheckin || state.loading) return;
-    state.loading = true;
-    try {
-      const response = await fetch(`${getApiBaseUrl()}/farmasi/resep`, {
-        method: 'POST',
-        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-        body: JSON.stringify({ noCheckin: context.noCheckin, idPrmrj: context.idPrmrj || undefined }),
-      });
-      if (!response.ok) throw new Error(`Gagal mengambil resep (${response.status})`);
-      state.recipes = getRecipes(await response.json(), context);
-      updateOpenRecipeModal(state.openModal);
-    } catch (error) {
-      console.error('Gagal memuat obat non-kronis pada modal resep:', error);
-    } finally {
-      state.loading = false;
+    if (!context.noCheckin) return;
+    const refreshModal = Boolean(options.refreshModal);
+    const modal = refreshModal ? (state.openModal || getOpenModal()) : null;
+
+    if (state.recipeLoadPromise) {
+      await state.recipeLoadPromise;
+      if (refreshModal && modal) {
+        invalidateOpenRecipeDetail(modal);
+        updateOpenRecipeModal(modal);
+      }
+      return;
     }
 
+    if (refreshModal && modal) invalidateOpenRecipeDetail(modal);
+    state.loading = true;
+    state.recipeLoadPromise = (async () => {
+      try {
+        const response = await fetch(`${getApiBaseUrl()}/farmasi/resep`, {
+          method: 'POST',
+          headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+          body: JSON.stringify({ noCheckin: context.noCheckin, idPrmrj: context.idPrmrj || undefined }),
+        });
+        if (!response.ok) throw new Error(`Gagal mengambil resep (${response.status})`);
+        state.recipes = getRecipes(await response.json(), context);
+      } catch (error) {
+        console.error('Gagal memuat obat non-kronis pada modal resep:', error);
+      }
+    })();
+
+    try {
+      await state.recipeLoadPromise;
+      const activeModal = modal || state.openModal || getOpenModal();
+      if (refreshModal && activeModal) invalidateOpenRecipeDetail(activeModal);
+      updateOpenRecipeModal(activeModal);
+    } finally {
+      state.loading = false;
+      state.recipeLoadPromise = null;
+    }
   }
+  // diupdate oleh irwansyah tanggal 2026-09-26 - akhir memuat ulang resep dan detail modal dari server
 
   // diupdate oleh irwansyah tanggal 2026-09-23 - awal refresh setelah tombol simpan atau add list obat
   function scheduleRecipeRefresh(modal) {
     window.clearTimeout(state.refreshTimer);
     state.refreshTimer = window.setTimeout(async () => {
-      await loadRecipes();
-      if (modal) modal.dataset.resepDetailLoaded = '';
-      updateOpenRecipeModal(modal);
+      await loadRecipes({ refreshModal: Boolean(modal && isModalVisible(modal)) });
     }, 500);
     window.setTimeout(async () => {
-      if (state.loading) return;
-      await loadRecipes();
-      if (modal) modal.dataset.resepDetailLoaded = '';
-      updateOpenRecipeModal(modal);
+      await loadRecipes({ refreshModal: Boolean(modal && isModalVisible(modal)) });
     }, 1500);
   }
 
   function handleRecipeAction(event) {
-    const target = event.target.closest('app-input-obat form, app-input-obat button');
+    // diupdate oleh irwansyah tanggal 2026-09-26 - awal menangkap aksi tambah resep pada list dan modal obat
+    const target = event.target.closest('app-input-obat form, app-input-obat button, app-list-resep button');
+    // diupdate oleh irwansyah tanggal 2026-09-26 - akhir menangkap aksi tambah resep pada list dan modal obat
     if (!target) return;
+    // diupdate oleh irwansyah tanggal 2026-09-26 - awal menghindari refresh ganda pada tombol hapus khusus
+    if (event.target.closest('.js-hapus-obat-resep')) return;
+    // diupdate oleh irwansyah tanggal 2026-09-26 - akhir menghindari refresh ganda pada tombol hapus khusus
     const modal = target.closest('.modal');
-    if (modal) scheduleRecipeRefresh(modal);
+    scheduleRecipeRefresh(modal);
   }
   // diupdate oleh irwansyah tanggal 2026-09-23 - akhir refresh setelah tombol simpan atau add list obat
 
   // diupdate oleh irwansyah tanggal 2026-09-23 - awal perbaikan pemicu modal resep agar terbuka terlebih dahulu
   function handleModalShown(event) {
     state.openModal = event.target?.closest?.('.modal') || getOpenModal();
-    window.setTimeout(() => {
-      if (state.recipes.length) {
-        updateOpenRecipeModal(state.openModal);
-        const modal = state.openModal || getOpenModal();
-        const detail = modal ? state.modalDetails.get(modal) : null;
-        if (modal && detail) scheduleRecipeRowsRender(modal, detail);
-      } else {
-        loadRecipes();
-      }
-    }, 0);
+    // diupdate oleh irwansyah tanggal 2026-09-26 - awal selalu mengambil data resep terbaru saat modal dibuka
+    window.setTimeout(() => loadRecipes({ refreshModal: true }), 0);
+    // diupdate oleh irwansyah tanggal 2026-09-26 - akhir selalu mengambil data resep terbaru saat modal dibuka
   }
   // diupdate oleh irwansyah tanggal 2026-09-23 - akhir perbaikan pemicu modal resep agar terbuka terlebih dahulu
 

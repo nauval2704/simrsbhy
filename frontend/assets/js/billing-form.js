@@ -4,6 +4,10 @@
   if (window.__billingFormInitialized) return;
   window.__billingFormInitialized = true;
 
+  // diupdate oleh irwansyah tanggal 2026-09-26 - awal menyimpan urutan baris dan mode group billing farmasi
+  const billingRowSnapshots = new WeakMap();
+  // diupdate oleh irwansyah tanggal 2026-09-26 - akhir menyimpan urutan baris dan mode group billing farmasi
+
   const billingStyle = document.createElement('style');
   billingStyle.textContent = `
     app-pel-igd-checkout table,
@@ -251,14 +255,13 @@
     return cell;
   }
 
-  function addGroupHeader(tbody, title) {
+  function createGroupHeader(title) {
     const row = document.createElement('tr');
     row.className = 'billing-medicine-group';
     const cell = createCell(title);
     cell.colSpan = 6;
     cell.className = 'fw-bold bg-light';
     row.appendChild(cell);
-    tbody.appendChild(row);
     return row;
   }
 
@@ -283,6 +286,7 @@
   function updateTotalRow(totalRow, amount) {
     if (!totalRow) return;
     totalRow.replaceChildren();
+    totalRow.classList.add('billing-total-farmasi');
     const labelCell = createCell('TOTAL FARMASI');
     labelCell.colSpan = 4;
     labelCell.className = 'text-end fw-bold';
@@ -290,45 +294,325 @@
     totalRow.appendChild(createCell(`Rp. ${formatNumber(amount)}`, 'text-end fw-bold'));
   }
 
+  // diupdate oleh irwansyah tanggal 2026-09-26 - awal menghitung grand total dari subtotal semua rincian
+  function getRenderedBillingGrandTotal(parent) {
+    const sectionTables = Array.from(parent.querySelectorAll('table')).filter((table) => {
+      const heading = table.querySelector('thead')?.textContent?.replace(/\s+/g, ' ').trim().toUpperCase() || '';
+      return heading.includes('RINCIAN');
+    });
+    let grandTotal = 0;
+    let foundSectionTotal = false;
+
+    sectionTables.forEach((table) => {
+      const rows = Array.from(table.querySelectorAll('tbody tr'));
+      // Tabel layanan memiliki subtotal pada baris terakhir dengan dua sel; baris detail punya lebih banyak kolom.
+      const totalRow = rows.slice().reverse().find((row) => {
+        const cells = row.querySelectorAll(':scope > td');
+        const isGrandTotalRow = Array.from(cells).some(
+          (cell) => cell.textContent.trim().toUpperCase() === 'TOTAL',
+        );
+        return cells.length === 2 && !isGrandTotalRow;
+      });
+      const amountCell = totalRow?.querySelector(':scope > td:last-child');
+      if (!amountCell) return;
+      grandTotal += parseDisplayedAmount(amountCell.textContent);
+      foundSectionTotal = true;
+    });
+
+    // Jika tabel Rincian Pelayanan tidak ditemukan karena struktur berbeda, baca subtotal eksplisitnya dari tabel layanan.
+    if (!foundSectionTotal) {
+      const serviceTotal = Array.from(parent.querySelectorAll('tr')).find((row) =>
+        /SUBTOTAL|TOTAL/i.test(row.textContent) && row.querySelectorAll(':scope > td').length === 2,
+      );
+      if (serviceTotal) {
+        grandTotal += parseDisplayedAmount(serviceTotal.querySelector(':scope > td:last-child')?.textContent);
+        foundSectionTotal = true;
+      }
+    }
+
+    return foundSectionTotal ? grandTotal : null;
+  }
+
+  function updateParentBillingTotal(host) {
+    const parent = host.closest('app-pel-igd-rincian, app-pel-poli-rincian, app-pel-inap-rincian');
+    if (!parent) return;
+
+    const totalLabel = Array.from(parent.querySelectorAll('tr td[colspan="4"].h6'))
+      .find((cell) => cell.textContent.trim().toUpperCase() === 'TOTAL');
+    const totalCell = totalLabel?.parentElement?.querySelector('td:last-child');
+    if (!totalCell) return;
+
+    let totalState = parent.__billingGrandTotalState;
+    if (!totalState) {
+      totalState = { rendered: null, updating: false, observer: null };
+      parent.__billingGrandTotalState = totalState;
+
+      // Hitung ulang setelah Angular memuat/memperbarui subtotal layanan apa pun.
+      totalState.observer = new MutationObserver(() => {
+        if (!totalState.updating) renderParentGrandTotal(parent, totalState);
+      });
+      totalState.observer.observe(parent, { childList: true, characterData: true, subtree: true });
+    }
+
+    renderParentGrandTotal(parent, totalState);
+  }
+
+  // diupdate oleh irwansyah tanggal 2026-09-26 - awal menulis grand total keseluruhan dari tabel rincian aktual
+  function renderParentGrandTotal(parent, totalState) {
+    const totalLabel = Array.from(parent.querySelectorAll('tr td[colspan="4"].h6'))
+      .find((cell) => cell.textContent.trim().toUpperCase() === 'TOTAL');
+    const totalCell = totalLabel?.parentElement?.querySelector('td:last-child');
+    if (!totalCell) return;
+    totalCell.style.fontWeight = '700';
+    const grandTotal = getRenderedBillingGrandTotal(parent);
+    if (grandTotal === null) return;
+    if (totalState.rendered === grandTotal && parseDisplayedAmount(totalCell.textContent) === grandTotal) return;
+
+    totalState.updating = true;
+    totalCell.textContent = `Rp. ${formatNumber(grandTotal)}`;
+    totalState.rendered = grandTotal;
+    totalCell.dataset.billingRenderedTotal = String(grandTotal);
+    queueMicrotask(() => { totalState.updating = false; });
+  }
+  // diupdate oleh irwansyah tanggal 2026-09-26 - akhir menulis grand total keseluruhan dari tabel rincian aktual
+  // diupdate oleh irwansyah tanggal 2026-09-26 - akhir menghitung grand total dari subtotal semua rincian
+
+  // diupdate oleh irwansyah tanggal 2026-09-26 - awal kontrol grouping dan ekspor billing farmasi
+  function getBillingReportRoot(host) {
+    return host.closest('app-pel-igd-rincian, app-pel-poli-rincian, app-pel-inap-rincian') || host;
+  }
+
+  function getBillingExportClone(host) {
+    const reportRoot = getBillingReportRoot(host);
+    const reportContainer = reportRoot.querySelector(':scope > .container') || reportRoot;
+    const clone = reportContainer.cloneNode(true);
+    clone.querySelectorAll('.billing-controls-toolbar').forEach((toolbar) => toolbar.remove());
+    clone.classList.add('billing-export-document');
+    clone.querySelector('.row.justify-content-center')?.classList.add('billing-export-header');
+    clone.querySelectorAll('.billing-export-header h6, .billing-export-header h4, .billing-export-header p')
+      .forEach((element) => {
+        const fontSize = element.matches('h4') ? '18px' : element.matches('h6') ? '15px' : '12px';
+        element.style.setProperty('font-size', fontSize, 'important');
+        element.style.setProperty('line-height', '1.35', 'important');
+      });
+    clone.querySelectorAll('tr').forEach((row) => {
+      const isSummaryRow = row.classList.contains('billing-group-subtotal') ||
+        row.classList.contains('billing-total-farmasi') ||
+        Array.from(row.children).some((cell) => /^(?:SUBTOTAL.*|TOTAL(?: FARMASI)?)$/i.test(cell.textContent.trim()));
+      if (isSummaryRow) row.classList.add('billing-export-summary-row');
+    });
+    const exportStyle = document.createElement('style');
+    exportStyle.textContent = '.billing-export-document,.billing-export-document *{font-size:10px!important;line-height:1.25!important}.billing-export-document th,.billing-export-document td{padding:3px!important}.billing-export-document .billing-export-summary-row td{font-weight:700!important}.billing-export-document .billing-export-header h6{font-size:15px!important;line-height:1.35!important}.billing-export-document .billing-export-header h4{font-size:18px!important;line-height:1.35!important}.billing-export-document .billing-export-header p{font-size:12px!important;line-height:1.35!important}';
+    clone.prepend(exportStyle);
+    return clone;
+  }
+
+  function downloadBillingWord(host) {
+    if (!window.JSZip) {
+      window.alert('Library pembuat DOCX belum tersedia. Muat ulang halaman lalu coba kembali.');
+      return;
+    }
+    const clone = getBillingExportClone(host);
+    const headerParagraphs = [...clone.querySelectorAll('.billing-export-header h6, .billing-export-header h4, .billing-export-header p')]
+      .map((element) => {
+        const text = element.textContent.trim().replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' })[character]);
+        const size = element.matches('h4') ? 36 : element.matches('h6') ? 30 : 24;
+        return `<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val="${size}"/><w:szCs w:val="${size}"/></w:rPr><w:t xml:space="preserve">${text}</w:t></w:r></w:p>`;
+      }).join('');
+    const rows = [...clone.querySelectorAll('tr')].map((row) => {
+      const bold = row.classList.contains('billing-export-summary-row') ? '<w:b/>' : '';
+      const cells = [...row.children].map((cell) => `<w:tc><w:tcPr><w:tcW w:w="2400" w:type="dxa"/></w:tcPr><w:p><w:r><w:rPr>${bold}<w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr><w:t xml:space="preserve">${String(cell.textContent || '').trim().replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' })[character])}</w:t></w:r></w:p></w:tc>`).join('');
+      return `<w:tr>${cells}</w:tr>`;
+    }).join('');
+    const documentXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${headerParagraphs}<w:p><w:r><w:rPr><w:b/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr><w:t>Billing Keseluruhan</w:t></w:r></w:p><w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/><w:tblBorders><w:top w:val="single" w:sz="4"/><w:left w:val="single" w:sz="4"/><w:bottom w:val="single" w:sz="4"/><w:right w:val="single" w:sz="4"/><w:insideH w:val="single" w:sz="4"/><w:insideV w:val="single" w:sz="4"/></w:tblBorders></w:tblPr>${rows}</w:tbl><w:sectPr><w:pgSz w:w="11906" w:h="16838" w:orient="portrait"/><w:pgMar w:top="500" w:right="500" w:bottom="500" w:left="500"/></w:sectPr></w:body></w:document>`;
+    const zip = new window.JSZip();
+    zip.file('[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>');
+    zip.file('_rels/.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>');
+    zip.file('word/document.xml', documentXml);
+    zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }).then((blob) => {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `billing-keseluruhan-${getNoCheckin(host) || 'pasien'}.docx`;
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    });
+  }
+
+  // diupdate oleh irwansyah tanggal 2026-09-26 - awal membuat PDF untuk unduh atau pratinjau
+  async function exportBillingPdf(host, previewWindow = null) {
+    const clone = getBillingExportClone(host);
+    if (!window.html2pdf) {
+      if (previewWindow) previewWindow.close();
+      printBillingDocument(host);
+      return;
+    }
+
+    const pdfWorker = window.html2pdf()
+      .set({
+        margin: [8, 8, 8, 8],
+        filename: `billing-keseluruhan-${getNoCheckin(host) || 'pasien'}.pdf`,
+        image: { type: 'jpeg', quality: 0.96 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'legacy'] },
+      })
+      .from(clone);
+
+    // diupdate oleh irwansyah tanggal 2026-09-26 - awal menampilkan PDF langsung untuk aksi Cetak
+    if (previewWindow) {
+      const pdfBlob = await pdfWorker.outputPdf('blob');
+      previewWindow.location.href = URL.createObjectURL(pdfBlob);
+      return;
+    }
+    // diupdate oleh irwansyah tanggal 2026-09-26 - akhir menampilkan PDF langsung untuk aksi Cetak
+
+    await pdfWorker.save();
+  }
+
+  function printBillingDocument(host) {
+    const clone = getBillingExportClone(host);
+    const printWindow = window.open('', '_blank', 'width=1100,height=800');
+    if (!printWindow) return;
+    const stylesheets = [...document.querySelectorAll('link[rel="stylesheet"]')]
+      .map((link) => `<link rel="stylesheet" href="${link.href}">`).join('');
+    printWindow.document.write(`<!doctype html><html><head><title>Billing Keseluruhan</title>${stylesheets}<style>@page{size:A4 portrait;margin:8mm}body{font:12px Arial,sans-serif}table{width:100%;border-collapse:collapse}th,td{border:1px solid #999;padding:5px}</style></head><body>${clone.outerHTML}</body></html>`);
+    printWindow.document.close();
+    printWindow.onload = () => { printWindow.focus(); printWindow.print(); printWindow.close(); };
+  }
+
+  // diupdate oleh irwansyah tanggal 2026-09-26 - awal menjadikan Cetak sebagai pratinjau PDF billing keseluruhan
+  function printBilling(host) {
+    const previewWindow = window.open('about:blank', '_blank');
+    if (!previewWindow) {
+      window.alert('Izinkan pop-up untuk menampilkan pratinjau PDF billing.');
+      return;
+    }
+    exportBillingPdf(host, previewWindow);
+  }
+  // diupdate oleh irwansyah tanggal 2026-09-26 - akhir menjadikan Cetak sebagai pratinjau PDF billing keseluruhan
+
+  function applyBillingGrouping(host, mode) {
+    const table = host.querySelector('table');
+    const tbody = table?.querySelector('tbody');
+    const snapshot = tbody && billingRowSnapshots.get(tbody);
+    if (!tbody || !snapshot) return;
+    const headers = snapshot.filter((row) => row.classList.contains('billing-medicine-group'));
+    const subtotals = snapshot.filter((row) => row.classList.contains('billing-group-subtotal'));
+    const totalRow = snapshot.find((row) => row.classList.contains('billing-total-farmasi'));
+    const medicineRows = snapshot.filter((row) =>
+      !row.classList.contains('billing-medicine-group') &&
+      !row.classList.contains('billing-group-subtotal') &&
+      !row.classList.contains('billing-total-farmasi'),
+    );
+    let rows;
+
+    if (mode === 'nama') {
+      const groups = new Map();
+      medicineRows.forEach((row) => {
+        const name = row.children[2]?.textContent.replace(/\s+/g, ' ').trim() || 'Nama tidak tersedia';
+        const key = name.toLocaleLowerCase('id');
+        if (!groups.has(key)) groups.set(key, { name, quantity: 0, amount: 0, row });
+        const group = groups.get(key);
+        group.quantity += parseDisplayedAmount(row.children[3]?.textContent);
+        group.amount += parseDisplayedAmount(row.children[4]?.textContent);
+      });
+      rows = Array.from(groups.values())
+        .sort((left, right) => left.name.localeCompare(right.name, 'id'))
+        .map((group, index) => {
+          const row = group.row.cloneNode(true);
+          if (row.children[0]) row.children[0].textContent = '';
+          if (row.children[1]) row.children[1].textContent = String(index + 1);
+          if (row.children[3]) row.children[3].textContent = formatNumber(group.quantity);
+          if (row.children[4]) row.children[4].textContent = `Rp. ${formatNumber(group.amount)}`;
+          return row;
+        });
+    } else {
+      const nonChronicHeader = headers.find((row) => row.textContent.toUpperCase().includes('NON-KRONIS'));
+      const chronicHeader = headers.find((row) => row.textContent.toUpperCase().includes('KRONIS') && !row.textContent.toUpperCase().includes('NON-KRONIS'));
+      const nonChronicSubtotal = subtotals.find((row) => row.textContent.toUpperCase().includes('NON-KRONIS'));
+      const chronicSubtotal = subtotals.find((row) => row.textContent.toUpperCase().includes('KRONIS') && !row.textContent.toUpperCase().includes('NON-KRONIS'));
+      const nonChronicRows = medicineRows.filter((row) => !row.classList.contains('billing-chronic-row'));
+      const chronicRows = medicineRows.filter((row) => row.classList.contains('billing-chronic-row'));
+      rows = [
+        ...(nonChronicHeader ? [nonChronicHeader] : []),
+        ...nonChronicRows,
+        ...(nonChronicSubtotal ? [nonChronicSubtotal] : []),
+        ...(chronicHeader ? [chronicHeader] : []),
+        ...chronicRows,
+        ...(chronicSubtotal ? [chronicSubtotal] : []),
+      ];
+    }
+
+    if (totalRow) rows.push(totalRow);
+    tbody.replaceChildren(...rows);
+    getBillingReportRoot(host).querySelectorAll('[data-billing-group]').forEach((button) => button.classList.toggle('active', button.dataset.billingGroup === mode));
+    host.dataset.billingGrouping = mode;
+  }
+
+  function ensureBillingToolbar(host, tbody) {
+    const reportRoot = getBillingReportRoot(host);
+    if (reportRoot.querySelector('.billing-controls-toolbar')) return;
+    // diupdate oleh irwansyah tanggal 2026-09-26 - awal memasang toolbar billing di kanan atas
+    const toolbar = document.createElement('div');
+    toolbar.className = 'billing-controls-toolbar d-flex justify-content-end align-items-center flex-wrap gap-2 mb-2';
+    toolbar.innerHTML = `
+      <div class="btn-group btn-group-sm" role="group" aria-label="Pengelompokan billing">
+        <button type="button" class="btn btn-outline-secondary" data-billing-group="nama">Group by Nama</button>
+        <button type="button" class="btn btn-outline-secondary d-inline-flex flex-column align-items-center" data-billing-group="jenis" aria-label="Group by Jenis Obat (Kronis/Non Kronis)">Group by Jenis Obat<span class="small">(Kronis / Non Kronis)</span></button>
+      </div>
+      <div class="btn-group btn-group-sm" role="group" aria-label="Ekspor billing">
+        <button type="button" class="btn btn-outline-danger" data-billing-export="pdf">PDF</button>
+        <button type="button" class="btn btn-outline-primary" data-billing-export="word">Word</button>
+        <button type="button" class="btn btn-primary" data-billing-export="print">Cetak</button>
+      </div>`;
+    // Tempatkan toolbar sebelum kontainer/header agar semua bagian laporan berada di bawah kontrol.
+    const reportContainer = reportRoot.querySelector(':scope > .container');
+    reportRoot.insertBefore(toolbar, reportContainer || reportRoot.firstChild);
+    toolbar.querySelector('[data-billing-group="nama"]').addEventListener('click', () => applyBillingGrouping(host, 'nama'));
+    toolbar.querySelector('[data-billing-group="jenis"]').addEventListener('click', () => applyBillingGrouping(host, 'jenis'));
+    toolbar.querySelector('[data-billing-export="pdf"]').addEventListener('click', () => exportBillingPdf(host));
+    toolbar.querySelector('[data-billing-export="word"]').addEventListener('click', () => downloadBillingWord(host));
+    toolbar.querySelector('[data-billing-export="print"]').addEventListener('click', () => printBilling(host));
+    // diupdate oleh irwansyah tanggal 2026-09-26 - akhir memasang toolbar billing di kanan atas
+  }
+  // diupdate oleh irwansyah tanggal 2026-09-26 - akhir kontrol grouping dan ekspor billing farmasi
+
   function renderBillingGroups(host, chronicItems) {
     const table = host.querySelector('table');
     const tbody = table?.querySelector('tbody');
     if (!tbody || tbody.dataset.billingGroupsReady === 'true') return;
-    if (!chronicItems.length) {
-      tbody.dataset.billingGroupsReady = 'true';
-      return;
-    }
 
     const rows = Array.from(tbody.children);
-    const totalRow = rows.find((row) => row.querySelector('td[colspan="5"]')) || null;
+    let totalRow = rows.find((row) => row.querySelector('td[colspan="5"]')) || null;
     const nonChronicSubtotal = totalRow
       ? Array.from(totalRow.querySelectorAll('td'))
         .map((cell) => parseDisplayedAmount(cell.textContent))
         .reduce((sum, amount) => Math.max(sum, amount), 0)
       : 0;
-    const nonChronicHeader = addGroupHeader(tbody, 'OBAT NON-KRONIS');
-    tbody.insertBefore(nonChronicHeader, rows[0] || null);
+    if (!totalRow) {
+      totalRow = addSummaryRow(tbody, 'TOTAL FARMASI', 0, 'billing-total-farmasi', null);
+    }
+    const nonChronicHeader = createGroupHeader('OBAT NON-KRONIS');
+    tbody.insertBefore(nonChronicHeader, rows[0] || totalRow);
     addSummaryRow(tbody, 'SUBTOTAL OBAT NON-KRONIS', nonChronicSubtotal, 'billing-group-subtotal', totalRow);
 
+    let chronicSubtotal = 0;
     if (chronicItems.length) {
-      const chronicHeader = document.createElement('tr');
-      chronicHeader.className = 'billing-medicine-group';
-      const headerCell = createCell('OBAT KRONIS');
-      headerCell.colSpan = 5;
-      headerCell.className = 'fw-bold bg-light';
-      chronicHeader.appendChild(headerCell);
-
+      const chronicHeader = createGroupHeader('OBAT KRONIS');
       const grouped = new Map();
       chronicItems.forEach((item) => {
         const name = getName(item) || 'Obat kronis';
         const quantity = getNumber(item?.jumlah, item?.count, item?.qty, item?.quantity);
-        const price = getNumber(item?.hargaJualBPJS, item?.hargaJualYANKES, item?.harga);
+        // diupdate oleh irwansyah tanggal 2026-09-26 - awal menyamakan harga obat kronis dengan tab billing kronis
+        const price = getNumber(item?.hargaSatuan);
         const key = `${name}|${price}`;
         const current = grouped.get(key) || { name, quantity: 0, subtotal: 0 };
         current.quantity += quantity;
-        current.subtotal += item?.jenis === 'RACIKAN' ? price : price * quantity;
+        current.subtotal += price * quantity;
         grouped.set(key, current);
       });
+      // diupdate oleh irwansyah tanggal 2026-09-26 - akhir menyamakan harga obat kronis dengan tab billing kronis
 
       const chronicRows = Array.from(grouped.values()).map((item, index) => {
         const row = document.createElement('tr');
@@ -340,18 +624,25 @@
         row.appendChild(createCell(formatNumber(item.subtotal), 'text-end'));
         return row;
       });
-      const chronicSubtotal = Array.from(grouped.values())
+      chronicSubtotal = Array.from(grouped.values())
         .reduce((sum, item) => sum + item.subtotal, 0);
 
       const insertionPoint = totalRow || null;
       tbody.insertBefore(chronicHeader, insertionPoint);
       chronicRows.forEach((row) => tbody.insertBefore(row, insertionPoint));
       addSummaryRow(tbody, 'SUBTOTAL OBAT KRONIS', chronicSubtotal, 'billing-group-subtotal', insertionPoint);
-      if (totalRow) updateTotalRow(totalRow, nonChronicSubtotal + chronicSubtotal);
-      else addSummaryRow(tbody, 'TOTAL FARMASI', chronicSubtotal, 'billing-total-farmasi', insertionPoint);
     }
 
+    if (totalRow) updateTotalRow(totalRow, nonChronicSubtotal + chronicSubtotal);
+    else addSummaryRow(tbody, 'TOTAL FARMASI', nonChronicSubtotal + chronicSubtotal, 'billing-total-farmasi', null);
+    updateParentBillingTotal(host);
+
     tbody.dataset.billingGroupsReady = 'true';
+    // diupdate oleh irwansyah tanggal 2026-09-26 - awal menyimpan susunan awal tabel dan menampilkan toolbar billing
+    billingRowSnapshots.set(tbody, Array.from(tbody.children));
+    ensureBillingToolbar(host, tbody);
+    applyBillingGrouping(host, 'jenis');
+    // diupdate oleh irwansyah tanggal 2026-09-26 - akhir menyimpan susunan awal tabel dan menampilkan toolbar billing
   }
 
   function markServiceTables() {

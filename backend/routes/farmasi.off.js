@@ -28,13 +28,13 @@ router.post("/resep", farmasiController.getResepByNoCheckin);
 router.post("/billing", farmasiController.billingFarmasi);
 router.post("/print/obat", farmasiController.printObat);
 // hapus resep by id
-router.post("/delete/resep", farmasiController.deleteResep);
+router.post("/delete/resep", farmasiController.deleteResep); 
 // input resep
 router.post("/input/resep", farmasiController.inputResep);
 // input resep racikan
 router.post("/input/resep/racikan", farmasiController.inputResepRacikan);
 // hapus obar resep
-router.post("/delete/obat/resep", farmasiController.deleteObatResep);
+router.post("/delete/obat/resep", farmasiController.deletObatResep);
 router.post("/delete/obat/kronis", farmasiController.deleteObatKronis);
 // get detail resep by nocheckin
 router.post("/detail/resep", farmasiController.detailResep);
