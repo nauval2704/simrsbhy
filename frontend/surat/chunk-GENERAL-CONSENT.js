@@ -58,8 +58,18 @@ export var GeneralConsentComponent = (() => {
         sigPasien: null
       };
 
-      const pathParts = window.location.pathname.split("/").filter(Boolean);
-      this.noCheckin = pathParts[pathParts.length - 1] || "";
+      const pathParts = window.location.pathname.split("?")[0].split("#")[0].split("/").filter(Boolean);
+      const gcIdx = pathParts.indexOf("general-consent");
+      if (gcIdx !== -1 && pathParts[gcIdx + 1]) {
+        this.noCheckin = pathParts[gcIdx + 1];
+      } else {
+        const ncIdx = pathParts.indexOf("nocheckin");
+        if (ncIdx !== -1 && pathParts[ncIdx + 1]) {
+          this.noCheckin = pathParts[ncIdx + 1];
+        } else {
+          this.noCheckin = pathParts[pathParts.length - 1] || "";
+        }
+      }
     }
 
     ngOnInit() {
@@ -70,43 +80,60 @@ export var GeneralConsentComponent = (() => {
       const isPoli = window.location.pathname.includes("/poli/");
       const isInap = window.location.pathname.includes("/inap/");
 
-      let primaryUrl = i.apiUrl + "/simrsba/caripasien/pelayanan/IGD/nocheckin/" + this.noCheckin;
-      let fallbackUrl = i.apiUrl + "/simrsba/caripasienpolinocheckin/" + this.noCheckin;
-
+      let urls = [];
       if (isPoli) {
-        primaryUrl = i.apiUrl + "/simrsba/caripasienpolinocheckin/" + this.noCheckin;
-        fallbackUrl = i.apiUrl + "/simrsba/caripasien/pelayanan/IGD/nocheckin/" + this.noCheckin;
+        urls = [
+          i.apiUrl + "/simrsba/caripasienpolinocheckin/" + this.noCheckin,
+          i.apiUrl + "/simrsba/caripasiennocheckin/" + this.noCheckin,
+          i.apiUrl + "/simrsba/caripasien/pelayanan/IGD/nocheckin/" + this.noCheckin,
+          i.apiUrl + "/simrsba/caripasien/pelayanan/INAP/nocheckin/" + this.noCheckin
+        ];
       } else if (isInap) {
-        primaryUrl = i.apiUrl + "/simrsba/caripasien/pelayanan/INAP/nocheckin/" + this.noCheckin;
-        fallbackUrl = i.apiUrl + "/simrsba/caripasienpolinocheckin/" + this.noCheckin;
+        urls = [
+          i.apiUrl + "/simrsba/caripasien/pelayanan/INAP/nocheckin/" + this.noCheckin,
+          i.apiUrl + "/simrsba/caripasiennocheckin/" + this.noCheckin,
+          i.apiUrl + "/simrsba/caripasienpolinocheckin/" + this.noCheckin,
+          i.apiUrl + "/simrsba/caripasien/pelayanan/IGD/nocheckin/" + this.noCheckin
+        ];
+      } else {
+        urls = [
+          i.apiUrl + "/simrsba/caripasien/pelayanan/IGD/nocheckin/" + this.noCheckin,
+          i.apiUrl + "/simrsba/caripasiennocheckin/" + this.noCheckin,
+          i.apiUrl + "/simrsba/caripasienpolinocheckin/" + this.noCheckin,
+          i.apiUrl + "/simrsba/caripasien/pelayanan/INAP/nocheckin/" + this.noCheckin
+        ];
       }
 
-      this.http.get(primaryUrl).subscribe({
-        next: (res) => {
-          if (res && res.length > 0) {
-            this.patient = res[0];
-            this.fetchDraft();
-          } else {
-            this.fetchPatientFallback(fallbackUrl);
+      const tryNextUrl = (idx) => {
+        if (idx >= urls.length) {
+          this.fetchDraft();
+          return;
+        }
+        this.http.get(urls[idx]).subscribe({
+          next: (res) => {
+            let found = null;
+            if (Array.isArray(res) && res.length > 0) {
+              found = res[0];
+            } else if (res && res.data) {
+              found = Array.isArray(res.data) ? res.data[0] : res.data;
+            }
+            if (found) {
+              if (found.user && found.user[0]) {
+                found = Object.assign({}, found.user[0], found);
+              }
+              this.patient = found;
+              this.fetchDraft();
+            } else {
+              tryNextUrl(idx + 1);
+            }
+          },
+          error: () => {
+            tryNextUrl(idx + 1);
           }
-        },
-        error: () => {
-          this.fetchPatientFallback(fallbackUrl);
-        }
-      });
-    }
+        });
+      };
 
-    fetchPatientFallback(targetUrl) {
-      const url = targetUrl || (i.apiUrl + "/simrsba/caripasienpolinocheckin/" + this.noCheckin);
-      this.http.get(url).subscribe({
-        next: (res) => {
-          if (res && res.length > 0) this.patient = res[0];
-          this.fetchDraft();
-        },
-        error: () => {
-          this.fetchDraft();
-        }
-      });
+      tryNextUrl(0);
     }
 
     fetchDraft() {
