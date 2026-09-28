@@ -47,6 +47,7 @@ class SimrsPatientSidebar extends HTMLElement {
                 <a href="javascript:void(0)" data-path="radiologi" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Input RADIOLOGI</a>
                 <a href="javascript:void(0)" data-path="cppt-igd" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> CPPT IGD</a>
                 <a href="javascript:void(0)" data-path="ringkasan-pulang" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Ringkasan Pulang</a>
+                <a href="javascript:void(0)" data-path="pengantar-rawat-inap" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Pengantar Rawat Inap</a>
                 <a href="javascript:void(0)" data-path="pemberian-obat" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Pemberian Obat</a>
             </div>
             <div class="list-group mb-1">
@@ -71,6 +72,7 @@ class SimrsPatientSidebar extends HTMLElement {
       return `
                 <a href="javascript:void(0)" data-path="satusehat" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> SATUSEHAT</a>
                 <a href="javascript:void(0)" data-path="general-consent" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> General Consent</a>
+                <a href="javascript:void(0)" data-path="pengantar-rawat-inap" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Pengantar Rawat Inap</a>
                 ${specificLinks}
                 <a href="javascript:void(0)" data-path="cppt-poli" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> CPPT Poliklinik</a>
                 <a href="javascript:void(0)" data-path="poli" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Input Pelayanan POLI</a>

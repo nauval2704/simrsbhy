@@ -136928,6 +136928,18 @@ var rb = [
         canActivate: [st],
       },
       {
+        path: "pengantar-rawat-inap",
+        loadComponent: () =>
+          import("./surat/chunk-PENGANTAR-RAWAT-INAP.js?v=" + Date.now()).then((t) => t.PengantarRawatInapComponent),
+        canActivate: [st],
+      },
+      {
+        path: "pengantar-rawat-inap/:nocheckin",
+        loadComponent: () =>
+          import("./surat/chunk-PENGANTAR-RAWAT-INAP.js?v=" + Date.now()).then((t) => t.PengantarRawatInapComponent),
+        canActivate: [st],
+      },
+      {
         path: "poli/:nocheckin",
         component: B_,
         children: [
@@ -137097,6 +137109,18 @@ var rb = [
           import("./surat/chunk-RINGKASAN-PULANG.js").then(
             (t) => t.RingkasanPulangComponent,
           ),
+        canActivate: [st],
+      },
+      {
+        path: "pengantar-rawat-inap",
+        loadComponent: () =>
+          import("./surat/chunk-PENGANTAR-RAWAT-INAP.js?v=" + Date.now()).then((t) => t.PengantarRawatInapComponent),
+        canActivate: [st],
+      },
+      {
+        path: "pengantar-rawat-inap/:nocheckin",
+        loadComponent: () =>
+          import("./surat/chunk-PENGANTAR-RAWAT-INAP.js?v=" + Date.now()).then((t) => t.PengantarRawatInapComponent),
         canActivate: [st],
       },
       {
