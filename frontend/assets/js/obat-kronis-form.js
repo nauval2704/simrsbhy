@@ -327,34 +327,23 @@
     // diupdate oleh irwansyah tanggal 2026-09-24 - akhir memastikan request data obat kronis tidak ganda
   }
 
+  // diupdate oleh irwansyah tanggal 2026-09-26 - awal pemuatan ulang billing saat tab Form Kronis dibuka
+  document.addEventListener('simrs:load-kronis-billing-for-letter', () => {
+    loadCurrentResep();
+  });
+  // diupdate oleh irwansyah tanggal 2026-09-26 - akhir pemuatan ulang billing saat tab Form Kronis dibuka
+
   function getSelectedStock() {
     const searchInput = document.querySelector('#obat-kronis-search');
     const stockItems = JSON.parse(searchInput?.dataset.stockItems || '[]');
     return stockItems.find((item) => item.nama === searchInput?.value);
   }
 
-  // START CUSTOM: Hide chronic medicines from recipe list and recipe modal
+  // diupdate oleh irwansyah tanggal 2026-09-26 - awal mencegah filter nama menghapus item non-kronis dalam grup resep
   function filterRegularRecipeList() {
-    const chronicNames = (currentResep?.obat || [])
-      .filter((item) => isChronicMedicine(item))
-      .flatMap((item) => Array.isArray(item.nama) ? item.nama : [item.nama])
-      .filter(Boolean)
-      .map((name) => String(name).trim().toLowerCase());
-    if (chronicNames.length === 0) return;
-
-    document.querySelectorAll([
-      'app-list-resep tbody tr',
-      'ngb-modal-window tbody tr',
-      '.modal.show tbody tr',
-      '.modal-dialog tbody tr',
-    ].join(', ')).forEach((element) => {
-      const text = element.textContent.trim().toLowerCase();
-      if (chronicNames.some((name) => text.includes(name))) {
-        element.remove();
-      }
-    });
+    // Filter dilakukan pada properti kronis tiap item di komponen resep, bukan dengan menghapus baris berdasarkan nama.
   }
-  // END CUSTOM: Hide chronic medicines from recipe list and recipe modal
+  // diupdate oleh irwansyah tanggal 2026-09-26 - akhir mencegah filter nama menghapus item non-kronis dalam grup resep
 
   function getStockUnit(stock) {
     return stock?.jenisObat || stock?.satuanObat || stock?.satuan || stock?.unit || 'TABLET';
@@ -434,6 +423,92 @@
       </table>
     `;
   }
+
+  // diupdate oleh irwansyah tanggal 2026-09-26 - awal helper grouping billing obat kronis
+  function summarizeKronisBillingRows(rows) {
+    const grouped = new Map();
+    rows.forEach((row) => {
+      const key = row.nama.trim().toLowerCase();
+      const current = grouped.get(key);
+      if (current) {
+        current.qty += row.qty;
+        current.subtotal += row.subtotal;
+        if (current.satuan !== row.satuan) current.satuan = 'beragam';
+        if (!current.keterangan.includes(row.keterangan)) current.keterangan += ` / ${row.keterangan}`;
+        return;
+      }
+      grouped.set(key, { ...row });
+    });
+    return Array.from(grouped.values()).map((row, index) => ({ ...row, no: index + 1 }));
+  }
+
+  function renderKronisBillingGrouping(host, rows, mode) {
+    const table = host.querySelector('#kronis-billing-table-export');
+    if (!table) return;
+    const groupedRows = mode === 'nama' ? summarizeKronisBillingRows(rows) : rows;
+    table.querySelector('tbody').innerHTML = groupedRows.map((row) => `
+      <tr>
+        <td style="border:1px solid #000;">${row.no}</td>
+        <td style="border:1px solid #000;">${escapeHtml(row.nama)}</td>
+        <td style="border:1px solid #000;">${escapeHtml(row.tanggal)}</td>
+        <td style="border:1px solid #000;">${escapeHtml(row.keterangan)}</td>
+        <td style="border:1px solid #000;">${escapeHtml(row.qty)}</td>
+        <td style="border:1px solid #000;">${escapeHtml(row.satuan)}</td>
+        <td style="border:1px solid #000;">Rp. ${row.harga.toLocaleString('id-ID')}</td>
+        <td style="border:1px solid #000;">Rp. ${row.subtotal.toLocaleString('id-ID')}</td>
+      </tr>
+    `).join('');
+    const totalNode = host.querySelector('[data-kronis-billing-total]');
+    if (totalNode) {
+      const total = groupedRows.reduce((sum, row) => sum + row.subtotal, 0);
+      totalNode.textContent = `Total: Rp. ${total.toLocaleString('id-ID')}`;
+    }
+    host.querySelectorAll('[data-kronis-billing-group]').forEach((button) => {
+      button.classList.toggle('active', button.dataset.kronisBillingGroup === mode);
+    });
+    host.dataset.kronisBillingGrouping = mode;
+  }
+  // diupdate oleh irwansyah tanggal 2026-09-26 - akhir helper grouping billing obat kronis
+
+  // diupdate oleh irwansyah tanggal 2026-09-26 - awal export DOCX OpenXML billing obat kronis
+  async function exportKronisBillingWord(rows, host) {
+    if (!window.JSZip) {
+      window.alert('Library pembuat DOCX belum tersedia. Muat ulang halaman lalu coba kembali.');
+      return;
+    }
+    const exportClone = getKronisBillingExportContent();
+    if (!exportClone) return;
+    // diupdate oleh irwansyah tanggal 2026-09-26 - awal menerapkan mode grouping terpilih pada DOCX billing kronis
+    const exportRows = host?.dataset.kronisBillingGrouping === 'nama'
+      ? summarizeKronisBillingRows(rows)
+      : rows;
+    // diupdate oleh irwansyah tanggal 2026-09-26 - akhir menerapkan mode grouping terpilih pada DOCX billing kronis
+    const tableRows = exportRows.map((row) => [
+      row.no, row.nama, row.tanggal, row.keterangan, row.qty, row.satuan,
+      `Rp. ${row.harga.toLocaleString('id-ID')}`, `Rp. ${row.subtotal.toLocaleString('id-ID')}`,
+    ]);
+    const escapeXml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;',
+    })[character]);
+    const paragraph = (value, bold = false) => `<w:p><w:r>${bold ? '<w:rPr><w:b/></w:rPr>' : ''}<w:t xml:space="preserve">${escapeXml(value)}</w:t></w:r></w:p>`;
+    const header = ['No', 'Nama Obat', 'Tgl', 'Keterangan', 'Qty', 'Satuan', 'Harga', 'Subtotal'];
+    const allRows = [header, ...tableRows];
+    const wordRows = allRows.map((row) => `<w:tr>${row.map((cell) => `<w:tc><w:tcPr><w:tcW w:w="1800" w:type="dxa"/></w:tcPr>${paragraph(cell, row === header)}</w:tc>`).join('')}</w:tr>`).join('');
+    const patient = getPatientMeta();
+    const docXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${paragraph('BILLING OBAT KRONIS', true)}${paragraph(`Nama Pasien: ${patient.namaPasien || '-'}`)}${paragraph(`Nomor RM: ${patient.nomorRM || '-'}`)}${paragraph(`Unit Layanan: ${patient.unitLayanan || '-'}`)}${paragraph(`No. Checkin: ${getPageContext().noCheckin || '-'}`)}<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/><w:tblBorders><w:top w:val="single" w:sz="4"/><w:left w:val="single" w:sz="4"/><w:bottom w:val="single" w:sz="4"/><w:right w:val="single" w:sz="4"/><w:insideH w:val="single" w:sz="4"/><w:insideV w:val="single" w:sz="4"/></w:tblBorders></w:tblPr>${wordRows}</w:tbl>${paragraph(`Total: Rp. ${rows.reduce((sum, row) => sum + row.subtotal, 0).toLocaleString('id-ID')}`, true)}${paragraph(`Tgl cetak: ${getIndonesianPrintDateTime()}`)}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="500" w:right="500" w:bottom="500" w:left="500"/></w:sectPr></w:body></w:document>`;
+    const zip = new window.JSZip();
+    zip.file('[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>');
+    zip.file('_rels/.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>');
+    zip.file('word/document.xml', docXml);
+    const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `billing-obat-kronis-${getPageContext().noCheckin || 'pasien'}.docx`;
+    link.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  // diupdate oleh irwansyah tanggal 2026-09-26 - akhir export DOCX OpenXML billing obat kronis
 
   // diupdate oleh irwansyah tanggal 2026-09-23 - awal penambahan tanda tangan dpjp billing obat kronis
   function getDpjpSignatureStorageKey() {
@@ -574,6 +649,9 @@
     if (!host) return null;
 
     const clone = host.cloneNode(true);
+    // diupdate oleh irwansyah tanggal 2026-09-26 - awal menghapus toolbar grouping/ekspor dari dokumen billing
+    clone.querySelector('.kronis-billing-toolbar')?.remove();
+    // diupdate oleh irwansyah tanggal 2026-09-26 - akhir menghapus toolbar grouping/ekspor dari dokumen billing
     clone.querySelector('.btn-group')?.remove();
     // diupdate oleh irwansyah tanggal 2026-09-23 - awal pengubahan canvas tanda tangan menjadi gambar export
     const sourceCanvas = host.querySelector('#kronis-dpjp-signature');
@@ -664,6 +742,19 @@
   }
 
   function renderKronisBilling() {
+    // diupdate oleh irwansyah tanggal 2026-09-26 - awal sinkronisasi uraian obat billing ke surat kronis
+    const chronicLetterItems = (currentResep?.obat || [])
+      .filter((item) => isChronicMedicine(item))
+      .map((item) => ({
+        nama: Array.isArray(item.nama) ? item.nama.join(', ') : item.nama || '',
+        frekuensi: item.quantity ? `${item.quantity}x/hari` : '',
+        takaran: item.takaran ? `Takaran ${item.takaran}` : '',
+      }));
+    document.dispatchEvent(new CustomEvent('simrs:kronis-billing-updated', {
+      detail: { items: chronicLetterItems },
+    }));
+    // diupdate oleh irwansyah tanggal 2026-09-26 - akhir sinkronisasi uraian obat billing ke surat kronis
+
     const host = document.querySelector('#obat-kronis-billing-content');
     if (!host) return;
 
@@ -691,11 +782,16 @@
             <div class="fw-bold">Billing Obat Kronis</div>
             <small class="text-muted">No. Checkin: ${escapeHtml(noCheckin || '-')}</small>
           </div>
-          <div class="btn-group" role="group">
-            <button type="button" class="btn btn-sm btn-primary" data-kronis-action="pdf">PDF</button>
-            <button type="button" class="btn btn-sm btn-success" data-kronis-action="excel">Excel</button>
-            <button type="button" class="btn btn-sm btn-warning text-white fw-bold" data-kronis-action="print">Printer</button>
+          <!-- diupdate oleh irwansyah tanggal 2026-09-26 - awal toolbar grouping dan ekspor billing di kanan atas -->
+          <div class="d-flex justify-content-end align-items-center gap-2 flex-wrap ms-auto">
+            
+            <div class="btn-group btn-group-sm" role="group" aria-label="Ekspor billing obat">
+              <button type="button" class="btn btn-outline-danger" data-kronis-action="pdf">PDF</button>
+              <button type="button" class="btn btn-outline-primary" data-kronis-action="word">Word</button>
+              <button type="button" class="btn btn-primary" data-kronis-action="print">Cetak</button>
+            </div>
           </div>
+          <!-- diupdate oleh irwansyah tanggal 2026-09-26 - akhir toolbar grouping dan ekspor billing di kanan atas -->
         </div>
 
         <div class="row mb-3 g-3 kronis-billing-patient">
@@ -721,7 +817,7 @@
 
         ${buildKronisBillingTable(rows)}
 
-        <div class="text-end fw-bold">Total: Rp. ${total.toLocaleString('id-ID')}</div>
+        <div class="text-end fw-bold" data-kronis-billing-total>Total: Rp. ${total.toLocaleString('id-ID')}</div>
 
         <!-- diupdate oleh irwansyah tanggal 2026-09-23 - awal pengembalian tanda tangan dan nama dokter -->
         <div class="row mt-4 pt-3 border-top">
@@ -740,15 +836,20 @@
     `;
 
     const pdfButton = host.querySelector('[data-kronis-action="pdf"]');
-    const excelButton = host.querySelector('[data-kronis-action="excel"]');
+    const wordButton = host.querySelector('[data-kronis-action="word"]');
     const printButton = host.querySelector('[data-kronis-action="print"]');
 
     // diupdate oleh irwansyah tanggal 2026-09-23 - awal inisialisasi tanda tangan dpjp billing
     initKronisDpjpSignature(host);
     // diupdate oleh irwansyah tanggal 2026-09-23 - akhir inisialisasi tanda tangan dpjp billing
     pdfButton?.addEventListener('click', exportKronisBillingPdf);
-    excelButton?.addEventListener('click', () => exportKronisBillingToExcel(rows));
+    wordButton?.addEventListener('click', () => exportKronisBillingWord(rows, host));
     printButton?.addEventListener('click', printKronisBilling);
+    // diupdate oleh irwansyah tanggal 2026-09-26 - awal aktivasi grouping billing dan penerapan mode default jenis obat
+    host.querySelector('[data-kronis-billing-group="nama"]')?.addEventListener('click', () => renderKronisBillingGrouping(host, rows, 'nama'));
+    host.querySelector('[data-kronis-billing-group="jenis"]')?.addEventListener('click', () => renderKronisBillingGrouping(host, rows, 'jenis'));
+    renderKronisBillingGrouping(host, rows, 'jenis');
+    // diupdate oleh irwansyah tanggal 2026-09-26 - akhir aktivasi grouping billing dan penerapan mode default jenis obat
   }
 
   function renderChronicTable() {

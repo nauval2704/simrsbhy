@@ -325,7 +325,7 @@
     URL.revokeObjectURL(url);
   }
 
-  function exportPdf(element) {
+  async function exportPdf(element, previewWindow = null) {
     const reportClone = element && element.cloneNode ? element.cloneNode(true) : element;
     // diupdate oleh irwansyah tanggal 2026-09-23 - awal perbaikan agar tanda tangan ikut tersimpan pada pdf
     const sourceSignature = element && element.querySelector ? element.querySelector('#e-resep-dpjp-signature') : null;
@@ -374,7 +374,7 @@
     }
 
     if (window.html2pdf) {
-      window.html2pdf()
+      const pdfWorker = window.html2pdf()
         .set({
           // diupdate oleh irwansyah tanggal 2026-09-23 - awal menaikkan posisi konten PDF e-resep
           margin: [0.08, 0.3, 0.2, 0.3],
@@ -384,13 +384,24 @@
           html2canvas: { scale: 2 },
           jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
         })
-        .from(reportClone)
-        .save();
+        .from(reportClone);
+      if (previewWindow) {
+        const pdfBlob = await pdfWorker.outputPdf('blob');
+        previewWindow.location.href = URL.createObjectURL(pdfBlob);
+        return;
+      }
+      await pdfWorker.save();
       return;
     }
 
-    const toolbar = element && element.querySelector ? element.querySelector('.e-resep-toolbar') : null;
-    if (toolbar) toolbar.style.display = 'none';
+    if (previewWindow) {
+      const stylesheets = [...document.querySelectorAll('link[rel="stylesheet"]')]
+        .map((link) => `<link rel="stylesheet" href="${link.href}">`).join('');
+      previewWindow.document.write(`<!doctype html><html><head><title>E-Resep</title>${stylesheets}</head><body>${reportClone.outerHTML}</body></html>`);
+      previewWindow.document.close();
+      previewWindow.onload = () => previewWindow.print();
+      return;
+    }
     window.print();
   }
 
@@ -653,31 +664,6 @@
     initDpjpSignature(report);
     // diupdate oleh irwansyah tanggal 2026-09-23 - akhir inisialisasi form tanda tangan dokter dpjp
 
-    const hideOnPrint = () => {
-      if (report.querySelectorAll) {
-        report.querySelectorAll('[data-print-hide="true"]').forEach((el) => {
-          if (el.classList && el.classList.contains('e-resep-toolbar')) {
-            // diupdate oleh irwansyah tanggal 2026-09-23 - awal menyembunyikan seluruh tombol saat cetak
-            el.querySelectorAll('.btn-group').forEach((actions) => { actions.style.display = 'none'; });
-            // diupdate oleh irwansyah tanggal 2026-09-23 - akhir menyembunyikan seluruh tombol saat cetak
-            const title = el.querySelector('div:first-child');
-            if (title) title.style.display = 'block';
-            return;
-          }
-          el.style.display = 'none';
-        });
-      }
-    };
-
-    // diupdate oleh irwansyah tanggal 2026-09-23 - awal pemulihan tombol aksi setelah cetak
-    const restoreAfterPrint = () => {
-      report.querySelectorAll('[data-print-hide="true"]').forEach((el) => {
-        el.style.display = '';
-        el.querySelectorAll?.('.btn-group').forEach((actions) => { actions.style.display = ''; });
-      });
-    };
-    // diupdate oleh irwansyah tanggal 2026-09-23 - akhir pemulihan tombol aksi setelah cetak
-
     host.querySelector('[data-action="pdf"]').addEventListener('click', function () {
       exportPdf(report);
     });
@@ -716,12 +702,12 @@
     // diupdate oleh irwansyah tanggal 2026-09-23 - akhir pengaktifan tombol group by nama dan jenis obat
 
     host.querySelector('[data-action="print"]').addEventListener('click', function () {
-      hideOnPrint();
-      window.addEventListener('afterprint', restoreAfterPrint, { once: true });
-      setTimeout(() => {
-        exportPdf(report);
-        setTimeout(restoreAfterPrint, 1000);
-      }, 30);
+      const previewWindow = window.open('about:blank', '_blank');
+      if (!previewWindow) {
+        window.alert('Izinkan pop-up untuk menampilkan pratinjau PDF E-Resep.');
+        return;
+      }
+      exportPdf(report, previewWindow);
     });
   }
 

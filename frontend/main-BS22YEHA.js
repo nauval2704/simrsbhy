@@ -30536,7 +30536,8 @@ function LR(t, s) {
       l(),
       m("ngIf", !o.isString(e.nama)),
       l(2),
-      v(e.count),
+      m("ngIf", true),
+      v(e.count ?? e.jumlah ?? 0),
       l(2),
       w(
         " ",
@@ -30551,7 +30552,7 @@ function LR(t, s) {
 function NR(t, s) {
   if ((t & 1 && (Ft(0), g(1, LR, 16, 9, "ng-container", 15), jt()), t & 2)) {
     let e = s.$implicit;
-    (l(), m("ngForOf", e.obat));
+    (l(), m("ngForOf", Array.isArray(e.obat) ? e.obat : []));
   }
 }
 
@@ -30595,7 +30596,7 @@ function BR(t, s) {
       i(7, "th", 14),
       r(8, "Nama"),
       n(),
-      i(9, "th", 14),
+      i(9, "th", 22),
       r(10, "Qty"),
       n(),
       i(11, "th", 14),
@@ -30610,7 +30611,12 @@ function BR(t, s) {
     t & 2)
   ) {
     let e = s.ngIf;
-    (l(15), m("ngForOf", e), l(), m("ngForOf", e));
+    (l(9),
+      m("ngIf", Array.isArray(e) && e.some((a) => Array.isArray(a?.obat) && a.obat.length > 0)),
+      l(15),
+      m("ngForOf", e),
+      l(),
+      m("ngForOf", e));
   }
 }
 
@@ -30739,15 +30745,56 @@ var zv = (() => {
       this.cabar = this.dataPasien[0]?.cabar;
     }
     getDetailResep(e) {
+      // diupdate oleh irwansyah tanggal 2026-09-26 - awal menampilkan item non-kronis per _id resep
+      const resepItems = this.getNonChronicItems(this.dataResep?.obat);
+      // diupdate oleh irwansyah tanggal 2026-09-26 - akhir menampilkan item non-kronis per _id resep
+      if (resepItems.length > 0) {
+        this.detailResep$ = Promise.resolve([{
+          _id: this.dataResep?._id,
+          obat: resepItems.map((item) => ({
+            nama: item.nama,
+            count: Number(item.jumlah) || 0,
+            subtotalBPJS: (Number(item.hargaJualBPJS) || 0) * (Number(item.jumlah) || 0),
+            subtotalYANKES: (Number(item.hargaJualYANKES) || 0) * (Number(item.jumlah) || 0),
+          })),
+        }]);
+        return;
+      }
       this.detailResep$ = this.farmasiService
         .detailResep(e)
-        .pipe($t((a) => a.data));
+        .pipe($t((a) => {
+          const detailData = Array.isArray(a) ? a : (Array.isArray(a?.data) ? a.data : (a?.data ? [a.data] : []));
+          const detailItems = detailData.flatMap((item) => Array.isArray(item?.obat) ? item.obat : []);
+          if (detailItems.length > 0) return detailData;
+
+          const fallbackItems = this.getNonChronicItems(this.dataResep?.obat);
+          return [{
+                _id: this.dataResep?._id,
+                obat: fallbackItems.map((item) => ({
+                  nama: Array.isArray(item.nama) ? item.nama.join(", ") : item.nama,
+                  count: Number(item.jumlah) || 0,
+                  subtotalBPJS: Number(item.hargaJualBPJS) || 0,
+                  subtotalYANKES: Number(item.hargaJualYANKES) || 0,
+                })),
+              }]
+             
+        }));
     }
     getJenisObat(e) {
       this.jenisObat = this.jenisObat;
     }
     isString(e) {
       return typeof e == "string";
+    }
+    // Qty is meaningful for non-chronic items only; keep chronic rows visible without exposing it.
+    isNonChronic(e) {
+      return e?.kronis !== true && e?.kronis !== "true";
+    }
+    getNonChronicItems(e) {
+      return Array.isArray(e) ? e.filter((a) => this.isNonChronic(a)) : [];
+    }
+    hasNonChronicItems(e) {
+      return Array.isArray(e) && e.some((a) => this.getNonChronicItems(a?.obat).length > 0);
     }
     static {
       this.ɵfac = function (a) {
@@ -30803,11 +30850,12 @@ var zv = (() => {
           ["scope", "col"],
           [4, "ngFor", "ngForOf"],
           ["scope", "row"],
-          [1, "text-end"],
+          [1, "text-end", 4, "ngIf"],
           [1, "btn", "btn-sm", "btn-danger", 3, "click"],
           [1, "bi", "bi-trash3-fill"],
           ["colspan", "3", 1, "text-end", "fw-bold"],
           [1, "text-end", "fw-bold"],
+          [4, "ngIf"],
         ],
         template: function (a, o) {
           (a & 1 && g(0, MR, 19, 9, "div", 1), a & 2 && m("ngIf", o.jenisObat));
@@ -30976,6 +31024,7 @@ var Xv = (() => {
       ((o.componentInstance.dataResep = e),
         (o.componentInstance.noResep = a),
         (o.componentInstance.dataPasien = this.dataPasien),
+        o.componentInstance.initialValues(),
         o.result
           .then((d) => {
             (this.getDataPasien(this.noCheckin()),
@@ -30988,8 +31037,12 @@ var Xv = (() => {
     }
     sumJumlah(e) {
       let a = 0;
-      for (let o = 0; o < e.length; o++) a += e[o].jumlah;
+      for (let o = 0; o < e.length; o++)
+        this.isNonChronic(e[o]) && (a += Number(e[o].jumlah) || 0);
       return ((this.qty = a), a);
+    }
+    isNonChronic(e) {
+      return e?.kronis !== true && e?.kronis !== "true";
     }
     static {
       this.ɵfac = function (a) {
@@ -130152,6 +130205,7 @@ function JX(t, s) {
     let e = s.$implicit,
       a = s.index,
       o = h(2);
+      m("ngForOf", h(2).getNonChronicItems(e)),
     (l(3),
       w("", a + 1, "."),
       l(2),
