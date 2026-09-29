@@ -52,6 +52,48 @@ function getDoctorDpjpMatch(req) {
   }
   return null;
 }
+
+function getResepLookupStages() {
+  return [
+    {
+      $lookup: {
+        from: "reseps",
+        localField: "noCheckin",
+        foreignField: "noCheckin",
+        as: "resepData",
+      },
+    },
+    {
+      $addFields: {
+        hasResep: {
+          $gt: [{ $size: { $ifNull: ["$resepData", []] } }, 0],
+        },
+        jumlahResep: {
+          $size: { $ifNull: ["$resepData", []] },
+        },
+        jumlahObat: {
+          $reduce: {
+            input: { $ifNull: ["$resepData.obat", []] },
+            initialValue: 0,
+            in: {
+              $add: [
+                "$$value",
+                {
+                  $size: { $ifNull: ["$$this", []] },
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        resepData: 0,
+      },
+    },
+  ];
+}
 const PemberianObatIgd = require("../models/pemberianObatIgd");
 const PengkajianAwalPoli = require("../models/pengkajianAwalPoli");
 const PengkajianAwalGigi = require("../models/pengkajianAwalGigi");
@@ -574,6 +616,7 @@ module.exports = {
               ],
             },
           },
+          ...getResepLookupStages(),
           { $sort: { status: 1, tglInput: -1 } },
         ];
         if (dpjpMatch) pipelineDokpol.unshift({ $match: dpjpMatch });
@@ -624,6 +667,7 @@ module.exports = {
             as: "rujukanData",
           },
         },
+        ...getResepLookupStages(),
         { $sort: { status: 1, tglInput: -1 } },
       ];
 
@@ -685,6 +729,7 @@ module.exports = {
             as: "rujukanData",
           },
         },
+        ...getResepLookupStages(),
         { $sort: { status: 1, tglInput: -1 } },
       ];
 
@@ -736,6 +781,7 @@ module.exports = {
             as: "rujukanData",
           },
         },
+        ...getResepLookupStages(),
         { $sort: { status: 1, tglInput: -1 } },
       ];
 
@@ -913,6 +959,7 @@ module.exports = {
           },
         },
         { $project: { user: 0 } },
+        ...getResepLookupStages(),
         { $sort: { noCheckin: -1 } },
       ];
 
@@ -953,6 +1000,7 @@ module.exports = {
           },
         },
         { $project: { user: 0 } },
+        ...getResepLookupStages(),
         { $sort: { noCheckin: -1 } },
       ];
 
@@ -1244,6 +1292,7 @@ module.exports = {
           },
         },
         { $project: { user: 0 } },
+        ...getResepLookupStages(),
         { $sort: { noCheckin: -1 } },
       ]);
       res.json(cariNorm);

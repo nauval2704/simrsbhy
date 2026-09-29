@@ -20584,7 +20584,7 @@ var I1 = (() => {
     getPasienBaru() {
       ((this.isLoading = !0),
         this.dataPasienService.getPasienIgd().subscribe((e) => {
-          ((this.dataPasienBaru = e), (this.isLoading = !1));
+          ((this.dataPasienBaru = e), (this.isLoading = !1), window.__registerPatientData && window.__registerPatientData(e));
         }));
     }
     onInput(e) {
@@ -58079,7 +58079,7 @@ var N_ = (() => {
           .listen("checkout")
           .subscribe((e) => {
             (this.dataPasienService.getPasienPoli().subscribe((a) => {
-              this.dataPasienBaru = a;
+              ((this.dataPasienBaru = a), window.__registerPatientData && window.__registerPatientData(a));
             }),
               this.toastr.info("PASIEN CHECKOUT", e, {}));
           })),
@@ -58088,7 +58088,7 @@ var N_ = (() => {
     getPasienPoli() {
       ((this.isLoading = !0),
         this.dataPasienService.getPasienPoli().subscribe((e) => {
-          ((this.dataPasienBaru = e), (this.isLoading = !1));
+          ((this.dataPasienBaru = e), (this.isLoading = !1), window.__registerPatientData && window.__registerPatientData(e));
         }));
     }
     onInput(e) {
@@ -71122,7 +71122,7 @@ var ok = (() => {
       ((this.ioCheckin = this.chatService.listen("checkin").subscribe((e) => {
         (this.playAudio(),
           this.dataPasienService.getPasienInap().subscribe((a) => {
-            this.dataPasienBaru = a;
+            ((this.dataPasienBaru = a), window.__registerPatientData && window.__registerPatientData(a));
           }),
           this.toastr.info("PASIEN BARU CHECKIN", e, {}));
       })),
@@ -71130,7 +71130,7 @@ var ok = (() => {
           .listen("checkout")
           .subscribe((e) => {
             (this.dataPasienService.getPasienInap().subscribe((a) => {
-              this.dataPasienBaru = a;
+              ((this.dataPasienBaru = a), window.__registerPatientData && window.__registerPatientData(a));
             }),
               this.toastr.info("PASIEN CHECKOUT", e, {}));
           })),
@@ -71139,7 +71139,7 @@ var ok = (() => {
     getPasienInap() {
       ((this.isLoading = !0),
         this.dataPasienService.getPasienInap().subscribe((e) => {
-          ((this.dataPasienBaru = e), (this.isLoading = !1));
+          ((this.dataPasienBaru = e), (this.isLoading = !1), window.__registerPatientData && window.__registerPatientData(e));
         }));
     }
     onOperasi(e) {
