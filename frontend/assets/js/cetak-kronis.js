@@ -3,7 +3,11 @@
   const tabId = 'farmasi-tab-from-kronis';
   const letterId = 'from-kronis-letter';
   let doctorSignatureData = '';
+  // Bedakan tanda tangan bawaan PRMRJ dari tanda tangan yang digambar manual agar refresh aman.
+  let doctorSignatureSource = '';
   let doctorSignatureReady = Promise.resolve();
+  // Hindari memasang ulang tanda tangan bawaan setelah pengguna menghapusnya secara manual.
+  let doctorSignatureCleared = false;
   let chronicBillingItems = [];
   let checkinServiceUnit = '';
   let checkinPatientData = {};
@@ -27,10 +31,13 @@
   function getNoCheckin() {
     const params = new URLSearchParams(window.location.search);
     const pathParts = window.location.pathname.split('/').filter(Boolean);
+    const noCheckinIndex = pathParts.findIndex((part) => part.toLowerCase() === 'nocheckin');
     const farmasiIndex = pathParts.findIndex((part) => part.toLowerCase() === 'farmasi');
     const checkinNode = document.querySelector('#spd-noCheckin, #noCheckin, [data-no-checkin]');
     const domNoCheckin = checkinNode?.value || checkinNode?.getAttribute('data-no-checkin') || checkinNode?.textContent || '';
+    // Baca nomor check-in dari pola URL poli agar pencarian tanda tangan PRMRJ mendapat kunjungan aktif.
     return params.get('nocheckin') || params.get('noCheckin') ||
+      (noCheckinIndex >= 0 ? pathParts[noCheckinIndex + 1] : '') ||
       (farmasiIndex >= 0 ? pathParts[farmasiIndex + 1] : '') ||
       String(domNoCheckin).trim().match(/\d{3,}/)?.[0] || String(domNoCheckin).trim();
   }
@@ -128,7 +135,7 @@
     const field = (name) => escapeHtml(value(name) || '....................................................');
     // diupdate oleh irwansyah tanggal 2026-09-26 - akhir pengisian nilai surat tanpa field entrian dokter dan obat
     const sepValue = value('nomorSEP');
-    const sepBoxes = Array.from({ length: 18 }, (_, index) =>
+    const sepBoxes = Array.from({ length: 19 }, (_, index) =>
       `<span>${escapeHtml(sepValue[index] || '')}</span>`
     ).join('');
     // diupdate oleh irwansyah tanggal 2026-09-26 - awal menyiapkan logo BPJS untuk surat permohonan
@@ -136,7 +143,13 @@
     // diupdate oleh irwansyah tanggal 2026-09-26 - akhir menyiapkan logo BPJS untuk surat permohonan
     // diupdate oleh irwansyah tanggal 2026-09-26 - awal format uraian obat dari billing dan placeholder kosong
     const medicineList = chronicBillingItems.length
-      ? chronicBillingItems.map((item) => `<li>${escapeHtml([item.nama, item.frekuensi, item.takaran].filter(Boolean).join(' '))}</li>`).join('')
+      // Sertakan jumlah serta satuan pada daftar obat kronis di surat.
+      ? chronicBillingItems.map((item) => {
+        const jumlah = item.jumlah !== undefined && item.jumlah !== null
+          ? ` ( Jlh: ${item.jumlah} ${item.satuan ? ` ${item.satuan}` : ''})`
+          : '';
+        return `<li>${escapeHtml([item.nama, item.frekuensi, item.takaran, jumlah].filter(Boolean).join(' '))}</li>`;
+      }).join('')
       : '<li>....................................</li><li>....................................</li><li>....................................</li>';
     // diupdate oleh irwansyah tanggal 2026-09-26 - akhir format uraian obat dari billing dan placeholder kosong
 
@@ -202,16 +215,16 @@
       if (placeholder) placeholder.hidden = !isVisible;
       canvas.dataset.empty = String(isVisible);
     };
-    const loadSavedSignature = () => {
-      if (!savedSignature) {
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        setPlaceholder(true);
-        doctorSignatureReady = Promise.resolve();
-        return;
-      }
+    let signatureChangedByUser = false;
+    if (savedSignature) {
+      // Pulihkan tanda tangan yang sudah dipakai pengguna sebelum mencari tanda tangan default PRMRJ.
       doctorSignatureReady = new Promise((resolve) => {
         const image = new Image();
         image.onload = () => {
+          if (signatureChangedByUser) {
+            resolve();
+            return;
+          }
           context.clearRect(0, 0, canvas.width, canvas.height);
           context.drawImage(image, 0, 0, canvas.width, canvas.height);
           setPlaceholder(false);
@@ -220,9 +233,48 @@
         image.onerror = resolve;
         image.src = savedSignature;
       });
-    };
-
-    loadSavedSignature();
+    } else {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      setPlaceholder(true);
+      doctorSignatureReady = Promise.resolve();
+    }
+    if (doctorSignatureSource !== 'user' && !doctorSignatureCleared) {
+      // Form kronis memakai tanda tangan PRMRJ sebagai default bila tanda tangan pengguna belum tersedia.
+      const loadPrmrjSignature = window.getPrmrjDefaultSignature;
+      if (typeof loadPrmrjSignature === 'function') {
+        doctorSignatureReady = loadPrmrjSignature(getNoCheckin())
+          .then((prmrjSignature) => {
+            if (!prmrjSignature || signatureChangedByUser || doctorSignatureCleared) return;
+            if (doctorSignatureSource === 'user') return;
+            doctorSignatureData = prmrjSignature;
+            doctorSignatureSource = 'prmrj';
+            return new Promise((resolve) => {
+              const image = new Image();
+              image.onload = () => {
+                // Form dapat dirender ulang saat request berlangsung; gambar ke canvas yang masih aktif.
+                if (!signatureChangedByUser && !doctorSignatureCleared && doctorSignatureData === prmrjSignature) {
+                  const activeCanvas = document.querySelector(`#${letterId} .kronis-signature-pad__canvas`) || canvas;
+                  const activeContext = activeCanvas.getContext('2d');
+                  if (activeContext) {
+                    activeContext.clearRect(0, 0, activeCanvas.width, activeCanvas.height);
+                    activeContext.drawImage(image, 0, 0, activeCanvas.width, activeCanvas.height);
+                    const activePlaceholder = activeCanvas.parentElement?.querySelector('.kronis-signature-pad__placeholder');
+                    if (activePlaceholder) activePlaceholder.hidden = true;
+                    activeCanvas.dataset.empty = 'false';
+                    doctorSignatureReady = Promise.resolve();
+                  }
+                }
+                resolve();
+              };
+              image.onerror = resolve;
+              image.src = prmrjSignature;
+            });
+          })
+          .catch((error) => {
+            console.error('Gagal memuat tanda tangan PRMRJ untuk form kronis:', error);
+          });
+      }
+    }
     let drawing = false;
     let hasDrawn = Boolean(savedSignature);
     const getPoint = (event) => {
@@ -234,6 +286,9 @@
     };
     canvas.addEventListener('pointerdown', (event) => {
       event.preventDefault();
+      signatureChangedByUser = true;
+      doctorSignatureCleared = false;
+      doctorSignatureSource = 'user';
       canvas.setPointerCapture(event.pointerId);
       drawing = true;
       const point = getPoint(event);
@@ -283,13 +338,14 @@
       .kronis-letter p{margin:0 0 8pt}
       .kronis-letter__identity{border-collapse:collapse;margin:0 0 10pt}
       .kronis-letter__identity th{text-align:left;font-weight:400;padding-right:14pt;white-space:nowrap}
-      .kronis-signature-pad{position:relative;width:190pt;height:68pt;margin:12pt auto 0}
+      /* Ukuran tanda tangan hasil cetak/export lebih kecil tanpa menebalkan goresan sumber. */
+      .kronis-signature-pad{position:relative;width:115pt;height:42pt;margin:12pt auto 0}
       .kronis-signature-pad__canvas{display:block;width:100%;height:100%;touch-action:none}
       .kronis-signature-pad__placeholder{position:absolute;inset:0;display:grid;place-items:center;color:#89949b;font:italic 10pt Arial,sans-serif;pointer-events:none}
       .kronis-letter__signer{display:flex;flex-direction:column;align-items:center;width:42%;margin:30pt 0 0 auto;text-align:center}
       .kronis-letter__signer p{margin:0}
       .kronis-letter__signer strong{text-decoration:underline}
-      .kronis-letter__sep-boxes{display:inline-grid;grid-template-columns:repeat(18,15pt);vertical-align:middle}
+      .kronis-letter__sep-boxes{display:inline-grid;grid-template-columns:repeat(19,15pt);vertical-align:middle;white-space:nowrap}
       .kronis-letter__sep-boxes span{height:16pt;border:1px solid #111;text-align:center;line-height:15pt}
       .kronis-letter__medicines{padding-left:22pt;margin:0 0 14pt}
       .kronis-letter--request{break-before:page;page-break-before:always}
@@ -334,7 +390,8 @@
   }
 
   function makeWordSignatureParagraph() {
-    return `<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="1737360" cy="622300"/><wp:docPr id="1" name="Tanda tangan dokter"/><wp:cNvGraphicFramePr><a:graphicFrameLocks noChangeAspect="1"/></wp:cNvGraphicFramePr><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic><pic:nvPicPr><pic:cNvPr id="0" name="Tanda tangan dokter"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="rId1"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="1737360" cy="622300"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>`;
+    // Ukuran gambar DOCX lebih kecil tanpa mengubah piksel/ketebalan tanda tangan.
+    return `<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="1051560" cy="384048"/><wp:docPr id="1" name="Tanda tangan dokter"/><wp:cNvGraphicFramePr><a:graphicFrameLocks noChangeAspect="1"/></wp:cNvGraphicFramePr><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic><pic:nvPicPr><pic:cNvPr id="0" name="Tanda tangan dokter"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="rId1"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="1051560" cy="384048"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>`;
   }
 
   function buildWordDocumentXml(letter, hasSignature) {
@@ -414,8 +471,43 @@
     await doctorSignatureReady;
     if (!window.html2pdf) {
       if (previewWindow) previewWindow.close();
-      window.print();
+      // Browser print juga memakai salinan bertinta lebih tipis, lalu mengembalikan canvas aslinya.
+      const sourceSignature = letter.querySelector('.kronis-signature-pad__canvas');
+      if (sourceSignature && sourceSignature.dataset.empty !== 'true') {
+        const signatureImage = document.createElement('img');
+        signatureImage.src = window.createThinSignatureExportDataUrl(sourceSignature);
+        signatureImage.alt = 'Tanda tangan dokter';
+        signatureImage.className = sourceSignature.className;
+        signatureImage.style.width = '100%';
+        signatureImage.style.height = '100%';
+        signatureImage.style.objectFit = 'contain';
+        sourceSignature.replaceWith(signatureImage);
+        try {
+          window.print();
+        } finally {
+          signatureImage.replaceWith(sourceSignature);
+        }
+      } else {
+        window.print();
+      }
       return;
+    }
+
+    // Gunakan gambar bertinta lebih tipis hanya pada salinan PDF, bukan canvas yang sedang diedit.
+    const pdfLetter = letter.cloneNode(true);
+    const sourceSignature = letter.querySelector('.kronis-signature-pad__canvas');
+    const clonedSignature = pdfLetter.querySelector('.kronis-signature-pad__canvas');
+    if (sourceSignature && clonedSignature && sourceSignature.dataset.empty !== 'true') {
+      const signatureImage = document.createElement('img');
+      signatureImage.src = window.createThinSignatureExportDataUrl(sourceSignature);
+      signatureImage.alt = 'Tanda tangan dokter';
+      signatureImage.className = clonedSignature.className;
+      signatureImage.style.width = '100%';
+      signatureImage.style.height = '100%';
+      signatureImage.style.objectFit = 'contain';
+      clonedSignature.replaceWith(signatureImage);
+    } else {
+      clonedSignature?.remove();
     }
 
     const pdfWorker = window.html2pdf()
@@ -429,7 +521,7 @@
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak: { mode: ['css', 'legacy'] },
       })
-      .from(letter);
+      .from(pdfLetter);
 
     // diupdate oleh irwansyah tanggal 2026-09-26 - awal menampilkan PDF langsung pada tab pratinjau Cetak
     if (previewWindow) {
@@ -503,13 +595,15 @@
         .kronis-letter__identity{border-collapse:collapse;margin:8px 0 12px}
         .kronis-letter__identity th{text-align:left;font-weight:400;padding-right:14px;white-space:nowrap}
         .kronis-signature-pad{position:relative;width:230px;height:84px;margin:14px auto 0}
+        /* Kecilkan tanda tangan hanya pada hasil cetak; ukuran canvas isian tetap. */
+        @media print{.kronis-signature-pad{width:140px;height:51px}}
         .kronis-signature-pad__canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
         .kronis-signature-pad__placeholder{position:absolute;inset:0;display:grid;place-items:center;color:#89949b;font:italic 13px Arial,sans-serif;pointer-events:none}
         .kronis-signature-pad__placeholder[hidden]{display:none}
         .kronis-letter__signer{display:flex;flex-direction:column;align-items:center;width:42%;margin:34px 0 0 auto;text-align:center}
         .kronis-letter__signer p{margin:0}
         .kronis-letter__signer strong{text-decoration:underline}
-        .kronis-letter__sep-boxes{display:inline-grid;grid-template-columns:repeat(18,1.25em);vertical-align:middle}
+        .kronis-letter__sep-boxes{display:inline-grid;grid-template-columns:repeat(19,1.25em);vertical-align:middle;white-space:nowrap}
         .kronis-letter__sep-boxes span{height:1.35em;border:1px solid #111;text-align:center;line-height:1.25em}
         .kronis-letter__medicines{padding-left:22px}
         .kronis-letter__signature-space{height:100px}
@@ -543,7 +637,7 @@
           <div class="from-kronis-controls">
             <label class="from-kronis-field">Nama Pasien<input data-kronis-field="namaPasien" value="${escapeHtml(patient.nama)}"></label>
             <label class="from-kronis-field">No Peserta BPJS<input data-kronis-field="nomorBPJS" value="${escapeHtml(patient.nomorBPJS)}"></label>
-            <label class="from-kronis-field">No SEP<input data-kronis-field="nomorSEP" value="${escapeHtml(patient.nomorSEP)}" maxlength="18" inputmode="numeric"></label>
+            <label class="from-kronis-field">No SEP<input data-kronis-field="nomorSEP" value="${escapeHtml(patient.nomorSEP)}" maxlength="19" inputmode="numeric"></label>
             <label class="from-kronis-field">Diagnosa<input data-kronis-field="diagnosis" value="${escapeHtml(patient.diagnosis)}"></label>
           </div>
         </fieldset>
@@ -552,6 +646,30 @@
       <div id="${letterId}"></div>
     `;
     tabContent.appendChild(pane);
+
+    // Sinkronkan canvas yang sedang tampil saat PRMRJ menemukan tanda tangan dokter terbaru.
+    document.addEventListener('simrs:prmrj-signature-updated', (event) => {
+      if (String(event.detail?.noCheckin || '') !== String(getNoCheckin()) ||
+        doctorSignatureSource === 'user' || doctorSignatureCleared) return;
+      const signature = event.detail?.signature;
+      if (typeof signature !== 'string' || !signature) return;
+      doctorSignatureData = signature;
+      doctorSignatureSource = 'prmrj';
+      const image = new Image();
+      image.onload = () => {
+        const activeCanvas = pane.querySelector(`#${letterId} .kronis-signature-pad__canvas`);
+        if (!activeCanvas || doctorSignatureData !== signature ||
+          doctorSignatureSource !== 'prmrj' || doctorSignatureCleared) return;
+        const context = activeCanvas.getContext('2d');
+        if (!context) return;
+        context.clearRect(0, 0, activeCanvas.width, activeCanvas.height);
+        context.drawImage(image, 0, 0, activeCanvas.width, activeCanvas.height);
+        activeCanvas.dataset.empty = 'false';
+        const placeholder = activeCanvas.parentElement?.querySelector('.kronis-signature-pad__placeholder');
+        if (placeholder) placeholder.hidden = true;
+      };
+      image.src = signature;
+    });
 
     const refreshLetter = () => {
       pane.querySelector(`#${letterId}`).innerHTML = buildLetter(getPatientData());
@@ -569,7 +687,21 @@
     // diupdate oleh irwansyah tanggal 2026-09-26 - akhir memuat Poli/UPL berdasarkan jenis pelayanan check-in
     // diupdate oleh irwansyah tanggal 2026-09-26 - awal memuat ulang data peserta saat tab Form Kronis dibuka
     document.addEventListener('simrs:load-kronis-participant-data', () => {
-      loadCheckinServiceUnit().then(refreshLetter);
+      loadCheckinServiceUnit().then(async () => {
+        // Ambil versi terbaru dari PRMRJ saat tab dibuka agar tidak perlu hard refresh halaman.
+        const loadPrmrjSignature = window.getPrmrjDefaultSignature;
+        if (doctorSignatureSource !== 'user' && typeof loadPrmrjSignature === 'function') {
+          const signature = await loadPrmrjSignature(getNoCheckin(), true);
+          if (!doctorSignatureCleared) {
+            doctorSignatureData = signature || '';
+            doctorSignatureSource = signature ? 'prmrj' : '';
+          }
+        }
+        refreshLetter();
+      }).catch((error) => {
+        console.error('Gagal memperbarui tanda tangan PRMRJ untuk form kronis:', error);
+        refreshLetter();
+      });
     });
     document.addEventListener('simrs:kronis-participant-updated', refreshLetter);
     // diupdate oleh irwansyah tanggal 2026-09-26 - akhir memuat ulang data peserta saat tab Form Kronis dibuka
@@ -582,6 +714,8 @@
       // diupdate oleh irwansyah tanggal 2026-09-26 - awal menghapus state tanda tangan dan menampilkan placeholder
       if (action === 'clear-signature') {
         doctorSignatureData = '';
+        doctorSignatureSource = '';
+        doctorSignatureCleared = true;
         doctorSignatureReady = Promise.resolve();
         refreshLetter();
         return;

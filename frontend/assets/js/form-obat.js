@@ -545,6 +545,16 @@
   }
   // diupdate oleh irwansyah tanggal 2026-09-23 - akhir perbaikan pemicu modal resep agar terbuka terlebih dahulu
 
+  function addFractionalDoseOptions() {
+    document.querySelectorAll('app-non-racikan select#quantity, app-non-racikan select#takaran')
+      .forEach((select) => {
+        ['1/4', '1/2', '3/4'].forEach((value) => {
+          if (Array.from(select.options).some((option) => option.value === value)) return;
+          select.add(new Option(value, value));
+        });
+      });
+  }
+
   function start() {
     // diupdate oleh irwansyah tanggal 2026-09-23 - awal pemuatan backend segera saat modal resep dibuat
     const processRecipeModal = () => {
@@ -581,6 +591,11 @@
     // diupdate oleh irwansyah tanggal 2026-09-24 - awal memasang pemantau tabel obat pada modal resep
     observeRecipeTable();
     // diupdate oleh irwansyah tanggal 2026-09-24 - akhir memasang pemantau tabel obat pada modal resep
+    addFractionalDoseOptions();
+    new MutationObserver(addFractionalDoseOptions).observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+    });
     document.addEventListener('click', handleRecipeAction, true);
     document.addEventListener('submit', handleRecipeAction, true);
     // diupdate oleh irwansyah tanggal 2026-09-24 - awal menonaktifkan observer global pemicu stack

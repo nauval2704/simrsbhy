@@ -14,6 +14,64 @@ var moment = require("moment");
 var mongoose = require("mongoose");
 const ObjectId = mongoose.Types.ObjectId;
 
+// Harga billing dinormalisasi menurut nama obat karena resep menyimpan ID baris stok, bukan ID master obat.
+function normalizeBillingMedicinePrices(recipes) {
+  const plainRecipes = recipes.map((recipe) =>
+    typeof recipe.toObject === "function" ? recipe.toObject() : recipe
+  );
+  const canonicalPrices = new Map();
+  const getMedicineKey = (item) => {
+    const name = Array.isArray(item?.nama)
+      ? item.nama.join(", ")
+      : item?.nama ?? item?.namaObat ?? item?.namaobat;
+    const normalizedName = String(name ?? "")
+      .normalize("NFKC")
+      .trim()
+      .replace(/\s+/g, " ")
+      .toLocaleLowerCase("id-ID");
+    return normalizedName || null;
+  };
+  const isChronic = (item) =>
+    item?.kronis === true || item?.kronis === "true" || item?.kronis === 1 || item?.kronis === "1";
+  const registerPrices = (item) => {
+    const key = getMedicineKey(item);
+    if (!key) return;
+    const value = item?.hargaJualBPJS;
+    if (
+      canonicalPrices.has(key) ||
+      value === null ||
+      value === undefined ||
+      value === "" ||
+      !Number.isFinite(Number(value))
+    ) return;
+    canonicalPrices.set(key, Number(value));
+  };
+
+  // Tarif BPJS dari item kronis menjadi sumber utama harga semua jenis resep untuk obat yang sama.
+  plainRecipes.forEach((recipe) =>
+    (Array.isArray(recipe.obat) ? recipe.obat : [])
+      .filter(isChronic)
+      .forEach(registerPrices)
+  );
+  // Jika obat tidak memiliki item kronis, gunakan tarif BPJS item non-kronis sebagai fallback.
+  plainRecipes.forEach((recipe) =>
+    (Array.isArray(recipe.obat) ? recipe.obat : [])
+      .filter((item) => !isChronic(item))
+      .forEach(registerPrices)
+  );
+
+  return plainRecipes.map((recipe) => ({
+    ...recipe,
+    obat: (Array.isArray(recipe.obat) ? recipe.obat : []).map((item) => {
+      const bpjsPrice = canonicalPrices.get(getMedicineKey(item));
+      // Samakan kedua kolom harga dengan tarif BPJS agar semua komponen billing memakai sumber tarif yang sama.
+      return bpjsPrice === undefined
+        ? item
+        : { ...item, hargaJualBPJS: bpjsPrice, hargaJualYANKES: bpjsPrice };
+    }),
+  }));
+}
+
 module.exports = {
   getNotif: async (req, res) => {
     try {
@@ -2869,7 +2927,10 @@ module.exports = {
         query.idPrmrj = String(idPrmrj).trim();
       }
 
-      const getDetailResep = await ResepModel.find(query).sort({ createdAt: -1 });
+      // Tampilan rincian poli dan modal resep memakai endpoint ini, jadi harga itemnya juga dinormalisasi.
+      const getDetailResep = normalizeBillingMedicinePrices(
+        await ResepModel.find(query).sort({ createdAt: -1 }).lean()
+      );
       return res.status(200).send({
         status: "success",
         message: "Resep berhasil di tambah",
@@ -2886,65 +2947,56 @@ module.exports = {
   },
   billingFarmasi: async (req, res) => {
     try {
-      const getDetailResep = await ResepModel.aggregate([
-        { $match: { noCheckin: req.body.noCheckin } },
-        { $sort: { "obat.nama": 1 } },
-        { $unwind: "$obat" },
-        {
-          $match: {
-            $or: [
-              { "obat.kronis": false },
-              { "obat.kronis": { $exists: false } },
-            ],
-          },
-        },
-        {
-          $group: {
-            _id: { _id: "$_id", nama: "$obat.nama" },
-            count: { $sum: "$obat.jumlah" },
-            subtotalBPJS: {
-              $sum: {
-                $cond: [
-                  { $eq: ["$obat.jenis", "RACIKAN"] },
-                  "$obat.hargaJualBPJS", //hargaJualBPJS
-                  { $multiply: ["$obat.hargaJualBPJS", "$obat.jumlah"] }, //hargaJualBPJS
-                ],
-              },
-            },
-            subtotalYANKES: {
-              $sum: {
-                $cond: [
-                  { $eq: ["$obat.jenis", "RACIKAN"] },
-                  "$obat.hargaJualYANKES",
-                  { $multiply: ["$obat.hargaJualYANKES", "$obat.jumlah"] },
-                ],
-              },
-            },
-          },
-        }, 
-        {
-          $group: {
-            _id: "$_id._id",
-            obat: {
-              $push: {
-                nama: "$_id.nama",
-                count: "$count",
-                subtotalBPJS: "$subtotalBPJS",
-                subtotalYANKES: "$subtotalYANKES",// "$subtotalBPJS",//"$subtotalYANKES",
-              },
-            },
-          },
-        },
-        { 
-          $project: {
-            _id: 1,
-            obat: 1,
-            grandTotalBPJS: { $sum: "$obat.subtotalBPJS" }, //subtotalYANKES
-            grandTotalYANKES:  { $sum: "$obat.subtotalYANKES" },//{ $sum: "$obat.subtotalYANKES" },subtotalBPJS
-          },
-        },
-        { $sort: { _id: 1 } },
-      ]);
+      // Billing reguler dinormalisasi bersama item kronis sebelum menghitung subtotal per resep dan nama obat.
+      const resep = normalizeBillingMedicinePrices(
+        await ResepModel.find({ noCheckin: req.body.noCheckin }).sort({ createdAt: 1 }).lean()
+      );
+      const billingByRecipe = new Map();
+      resep.forEach((recipe) => {
+        (Array.isArray(recipe.obat) ? recipe.obat : [])
+          .filter((item) =>
+            item?.kronis === false || !Object.prototype.hasOwnProperty.call(item || {}, "kronis")
+          )
+          .forEach((item) => {
+            const recipeKey = String(recipe._id);
+            const nameKey = JSON.stringify(item.nama);
+            let recipeBilling = billingByRecipe.get(recipeKey);
+            if (!recipeBilling) {
+              recipeBilling = { _id: recipe._id, items: new Map() };
+              billingByRecipe.set(recipeKey, recipeBilling);
+            }
+            let medicineBilling = recipeBilling.items.get(nameKey);
+            if (!medicineBilling) {
+              medicineBilling = {
+                nama: item.nama,
+                count: 0,
+                subtotalBPJS: 0,
+                subtotalYANKES: 0,
+              };
+              recipeBilling.items.set(nameKey, medicineBilling);
+            }
+
+            // Aturan RACIKAN dipertahankan agar subtotal tetap kompatibel dengan perhitungan billing sebelumnya.
+            const quantity = Number(item.jumlah) || 0;
+            const multiplier = item.jenis === "RACIKAN" ? 1 : quantity;
+            medicineBilling.count += quantity;
+            medicineBilling.subtotalBPJS += (Number(item.hargaJualBPJS) || 0) * multiplier;
+            // Subtotal YANKES juga memakai tarif BPJS sesuai sumber tarif billing yang diminta.
+            medicineBilling.subtotalYANKES += (Number(item.hargaJualBPJS) || 0) * multiplier;
+          });
+      });
+      // Bentuk respons dan total tiap resep tetap sama seperti hasil agregasi billing sebelumnya.
+      const getDetailResep = Array.from(billingByRecipe.values())
+        .map((recipeBilling) => {
+          const obat = Array.from(recipeBilling.items.values());
+          return {
+            _id: recipeBilling._id,
+            obat,
+            grandTotalBPJS: obat.reduce((total, item) => total + item.subtotalBPJS, 0),
+            grandTotalYANKES: obat.reduce((total, item) => total + item.subtotalYANKES, 0),
+          };
+        })
+        .sort((left, right) => String(left._id).localeCompare(String(right._id)));
       return res.status(200).send({
         status: "success",
         message: "Resep berhasil di tambah",
@@ -2961,7 +3013,10 @@ module.exports = {
   },
   printObat: async (req, res) => {
     try {
-      const getDetailResep = await ResepModel.find({ noCheckin: req.body.noCheckin });
+      // Data cetak billing kronis memakai harga acuan yang sama dengan billing obat non-kronis.
+      const getDetailResep = normalizeBillingMedicinePrices(
+        await ResepModel.find({ noCheckin: req.body.noCheckin }).sort({ createdAt: 1 }).lean()
+      );
       return res.status(200).send({
         status: "success",
         message: "Resep berhasil di tambah",
