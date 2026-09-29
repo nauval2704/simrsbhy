@@ -233,7 +233,15 @@ router.post("/pengkajian-awal-igd", simrsBaController.savePengkajianAwalIgd);
 router.get("/pengkajian-awal-igd/:noCheckin", simrsBaController.getPengkajianAwalIgd);
 
 router.post("/lab/save", simrsBaController.saveLab);
+router.post("/lab/upload-file", upload.single("fileLab"), simrsBaController.uploadLabFile);
+router.post("/lab/delete-file", simrsBaController.deleteLabFile);
+
 router.post("/rad/save", simrsBaController.saveRad);
+router.post("/radiologi/save", simrsBaController.saveRad);
+router.post("/radiologi/upload-file", upload.single("fileRad"), simrsBaController.uploadRadFile);
+router.post("/radiologi/delete-file", simrsBaController.deleteRadFile);
+router.post("/rad/upload-file", upload.single("fileRad"), simrsBaController.uploadRadFile);
+router.post("/rad/delete-file", simrsBaController.deleteRadFile);
 
 router.post("/general-consent", simrsBaController.saveGeneralConsent);
 router.post("/general-consent/upload-ktp", upload.single("fileKtp"), simrsBaController.uploadKtpGeneralConsent);

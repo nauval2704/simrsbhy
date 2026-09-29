@@ -33575,250 +33575,212 @@ var xd = (() => {
         const root = document.querySelector("app-pel-lab-input");
         if (!root) return;
 
-        let printContainer = root.querySelector("#lab-print-container");
-        if (!printContainer) {
-          printContainer = document.createElement("div");
-          printContainer.id = "lab-print-container";
-          printContainer.className = "mt-4 pt-3";
-          root.appendChild(printContainer);
-        }
-
         const noCheckin = this.route.snapshot.params.nocheckin;
-        fetch(
-          window.location.protocol +
-            "//" +
-            window.location.hostname +
-            ":1822/simrsba/caripasien/pelayanan/IGD/nocheckin/" +
-            noCheckin,
-        )
-          .then((res) => res.json())
-          .then((data) => {
-            const p = data[0] || {};
-            const nama = p.nama || "-";
-            const noMr = p.noMr || p.norm || "-";
-            const kelamin = p.kelamin || "-";
-            let tglLahir = p.tglLahir || "-";
-            if (p.userData && p.userData.length > 0)
-              tglLahir = p.userData[0].tgllahir || tglLahir;
-            const tglCheckin = p.tglCheckin || "-";
-            const dpjp = p.dokterDpjp || p.dpjp || "-";
-            const ruangan = p.cabar || "IGD";
+        const baseApi = window.location.protocol + "//" + window.location.hostname + ":1822";
 
-            const labData = p.laboratorium || [];
+        Promise.all([
+          fetch(baseApi + "/simrsba/caripasiennocheckin/" + noCheckin).then((r) => r.json()).catch(() => []),
+          fetch(baseApi + "/simrsba/caripasien/pelayanan/IGD/nocheckin/" + noCheckin).then((r) => r.json()).catch(() => []),
+          import("./surat/chunk-LAB-RAD-FILES.js?v=" + Date.now()).catch((e) => { console.error(e); return null; })
+        ]).then(([resCheckin, resIgd, modFiles]) => {
+          const p = (Array.isArray(resCheckin) && resCheckin[0]) || (Array.isArray(resIgd) && resIgd[0]) || {};
+          const nama = p.nama || (p.userData && p.userData[0]?.nama) || "-";
+          const noMr = p.noMr || p.norm || "-";
+          const kelamin = p.kelamin || (p.userData && p.userData[0]?.sex) || "-";
+          let tglLahir = p.tglLahir || "-";
+          if (p.userData && p.userData[0]?.tgllahir) tglLahir = p.userData[0].tgllahir;
+          const tglCheckin = p.tglCheckin || "-";
+          const dpjp = p.dokterDpjp || p.dpjp || "-";
+          const ruangan = p.cabar || "LABORATORIUM";
+
+          const userSig = localStorage.getItem("signatureImage") || localStorage.getItem("userSignature") || "";
+          const userStaffName = localStorage.getItem("namaUser") || localStorage.getItem("userName") || "";
+
+          const labData = p.laboratorium || [];
+          const labSigDokter = p.labSigDokter || labData[0]?.sigDokter || p.triase?.sigDokter || p.pengkajian?.sigDokter || userSig;
+          const labSigPetugas = p.labSigPetugas || labData[0]?.sigPetugas || p.triase?.sigPerawat || p.pengkajian?.sigPerawat || userSig;
+          const labNamaDokter = p.labNamaDokter || labData[0]?.namaDokter || (dpjp !== "-" ? dpjp : "Dokter Spesialis Patologi Klinik");
+          const labNamaPetugas = p.labNamaPetugas || labData[0]?.namaPetugas || (userStaffName || "-");
+
+          const labSigPetugasImg = labSigPetugas && labSigPetugas.startsWith("data:image") ? `<img src="${labSigPetugas}" style="max-height:60px; max-width:160px; display:block; margin: 0 auto; object-fit:contain;" />` : "";
+          const labSigDokterImg = labSigDokter && labSigDokter.startsWith("data:image") ? `<img src="${labSigDokter}" style="max-height:60px; max-width:160px; display:block; margin: 0 auto; object-fit:contain;" />` : "";
+
+          const renderPrint = (targetEl, files) => {
             let testsHtml = "";
-            labData.forEach(r => {
-                if (r.testName && r.testName !== 'General Laboratory Report') {
-                    testsHtml += `<tr>
-                        <td class="col-jenis indent-item">${r.testName}</td>
-                        <td class="col-hasil"><span class="input-blank">${r.value || ''}</span></td>
-                        <td class="col-satuan">${r.unit || ''}</td>
-                        <td class="col-rujukan">${r.referenceRange || ''}</td>
-                    </tr>`;
+            if (Array.isArray(labData) && labData.length > 0) {
+              labData.forEach((r) => {
+                if (r.testName && r.testName !== "General Laboratory Report") {
+                  testsHtml += `<tr>
+                    <td class="col-jenis indent-item">${r.testName}</td>
+                    <td class="col-hasil"><span class="input-blank">${r.value || "-"}</span></td>
+                    <td class="col-satuan">${r.unit || "-"}</td>
+                    <td class="col-rujukan">${r.referenceRange || "-"}</td>
+                  </tr>`;
                 }
-            });
+              });
+            }
+            if (!testsHtml && Array.isArray(this.dataPasienBaru) && this.dataPasienBaru.length > 0) {
+              this.dataPasienBaru.forEach((item) => {
+                testsHtml += `<tr>
+                  <td class="col-jenis">${item.nama || "-"}</td>
+                  <td class="col-hasil text-muted fst-italic">Proses Pemeriksaan</td>
+                  <td class="col-satuan">${item.satuan || "-"}</td>
+                  <td class="col-rujukan">-</td>
+                </tr>`;
+              });
+            }
             if (!testsHtml) {
-               testsHtml = '<tr><td colspan="4" class="text-center text-muted fst-italic">Belum ada data detail pemeriksaan</td></tr>';
+              testsHtml = '<tr><td colspan="4" class="text-center text-muted fst-italic py-3">Belum ada rincian pemeriksaan laboratorium</td></tr>';
             }
 
-            const userSig = localStorage.getItem('signatureImage') || localStorage.getItem('userSignature') || '';
-            const userStaffName = localStorage.getItem('namaUser') || localStorage.getItem('userName') || '';
-
-            const labSigDokter = p.labSigDokter || labData[0]?.sigDokter || p.triase?.sigDokter || p.pengkajian?.sigDokter || userSig;
-            const labSigPetugas = p.labSigPetugas || labData[0]?.sigPetugas || p.triase?.sigPerawat || p.pengkajian?.sigPerawat || userSig;
-            const labNamaDokter = p.labNamaDokter || labData[0]?.namaDokter || (dpjp !== '-' ? dpjp : '');
-            const labNamaPetugas = p.labNamaPetugas || labData[0]?.namaPetugas || (userStaffName || '-');
-
-            const labSigPetugasImg = labSigPetugas && labSigPetugas.startsWith('data:image') ? `<img src="${labSigPetugas}" style="max-height:60px; max-width:160px; display:block; margin: 0 auto; object-fit:contain;" />` : '';
-            const labSigDokterImg = labSigDokter && labSigDokter.startsWith('data:image') ? `<img src="${labSigDokter}" style="max-height:60px; max-width:160px; display:block; margin: 0 auto; object-fit:contain;" />` : '';
+            const lampiranHtml = (modFiles && modFiles.renderLampiranFilesPrintHtml) ? modFiles.renderLampiranFilesPrintHtml(files) : "";
 
             let html = `
-                        <style>
-                            #lab-print-container {
-                                background: #e8ecf0;
-                                padding: 32px;
-                                font-family: 'Arial', Helvetica, sans-serif;
-                            }
-                            .lab-paper {
-                                background: #ffffff;
-                                max-width: 800px;
-                                margin: 0 auto;
-                                padding: 48px 52px 40px 52px;
-                                box-shadow: 0 4px 24px rgba(0,0,0,0.13), 0 1.5px 6px rgba(0,0,0,0.08);
-                                border-radius: 3px;
-                                color: #1a1a1a;
-                                position: relative;
-                            }
-                            .lab-paper .header-title {
-                                text-align: center;
-                                font-size: 15px;
-                                font-weight: bold;
-                                text-transform: uppercase;
-                                text-decoration: underline;
-                                letter-spacing: 1px;
-                                margin-bottom: 22px;
-                                color: #0a0a0a;
-                            }
-                            .lab-paper .meta-grid {
-                                display: grid;
-                                grid-template-columns: 1fr 1fr;
-                                gap: 0 32px;
-                                font-size: 12.5px;
-                                line-height: 1.9;
-                                margin-bottom: 20px;
-                                border-bottom: 1px solid #ccc;
-                                padding-bottom: 14px;
-                            }
-                            .lab-paper .meta-row {
-                                display: flex;
-                                align-items: baseline;
-                            }
-                            .lab-paper .meta-label {
-                                min-width: 130px;
-                                color: #555;
-                            }
-                            .lab-paper .meta-sep {
-                                margin: 0 6px;
-                                color: #555;
-                            }
-                            .lab-paper .meta-value {
-                                font-weight: 600;
-                                color: #111;
-                                flex: 1;
-                                border-bottom: 1px dotted #bbb;
-                                padding-bottom: 1px;
-                            }
-                            table.lab-table {
-                                width: 100%;
-                                border-collapse: collapse;
-                                font-size: 12.5px;
-                                margin-top: 6px;
-                            }
-                            table.lab-table thead tr {
-                                border-top: 2px solid #333;
-                                border-bottom: 2px solid #333;
-                            }
-                            table.lab-table th {
-                                padding: 9px 8px;
-                                font-weight: 700;
-                                text-align: left;
-                                text-transform: uppercase;
-                                font-size: 12px;
-                                letter-spacing: 0.5px;
-                                color: #222;
-                            }
-                            table.lab-table th.col-hasil,
-                            table.lab-table th.col-satuan,
-                            table.lab-table th.col-rujukan {
-                                text-align: center;
-                            }
-                            table.lab-table tbody tr:nth-child(even) { background: #f7f9fc; }
-                            table.lab-table td {
-                                padding: 8px 8px;
-                                vertical-align: middle;
-                                border-bottom: 1px solid #eee;
-                                color: #222;
-                            }
-                            .col-jenis { width: 36%; }
-                            .col-hasil { width: 22%; text-align: center; }
-                            .col-satuan { width: 18%; text-align: center; }
-                            .col-rujukan { width: 24%; text-align: center; }
-                            .result-val {
-                                display: inline-block;
-                                min-width: 70px;
-                                font-weight: 600;
-                                border-bottom: 1px solid #888;
-                                padding-bottom: 1px;
-                            }
-                            .footer-signatures {
-                                margin-top: 48px;
-                                display: flex;
-                                justify-content: space-between;
-                                font-size: 13px;
-                            }
-                            .sig-box {
-                                width: 42%;
-                                text-align: center;
-                                display: flex;
-                                flex-direction: column;
-                                justify-content: space-between;
-                                min-height: 110px;
-                            }
-                            .sig-title {
-                                font-weight: 700;
-                                margin-bottom: 6px;
-                            }
-                            .sig-container {
-                                min-height: 65px;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                            }
-                            .sig-line {
-                                padding-top: 4px;
-                                font-size: 12px;
-                                color: #333;
-                                font-weight: 600;
-                            }
-                            @media print {
-                                body * { visibility: hidden !important; }
-                                #lab-print-container, #lab-print-container * { visibility: visible !important; }
-                                #lab-print-container { position: absolute; left: 0; top: 0; width: 100%; background: white !important; padding: 0 !important; }
-                                .lab-paper { box-shadow: none !important; max-width: 100% !important; padding: 20mm 20mm 16mm 20mm !important; }
-                                table.lab-table tbody tr:nth-child(even) { background: #f7f9fc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                            }
-                            @media screen and (max-width: 768px) {
-                                .lab-print-container { padding: 12px; }
-                                .lab-paper { padding: 24px 16px; border-radius: 4px; }
-                                .lab-paper .meta-grid { grid-template-columns: 1fr; gap: 4px; margin-bottom: 16px; }
-                                table.lab-table th, table.lab-table td { font-size: 11px; padding: 6px 4px; }
-                            }
-                        </style>
-                        <div id="lab-print-inner">
-                          <div class="lab-paper">
-                            <div class="header-title">Hasil Pemeriksaan Laboratorium</div>
-                            <div class="meta-grid">
-                                <div>
-                                    <div class="meta-row"><span class="meta-label">No. Lab / No. CM</span><span class="meta-sep">:</span><span class="meta-value">${noCheckin} / ${noMr}</span></div>
-                                    <div class="meta-row"><span class="meta-label">Pasien</span><span class="meta-sep">:</span><span class="meta-value">${nama}</span></div>
-                                    <div class="meta-row"><span class="meta-label">Jenis Kelamin</span><span class="meta-sep">:</span><span class="meta-value">${kelamin}</span></div>
-                                    <div class="meta-row"><span class="meta-label">Tgl. Lahir / Umur</span><span class="meta-sep">:</span><span class="meta-value">${tglLahir}</span></div>
-                                </div>
-                                <div>
-                                    <div class="meta-row"><span class="meta-label">Tgl. Reg</span><span class="meta-sep">:</span><span class="meta-value">${tglCheckin.split(' ')[0]}</span></div>
-                                    <div class="meta-row"><span class="meta-label">Ruangan</span><span class="meta-sep">:</span><span class="meta-value">${ruangan}</span></div>
-                                    <div class="meta-row"><span class="meta-label">Jam</span><span class="meta-sep">:</span><span class="meta-value">${tglCheckin.split(' ')[1] || '-'}</span></div>
-                                    <div class="meta-row"><span class="meta-label">Dokter Pengirim</span><span class="meta-sep">:</span><span class="meta-value">${dpjp}</span></div>
-                                </div>
-                            </div>
-                            <table class="lab-table">
-                                <thead>
-                                    <tr>
-                                        <th class="col-jenis">Jenis Pemeriksaan</th>
-                                        <th class="col-hasil">Hasil</th>
-                                        <th class="col-satuan">Satuan</th>
-                                        <th class="col-rujukan">Nilai Rujukan</th>
-                                    </tr>
-                                </thead>
-                                <tbody>${testsHtml}</tbody>
-                            </table>
-                            <div class="footer-signatures">
-                                <div class="sig-box">
-                                    <div class="sig-title">Pemeriksa</div>
-                                    ${labSigPetugasImg}
-                                    <div class="sig-line">${labNamaPetugas}</div>
-                                </div>
-                                <div class="sig-box">
-                                    <div class="sig-title">Dokter Konsultan</div>
-                                    ${labSigDokterImg}
-                                    <div class="sig-line">${labNamaDokter}</div>
-                                </div>
-                            </div>
-                          </div>
-                        </div>
-                    `;
-            printContainer.innerHTML = html;
-          });
-      }, 800);
+              <style>
+                #lab-print-container {
+                  background: #e8ecf0;
+                  padding: 24px 16px;
+                  font-family: 'Arial', Helvetica, sans-serif;
+                }
+                .lab-paper {
+                  background: #ffffff;
+                  max-width: 820px;
+                  margin: 0 auto;
+                  padding: 36px 42px 36px 42px;
+                  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+                  border-radius: 4px;
+                  color: #1a1a1a;
+                  position: relative;
+                }
+                .lab-paper .header-title {
+                  text-align: center;
+                  font-size: 15px;
+                  font-weight: bold;
+                  text-transform: uppercase;
+                  letter-spacing: 1px;
+                  margin: 18px 0;
+                  color: #0a0a0a;
+                  border-bottom: 2px solid #333;
+                  padding-bottom: 6px;
+                }
+                .lab-paper .meta-grid {
+                  display: grid;
+                  grid-template-columns: 1fr 1fr;
+                  gap: 0 28px;
+                  font-size: 12.5px;
+                  line-height: 1.8;
+                  margin-bottom: 18px;
+                  border-bottom: 1px solid #ccc;
+                  padding-bottom: 12px;
+                }
+                .lab-paper .meta-row { display: flex; align-items: baseline; }
+                .lab-paper .meta-label { min-width: 130px; color: #555; }
+                .lab-paper .meta-sep { margin: 0 6px; color: #555; }
+                .lab-paper .meta-value { font-weight: 600; color: #111; flex: 1; border-bottom: 1px dotted #bbb; padding-bottom: 1px; }
+                table.lab-table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 6px; }
+                table.lab-table thead tr { border-top: 2px solid #333; border-bottom: 2px solid #333; background:#f4f6f8; }
+                table.lab-table th { padding: 8px; font-weight: 700; text-align: left; text-transform: uppercase; font-size: 11.5px; letter-spacing: 0.5px; color: #222; }
+                table.lab-table th.col-hasil, table.lab-table th.col-satuan, table.lab-table th.col-rujukan { text-align: center; }
+                table.lab-table tbody tr:nth-child(even) { background: #fbfbfb; }
+                table.lab-table td { padding: 7px 8px; vertical-align: middle; border-bottom: 1px solid #eee; color: #222; }
+                .col-jenis { width: 40%; }
+                .col-hasil { width: 20%; text-align: center; font-weight: 600; }
+                .col-satuan { width: 18%; text-align: center; }
+                .col-rujukan { width: 22%; text-align: center; }
+                .footer-signatures { margin-top: 40px; display: flex; justify-content: space-between; font-size: 12.5px; page-break-inside: avoid; }
+                .sig-box { width: 42%; text-align: center; display: flex; flex-direction: column; justify-content: space-between; min-height: 100px; }
+                .sig-title { font-weight: 700; margin-bottom: 6px; }
+                .sig-container { min-height: 60px; display: flex; align-items: center; justify-content: center; }
+                .sig-line { padding-top: 4px; font-size: 12px; color: #333; font-weight: 600; border-top: 1px solid #777; width: 85%; margin: 4px auto 0; }
+                @media print {
+                  body * { visibility: hidden !important; }
+                  #lab-print-container, #lab-print-container * { visibility: visible !important; }
+                  #lab-print-container { position: absolute; left: 0; top: 0; width: 100%; background: white !important; padding: 0 !important; }
+                  .lab-paper { box-shadow: none !important; max-width: 100% !important; padding: 15mm 15mm !important; }
+                  table.lab-table tbody tr:nth-child(even) { background: #fbfbfb !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                }
+              </style>
+              <div class="d-flex justify-content-end mb-3 d-print-none" style="max-width:820px;margin:0 auto;">
+                <button type="button" class="btn btn-sm btn-primary shadow-sm px-3" onclick="window.print()">
+                  <i class="bi bi-printer me-1"></i> Cetak Dokumen Hasil Lab
+                </button>
+              </div>
+              <div id="lab-print-inner">
+                <div class="lab-paper">
+                  <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-2">
+                    <img src="assets/img/logorsba.png" style="height:70px;width:auto;" alt="RSBA" />
+                    <div class="text-center flex-grow-1 px-2">
+                      <h6 class="m-0 fw-bold" style="font-size:14px;letter-spacing:0.5px;">RUMAH SAKIT BHAYANGKARA TK. III BANDA ACEH</h6>
+                      <div style="font-size:11px;color:#444;">Jl. Cut Nyak Dhien No. 23, Lamtemen Barat, Banda Aceh</div>
+                      <div style="font-size:10.5px;color:#555;">Telp: (0651) 48805 | Email: rsbhayangkarabna@gmail.com</div>
+                    </div>
+                    <img src="assets/img/bygkara1.png" style="height:70px;width:auto;" alt="Polri" />
+                  </div>
+                  <div class="header-title">Hasil Pemeriksaan Laboratorium</div>
+                  <div class="meta-grid">
+                    <div>
+                      <div class="meta-row"><span class="meta-label">No. Lab / No. CM</span><span class="meta-sep">:</span><span class="meta-value">${noCheckin} / ${noMr}</span></div>
+                      <div class="meta-row"><span class="meta-label">Nama Pasien</span><span class="meta-sep">:</span><span class="meta-value">${nama}</span></div>
+                      <div class="meta-row"><span class="meta-label">Jenis Kelamin</span><span class="meta-sep">:</span><span class="meta-value">${kelamin}</span></div>
+                      <div class="meta-row"><span class="meta-label">Tgl. Lahir / Umur</span><span class="meta-sep">:</span><span class="meta-value">${tglLahir}</span></div>
+                    </div>
+                    <div>
+                      <div class="meta-row"><span class="meta-label">Tgl. Registrasi</span><span class="meta-sep">:</span><span class="meta-value">${tglCheckin.split(' ')[0]}</span></div>
+                      <div class="meta-row"><span class="meta-label">Ruangan</span><span class="meta-sep">:</span><span class="meta-value">${ruangan}</span></div>
+                      <div class="meta-row"><span class="meta-label">Jam Pemeriksaan</span><span class="meta-sep">:</span><span class="meta-value">${tglCheckin.split(' ')[1] || '-'}</span></div>
+                      <div class="meta-row"><span class="meta-label">Dokter Pengirim</span><span class="meta-sep">:</span><span class="meta-value">${dpjp}</span></div>
+                    </div>
+                  </div>
+                  <table class="lab-table">
+                    <thead>
+                      <tr>
+                        <th class="col-jenis">Jenis Pemeriksaan</th>
+                        <th class="col-hasil">Hasil</th>
+                        <th class="col-satuan">Satuan</th>
+                        <th class="col-rujukan">Nilai Rujukan</th>
+                      </tr>
+                    </thead>
+                    <tbody>${testsHtml}</tbody>
+                  </table>
+                  ${lampiranHtml}
+                  <div class="footer-signatures">
+                    <div class="sig-box">
+                      <div class="sig-title">Pemeriksa Laboratorium</div>
+                      <div class="sig-container">${labSigPetugasImg}</div>
+                      <div class="sig-line">${labNamaPetugas}</div>
+                    </div>
+                    <div class="sig-box">
+                      <div class="sig-title">Dokter Penanggung Jawab</div>
+                      <div class="sig-container">${labSigDokterImg}</div>
+                      <div class="sig-line">${labNamaDokter}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+            targetEl.innerHTML = html;
+          };
+
+          if (modFiles && modFiles.initLabRadTabsAndFiles) {
+            modFiles.initLabRadTabsAndFiles({
+              root: root,
+              type: "LAB",
+              noCheckin: noCheckin,
+              noMr: noMr,
+              initialFiles: p.filesLab || [],
+              onRenderPrint: (targetEl, files) => renderPrint(targetEl, files)
+            });
+          } else {
+            let pc = root.querySelector("#lab-print-container");
+            if (!pc) {
+              pc = document.createElement("div");
+              pc.id = "lab-print-container";
+              root.appendChild(pc);
+            }
+            renderPrint(pc, p.filesLab || []);
+          }
+        });
+      }, 500);
     }
     calculateMealTotal() {
       return this.dataPasienBaru.reduce((e, a) => e + +a.harga * a.qty, 0);
@@ -34518,254 +34480,202 @@ var bd = (() => {
         const root = document.querySelector("app-pel-radiologi-input");
         if (!root) return;
 
-        let printContainer = root.querySelector("#rad-print-container");
-        if (!printContainer) {
-          printContainer = document.createElement("div");
-          printContainer.id = "rad-print-container";
-          printContainer.className = "mt-4 pt-3";
-          root.appendChild(printContainer);
-        }
-
         const noCheckin = this.route.snapshot.params.nocheckin;
-        fetch(
-          window.location.protocol +
-            "//" +
-            window.location.hostname +
-            ":1822/simrsba/caripasien/pelayanan/IGD/nocheckin/" +
-            noCheckin,
-        )
-          .then((res) => res.json())
-          .then((data) => {
-            const p = data[0] || {};
-            const nama = p.nama || "-";
-            const noMr = p.noMr || p.norm || "-";
-            const kelamin = p.kelamin || "-";
-            let tglLahir = p.tglLahir || "-";
-            if (p.userData && p.userData.length > 0)
-              tglLahir = p.userData[0].tgllahir || tglLahir;
-            const tglCheckin = p.tglCheckin || "-";
-            const dpjp = p.dokterDpjp || p.dpjp || "-";
-            const ruangan = p.cabar || "IGD";
+        const baseApi = window.location.protocol + "//" + window.location.hostname + ":1822";
 
-            const userSig = localStorage.getItem('signatureImage') || localStorage.getItem('userSignature') || '';
-            const userStaffName = localStorage.getItem('namaUser') || localStorage.getItem('userName') || '';
+        Promise.all([
+          fetch(baseApi + "/simrsba/caripasiennocheckin/" + noCheckin).then((r) => r.json()).catch(() => []),
+          fetch(baseApi + "/simrsba/caripasien/pelayanan/IGD/nocheckin/" + noCheckin).then((r) => r.json()).catch(() => []),
+          import("./surat/chunk-LAB-RAD-FILES.js?v=" + Date.now()).catch((e) => { console.error(e); return null; })
+        ]).then(([resCheckin, resIgd, modFiles]) => {
+          const p = (Array.isArray(resCheckin) && resCheckin[0]) || (Array.isArray(resIgd) && resIgd[0]) || {};
+          const nama = p.nama || (p.userData && p.userData[0]?.nama) || "-";
+          const noMr = p.noMr || p.norm || "-";
+          const kelamin = p.kelamin || (p.userData && p.userData[0]?.sex) || "-";
+          let tglLahir = p.tglLahir || "-";
+          if (p.userData && p.userData[0]?.tgllahir) tglLahir = p.userData[0].tgllahir;
+          const tglCheckin = p.tglCheckin || "-";
+          const dpjp = p.dokterDpjp || p.dpjp || "-";
+          const ruangan = p.cabar || "RADIOLOGI";
 
-            const radData = p.radiologi || [];
-            let radNamaPetugas = p.radNamaPetugas || radData[0]?.namaPetugas || (userStaffName || '-');
-            let radNamaDokter = p.radNamaDokter || radData[0]?.namaDokter || (dpjp !== '-' ? dpjp : 'Dokter Spesialis Radiologi');
-            
-            const radSigDokter = p.radSigDokter || radData[0]?.sigDokter || p.triase?.sigDokter || p.pengkajian?.sigDokter || userSig;
-            const radSigPetugas = p.radSigPetugas || radData[0]?.sigPetugas || p.triase?.sigPerawat || p.pengkajian?.sigPerawat || userSig;
+          const userSig = localStorage.getItem("signatureImage") || localStorage.getItem("userSignature") || "";
+          const userStaffName = localStorage.getItem("namaUser") || localStorage.getItem("userName") || "";
 
-            const radSigPetugasImg = radSigPetugas && radSigPetugas.startsWith('data:image') ? `<img src="${radSigPetugas}" style="max-height:60px; max-width:160px; display:block; margin: 0 auto; object-fit:contain;" />` : '';
-            const radSigDokterImg = radSigDokter && radSigDokter.startsWith('data:image') ? `<img src="${radSigDokter}" style="max-height:60px; max-width:160px; display:block; margin: 0 auto; object-fit:contain;" />` : '';
+          const radData = p.radiologi || [];
+          let radNamaPetugas = p.radNamaPetugas || radData[0]?.namaPetugas || (userStaffName || "-");
+          let radNamaDokter = p.radNamaDokter || radData[0]?.namaDokter || (dpjp !== "-" ? dpjp : "Dokter Spesialis Radiologi");
 
-            const getExpertise = () => {
-              const res = radData.find((l) => l.expertise || l.impression);
-              return res ? (res.expertise || res.impression) : "";
-            };
-            const expertiseText = getExpertise();
+          const radSigDokter = p.radSigDokter || radData[0]?.sigDokter || p.triase?.sigDokter || p.pengkajian?.sigDokter || userSig;
+          const radSigPetugas = p.radSigPetugas || radData[0]?.sigPetugas || p.triase?.sigPerawat || p.pengkajian?.sigPerawat || userSig;
+
+          const radSigPetugasImg = radSigPetugas && radSigPetugas.startsWith("data:image") ? `<img src="${radSigPetugas}" style="max-height:60px; max-width:160px; display:block; margin: 0 auto; object-fit:contain;" />` : "";
+          const radSigDokterImg = radSigDokter && radSigDokter.startsWith("data:image") ? `<img src="${radSigDokter}" style="max-height:60px; max-width:160px; display:block; margin: 0 auto; object-fit:contain;" />` : "";
+
+          const getExpertise = () => {
+            const res = radData.find((l) => l.expertise || l.impression);
+            return res ? (res.expertise || res.impression) : (p.radExpertise || "");
+          };
+          const expertiseText = getExpertise();
+
+          const renderPrint = (targetEl, files) => {
             let testsHtml = "";
-            radData.forEach((r) => {
-              const testName = r.testName || r.examName;
-              if (testName && testName !== "General Radiology Report") {
-                testsHtml += `<tr><td colspan="4" class="fw-bold pb-2 pt-3"><i class="bi bi-record-circle me-2"></i> ${testName}</td></tr>`;
-              }
-            });
+            if (Array.isArray(radData) && radData.length > 0) {
+              radData.forEach((r) => {
+                const testName = r.testName || r.examName;
+                if (testName && testName !== "General Radiology Report") {
+                  testsHtml += `<tr><td class="fw-bold pb-2 pt-2"><i class="bi bi-record-circle me-2 text-primary"></i> ${testName}</td></tr>`;
+                }
+              });
+            }
+            if (!testsHtml && Array.isArray(this.dataPasienBaru) && this.dataPasienBaru.length > 0) {
+              this.dataPasienBaru.forEach((item) => {
+                testsHtml += `<tr><td class="fw-bold pb-2 pt-2"><i class="bi bi-record-circle me-2 text-primary"></i> ${item.nama || "-"}</td></tr>`;
+              });
+            }
+            if (!testsHtml) {
+              testsHtml = '<tr><td style="color:#888;font-style:italic;" class="py-2">Tidak ada detail pemeriksaan spesifik</td></tr>';
+            }
+
+            const lampiranHtml = (modFiles && modFiles.renderLampiranFilesPrintHtml) ? modFiles.renderLampiranFilesPrintHtml(files) : "";
 
             let html = `
-                        <style>
-                            #rad-print-container {
-                                background: #e8ecf0;
-                                padding: 32px;
-                                font-family: 'Arial', Helvetica, sans-serif;
-                            }
-                            .rad-paper {
-                                background: #ffffff;
-                                max-width: 800px;
-                                margin: 0 auto;
-                                padding: 48px 52px 40px 52px;
-                                box-shadow: 0 4px 24px rgba(0,0,0,0.13), 0 1.5px 6px rgba(0,0,0,0.08);
-                                border-radius: 3px;
-                                color: #1a1a1a;
-                            }
-                            .rad-paper .header-title {
-                                text-align: center;
-                                font-size: 15px;
-                                font-weight: bold;
-                                text-transform: uppercase;
-                                text-decoration: underline;
-                                letter-spacing: 1px;
-                                margin-bottom: 22px;
-                                color: #0a0a0a;
-                            }
-                            .rad-paper .meta-grid {
-                                display: grid;
-                                grid-template-columns: 1fr 1fr;
-                                gap: 0 32px;
-                                font-size: 12.5px;
-                                line-height: 1.9;
-                                margin-bottom: 20px;
-                                border-bottom: 1px solid #ccc;
-                                padding-bottom: 14px;
-                            }
-                            .rad-paper .meta-row {
-                                display: flex;
-                                align-items: baseline;
-                            }
-                            .rad-paper .meta-label {
-                                min-width: 130px;
-                                color: #555;
-                            }
-                            .rad-paper .meta-sep {
-                                margin: 0 6px;
-                                color: #555;
-                            }
-                            .rad-paper .meta-value {
-                                font-weight: 600;
-                                color: #111;
-                                flex: 1;
-                                border-bottom: 1px dotted #bbb;
-                                padding-bottom: 1px;
-                            }
-                            table.rad-table {
-                                width: 100%;
-                                border-collapse: collapse;
-                                font-size: 12.5px;
-                                margin-top: 6px;
-                            }
-                            table.rad-table thead tr {
-                                border-top: 2px solid #333;
-                                border-bottom: 2px solid #333;
-                            }
-                            table.rad-table th {
-                                padding: 9px 8px;
-                                font-weight: 700;
-                                text-align: left;
-                                text-transform: uppercase;
-                                font-size: 12px;
-                                letter-spacing: 0.5px;
-                                color: #222;
-                            }
-                            table.rad-table tbody tr:nth-child(even) { background: #f7f9fc; }
-                            table.rad-table td {
-                                padding: 8px 8px;
-                                vertical-align: top;
-                                border-bottom: 1px solid #eee;
-                                color: #222;
-                            }
-                            .expertise-section {
-                                margin-top: 20px;
-                            }
-                            .expertise-label {
-                                font-weight: 700;
-                                font-size: 12px;
-                                text-transform: uppercase;
-                                letter-spacing: 0.5px;
-                                color: #333;
-                                margin-bottom: 8px;
-                            }
-                            .expertise-box {
-                                border: 1px solid #ccc;
-                                border-radius: 4px;
-                                padding: 14px 16px;
-                                min-height: 120px;
-                                white-space: pre-wrap;
-                                font-family: 'Arial', Helvetica, sans-serif;
-                                font-size: 13px;
-                                color: #222;
-                                line-height: 1.7;
-                                background: #fafafa;
-                            }
-                            .rad-footer-signatures {
-                                margin-top: 48px;
-                                display: flex;
-                                justify-content: space-between;
-                                font-size: 13px;
-                            }
-                            .rad-sig-box {
-                                width: 42%;
-                                text-align: center;
-                                display: flex;
-                                flex-direction: column;
-                                justify-content: space-between;
-                                min-height: 110px;
-                            }
-                            .rad-sig-title {
-                                font-weight: 700;
-                                margin-bottom: 6px;
-                            }
-                            .rad-sig-container {
-                                min-height: 65px;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                            }
-                            .rad-sig-line {
-                                padding-top: 4px;
-                                font-size: 12px;
-                                color: #333;
-                                font-weight: 600;
-                            }
-                            @media print {
-                                body * { visibility: hidden !important; }
-                                #rad-print-container, #rad-print-container * { visibility: visible !important; }
-                                #rad-print-container { position: absolute; left: 0; top: 0; width: 100%; background: white !important; padding: 0 !important; }
-                                .rad-paper { box-shadow: none !important; max-width: 100% !important; padding: 20mm 20mm 16mm 20mm !important; }
-                                table.rad-table tbody tr:nth-child(even) { background: #f7f9fc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                            }
-                            @media screen and (max-width: 768px) {
-                                .rad-print-container { padding: 12px; }
-                                .rad-paper { padding: 24px 16px; border-radius: 4px; }
-                                .rad-paper .meta-grid { grid-template-columns: 1fr; gap: 4px; margin-bottom: 16px; }
-                                table.rad-table th, table.rad-table td { font-size: 11px; padding: 6px 4px; }
-                            }
-                        </style>
-                        <div class="rad-paper">
-                            <div class="header-title">Hasil Pemeriksaan Radiologi</div>
-                            <div class="meta-grid">
-                                <div>
-                                    <div class="meta-row"><span class="meta-label">No. Rad / No. CM</span><span class="meta-sep">:</span><span class="meta-value">${noCheckin} / ${noMr}</span></div>
-                                    <div class="meta-row"><span class="meta-label">Pasien</span><span class="meta-sep">:</span><span class="meta-value">${nama}</span></div>
-                                    <div class="meta-row"><span class="meta-label">Jenis Kelamin</span><span class="meta-sep">:</span><span class="meta-value">${kelamin}</span></div>
-                                    <div class="meta-row"><span class="meta-label">Tgl. Lahir / Umur</span><span class="meta-sep">:</span><span class="meta-value">${tglLahir}</span></div>
-                                </div>
-                                <div>
-                                    <div class="meta-row"><span class="meta-label">Tgl. Reg</span><span class="meta-sep">:</span><span class="meta-value">${tglCheckin.split(' ')[0]}</span></div>
-                                    <div class="meta-row"><span class="meta-label">Ruangan</span><span class="meta-sep">:</span><span class="meta-value">${ruangan}</span></div>
-                                    <div class="meta-row"><span class="meta-label">Jam</span><span class="meta-sep">:</span><span class="meta-value">${tglCheckin.split(' ')[1] || '-'}</span></div>
-                                    <div class="meta-row"><span class="meta-label">Dokter Pengirim</span><span class="meta-sep">:</span><span class="meta-value">${dpjp}</span></div>
-                                </div>
-                            </div>
-                            <table class="rad-table">
-                                <thead>
-                                    <tr><th>Pemeriksaan</th></tr>
-                                </thead>
-                                <tbody>
-                                    ${testsHtml || '<tr><td style="color:#888;font-style:italic;">Tidak ada detail pemeriksaan spesifik</td></tr>'}
-                                </tbody>
-                            </table>
-                            <div class="expertise-section">
-                                <div class="expertise-label">Hasil Ekspertise / Catatan Klinis :</div>
-                                <div class="expertise-box">${expertiseText || '<span style="color:#999;font-style:italic;">Belum ada ekspertise yang diinputkan oleh dokter radiologi.</span>'}</div>
-                            </div>
-                            <div class="rad-footer-signatures">
-                                <div class="rad-sig-box">
-                                    <div class="rad-sig-title">Radiografer</div>
-                                    <div class="rad-sig-container">${radSigPetugasImg}</div>
-                                    <div class="rad-sig-line">${radNamaPetugas}</div>
-                                </div>
-                                <div class="rad-sig-box">
-                                    <div class="rad-sig-title">Dokter Spesialis Radiologi</div>
-                                    <div class="rad-sig-container">${radSigDokterImg}</div>
-                                    <div class="rad-sig-line">${radNamaDokter}</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-            printContainer.innerHTML = html;
-          });
-      }, 800);
+              <style>
+                #rad-print-container {
+                  background: #e8ecf0;
+                  padding: 24px 16px;
+                  font-family: 'Arial', Helvetica, sans-serif;
+                }
+                .rad-paper {
+                  background: #ffffff;
+                  max-width: 820px;
+                  margin: 0 auto;
+                  padding: 36px 42px 36px 42px;
+                  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+                  border-radius: 4px;
+                  color: #1a1a1a;
+                  position: relative;
+                }
+                .rad-paper .header-title {
+                  text-align: center;
+                  font-size: 15px;
+                  font-weight: bold;
+                  text-transform: uppercase;
+                  letter-spacing: 1px;
+                  margin: 18px 0;
+                  color: #0a0a0a;
+                  border-bottom: 2px solid #333;
+                  padding-bottom: 6px;
+                }
+                .rad-paper .meta-grid {
+                  display: grid;
+                  grid-template-columns: 1fr 1fr;
+                  gap: 0 28px;
+                  font-size: 12.5px;
+                  line-height: 1.8;
+                  margin-bottom: 18px;
+                  border-bottom: 1px solid #ccc;
+                  padding-bottom: 12px;
+                }
+                .rad-paper .meta-row { display: flex; align-items: baseline; }
+                .rad-paper .meta-label { min-width: 130px; color: #555; }
+                .rad-paper .meta-sep { margin: 0 6px; color: #555; }
+                .rad-paper .meta-value { font-weight: 600; color: #111; flex: 1; border-bottom: 1px dotted #bbb; padding-bottom: 1px; }
+                table.rad-table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 6px; }
+                table.rad-table thead tr { border-top: 2px solid #333; border-bottom: 2px solid #333; background:#f4f6f8; }
+                table.rad-table th { padding: 8px; font-weight: 700; text-align: left; text-transform: uppercase; font-size: 11.5px; letter-spacing: 0.5px; color: #222; }
+                table.rad-table tbody tr:nth-child(even) { background: #fbfbfb; }
+                table.rad-table td { padding: 8px; vertical-align: top; border-bottom: 1px solid #eee; color: #222; }
+                .expertise-section { margin-top: 20px; }
+                .expertise-label { font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #333; margin-bottom: 8px; }
+                .expertise-box { border: 1px solid #ccc; border-radius: 4px; padding: 14px 16px; min-height: 100px; white-space: pre-wrap; font-family: 'Arial', Helvetica, sans-serif; font-size: 13px; color: #222; line-height: 1.7; background: #fafafa; }
+                .rad-footer-signatures { margin-top: 40px; display: flex; justify-content: space-between; font-size: 12.5px; page-break-inside: avoid; }
+                .rad-sig-box { width: 42%; text-align: center; display: flex; flex-direction: column; justify-content: space-between; min-height: 100px; }
+                .rad-sig-title { font-weight: 700; margin-bottom: 6px; }
+                .rad-sig-container { min-height: 60px; display: flex; align-items: center; justify-content: center; }
+                .rad-sig-line { padding-top: 4px; font-size: 12px; color: #333; font-weight: 600; border-top: 1px solid #777; width: 85%; margin: 4px auto 0; }
+                @media print {
+                  body * { visibility: hidden !important; }
+                  #rad-print-container, #rad-print-container * { visibility: visible !important; }
+                  #rad-print-container { position: absolute; left: 0; top: 0; width: 100%; background: white !important; padding: 0 !important; }
+                  .rad-paper { box-shadow: none !important; max-width: 100% !important; padding: 15mm 15mm !important; }
+                }
+              </style>
+              <div class="d-flex justify-content-end mb-3 d-print-none" style="max-width:820px;margin:0 auto;">
+                <button type="button" class="btn btn-sm btn-primary shadow-sm px-3" onclick="window.print()">
+                  <i class="bi bi-printer me-1"></i> Cetak Dokumen Hasil Radiologi
+                </button>
+              </div>
+              <div class="rad-paper">
+                <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-2">
+                  <img src="assets/img/logorsba.png" style="height:70px;width:auto;" alt="RSBA" />
+                  <div class="text-center flex-grow-1 px-2">
+                    <h6 class="m-0 fw-bold" style="font-size:14px;letter-spacing:0.5px;">RUMAH SAKIT BHAYANGKARA TK. III BANDA ACEH</h6>
+                    <div style="font-size:11px;color:#444;">Jl. Cut Nyak Dhien No. 23, Lamtemen Barat, Banda Aceh</div>
+                    <div style="font-size:10.5px;color:#555;">Telp: (0651) 48805 | Email: rsbhayangkarabna@gmail.com</div>
+                  </div>
+                  <img src="assets/img/bygkara1.png" style="height:70px;width:auto;" alt="Polri" />
+                </div>
+                <div class="header-title">Hasil Pemeriksaan Radiologi</div>
+                <div class="meta-grid">
+                  <div>
+                    <div class="meta-row"><span class="meta-label">No. Rad / No. CM</span><span class="meta-sep">:</span><span class="meta-value">${noCheckin} / ${noMr}</span></div>
+                    <div class="meta-row"><span class="meta-label">Nama Pasien</span><span class="meta-sep">:</span><span class="meta-value">${nama}</span></div>
+                    <div class="meta-row"><span class="meta-label">Jenis Kelamin</span><span class="meta-sep">:</span><span class="meta-value">${kelamin}</span></div>
+                    <div class="meta-row"><span class="meta-label">Tgl. Lahir / Umur</span><span class="meta-sep">:</span><span class="meta-value">${tglLahir}</span></div>
+                  </div>
+                  <div>
+                    <div class="meta-row"><span class="meta-label">Tgl. Registrasi</span><span class="meta-sep">:</span><span class="meta-value">${tglCheckin.split(' ')[0]}</span></div>
+                    <div class="meta-row"><span class="meta-label">Ruangan</span><span class="meta-sep">:</span><span class="meta-value">${ruangan}</span></div>
+                    <div class="meta-row"><span class="meta-label">Jam Pemeriksaan</span><span class="meta-sep">:</span><span class="meta-value">${tglCheckin.split(' ')[1] || '-'}</span></div>
+                    <div class="meta-row"><span class="meta-label">Dokter Pengirim</span><span class="meta-sep">:</span><span class="meta-value">${dpjp}</span></div>
+                  </div>
+                </div>
+                <table class="rad-table">
+                  <thead><tr><th>Pemeriksaan</th></tr></thead>
+                  <tbody>${testsHtml}</tbody>
+                </table>
+                <div class="expertise-section">
+                  <div class="expertise-label">Hasil Ekspertise / Catatan Klinis :</div>
+                  <div class="expertise-box">${expertiseText || '<span style="color:#999;font-style:italic;">Belum ada ekspertise yang diinputkan oleh dokter radiologi.</span>'}</div>
+                </div>
+                ${lampiranHtml}
+                <div class="rad-footer-signatures">
+                  <div class="rad-sig-box">
+                    <div class="rad-sig-title">Radiografer / Petugas</div>
+                    <div class="rad-sig-container">${radSigPetugasImg}</div>
+                    <div class="rad-sig-line">${radNamaPetugas}</div>
+                  </div>
+                  <div class="rad-sig-box">
+                    <div class="rad-sig-title">Dokter Spesialis Radiologi</div>
+                    <div class="rad-sig-container">${radSigDokterImg}</div>
+                    <div class="rad-sig-line">${radNamaDokter}</div>
+                  </div>
+                </div>
+              </div>
+            `;
+            targetEl.innerHTML = html;
+          };
+
+          if (modFiles && modFiles.initLabRadTabsAndFiles) {
+            modFiles.initLabRadTabsAndFiles({
+              root: root,
+              type: "RADIOLOGI",
+              noCheckin: noCheckin,
+              noMr: noMr,
+              initialFiles: p.filesRadiologi || [],
+              onRenderPrint: (targetEl, files) => renderPrint(targetEl, files)
+            });
+          } else {
+            let pc = root.querySelector("#rad-print-container");
+            if (!pc) {
+              pc = document.createElement("div");
+              pc.id = "rad-print-container";
+              root.appendChild(pc);
+            }
+            renderPrint(pc, p.filesRadiologi || []);
+          }
+        });
+      }, 500);
     }
     calculateMealTotal() {
       return this.dataPasienBaru.reduce((e, a) => e + +a.harga * a.qty, 0);

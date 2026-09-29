@@ -4429,9 +4429,18 @@ module.exports = {
   saveLab: async (req, res) => {
     try {
       const payload = req.body;
+      const updateData = {};
+      if (payload.laboratorium !== undefined) updateData.laboratorium = payload.laboratorium;
+      if (payload.labCatatan !== undefined) updateData.labCatatan = payload.labCatatan;
+      if (payload.labNamaDokter !== undefined) updateData.labNamaDokter = payload.labNamaDokter;
+      if (payload.labNamaPetugas !== undefined) updateData.labNamaPetugas = payload.labNamaPetugas;
+      if (payload.labSigDokter !== undefined) updateData.labSigDokter = payload.labSigDokter;
+      if (payload.labSigPetugas !== undefined) updateData.labSigPetugas = payload.labSigPetugas;
+      if (payload.filesLab !== undefined) updateData.filesLab = payload.filesLab;
+
       const saved = await Checkin.findOneAndUpdate(
         { noCheckin: payload.noCheckin },
-        { $set: { laboratorium: payload.laboratorium } },
+        { $set: updateData },
         { new: true }
       );
       return res.status(200).send({ status: 200, message: "Hasil LAB berhasil disimpan", data: { checkin: saved } });
@@ -4442,9 +4451,18 @@ module.exports = {
   saveRad: async (req, res) => {
     try {
       const payload = req.body;
+      const updateData = {};
+      if (payload.radiologi !== undefined) updateData.radiologi = payload.radiologi;
+      if (payload.radExpertise !== undefined) updateData.radExpertise = payload.radExpertise;
+      if (payload.radNamaDokter !== undefined) updateData.radNamaDokter = payload.radNamaDokter;
+      if (payload.radNamaPetugas !== undefined) updateData.radNamaPetugas = payload.radNamaPetugas;
+      if (payload.radSigDokter !== undefined) updateData.radSigDokter = payload.radSigDokter;
+      if (payload.radSigPetugas !== undefined) updateData.radSigPetugas = payload.radSigPetugas;
+      if (payload.filesRadiologi !== undefined) updateData.filesRadiologi = payload.filesRadiologi;
+
       const saved = await Checkin.findOneAndUpdate(
         { noCheckin: payload.noCheckin },
-        { $set: { radiologi: payload.radiologi } },
+        { $set: updateData },
         { new: true }
       );
       return res.status(200).send({ status: 200, message: "Hasil Radiologi berhasil disimpan", data: { checkin: saved } });
@@ -4664,6 +4682,302 @@ module.exports = {
       });
     } catch (error) {
       return res.status(500).send({ status: 500, message: "Gagal menghapus file KTP", error: error.message });
+    }
+  },
+  uploadLabFile: async (req, res) => {
+    try {
+      let fileBuffer = null;
+      let mime = "";
+
+      if (req.file) {
+        fileBuffer = req.file.buffer;
+        mime = req.file.mimetype || "image/jpeg";
+      } else if (req.body.fileLab || req.body.file || req.body.image) {
+        const raw = req.body.fileLab || req.body.file || req.body.image;
+        if (typeof raw === "string" && raw.startsWith("data:")) {
+          const commaIdx = raw.indexOf(",");
+          if (commaIdx !== -1) {
+            const meta = raw.substring(0, commaIdx);
+            const base64Str = raw.substring(commaIdx + 1).replace(/\s/g, "");
+            const mimeMatch = meta.match(/data:([^;,]+)/);
+            if (mimeMatch) mime = mimeMatch[1];
+            fileBuffer = Buffer.from(base64Str, "base64");
+          } else {
+            fileBuffer = Buffer.from(raw.replace(/\s/g, ""), "base64");
+            mime = "image/jpeg";
+          }
+        } else if (typeof raw === "string") {
+          fileBuffer = Buffer.from(raw.replace(/\s/g, ""), "base64");
+          mime = "image/jpeg";
+        }
+      }
+
+      if (!fileBuffer) {
+        return res.status(400).send({ status: 400, message: "Berkas Lab tidak ditemukan", data: null });
+      }
+
+      const noCheckin = req.body.noCheckin || "temp";
+      const noMr = (req.body.noMr || "").replace(/[^a-zA-Z0-9]/g, "");
+      const uniqueSuffix = Date.now() + "_" + Math.random().toString(36).substring(2, 7);
+      const basePrefix = noMr ? `lab_${noMr}_${noCheckin}_${uniqueSuffix}` : `lab_${noCheckin}_${uniqueSuffix}`;
+      const uploadDir = path.join(process.cwd(), "uploads", "lab");
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+
+      let fileName = "";
+      let filePath = "";
+
+      const origName = (req.body.fileName || (req.file && req.file.originalname) || "").toLowerCase();
+      const isPdf = mime.includes("pdf") || origName.endsWith(".pdf");
+
+      if (isPdf) {
+        fileName = `${basePrefix}.pdf`;
+        filePath = path.join(uploadDir, fileName);
+        fs.writeFileSync(filePath, fileBuffer);
+      } else {
+        fileName = `${basePrefix}.jpg`;
+        filePath = path.join(uploadDir, fileName);
+        if (sharp) {
+          try {
+            await sharp(fileBuffer)
+              .rotate()
+              .resize({ width: 1800, height: 1800, fit: "inside", withoutEnlargement: true })
+              .jpeg({ quality: 85, progressive: true })
+              .toFile(filePath);
+          } catch (sharpErr) {
+            fs.writeFileSync(filePath, fileBuffer);
+          }
+        } else {
+          fs.writeFileSync(filePath, fileBuffer);
+        }
+      }
+
+      const fileUrl = `/uploads/lab/${fileName}`;
+      let filesLab = [];
+
+      if (req.body.noCheckin) {
+        const existing = await Checkin.findOne({ noCheckin: req.body.noCheckin });
+        if (existing && Array.isArray(existing.filesLab)) {
+          filesLab = [...existing.filesLab];
+        }
+        let existingList = req.body.existingFiles;
+        if (typeof existingList === "string") {
+          try { existingList = JSON.parse(existingList); } catch (e) { existingList = [existingList]; }
+        }
+        if (Array.isArray(existingList)) {
+          existingList.forEach((u) => {
+            if (u && typeof u === "string" && !filesLab.includes(u)) {
+              filesLab.push(u);
+            }
+          });
+        }
+        if (!filesLab.includes(fileUrl)) {
+          filesLab.push(fileUrl);
+        }
+
+        await Checkin.findOneAndUpdate(
+          { noCheckin: req.body.noCheckin },
+          { $set: { filesLab: filesLab } },
+          { new: true }
+        );
+      } else {
+        filesLab = [fileUrl];
+      }
+
+      return res.status(200).send({
+        status: 200,
+        message: "Berkas Lab berhasil diunggah",
+        data: {
+          url: fileUrl,
+          fileName: fileName,
+          filesLab: filesLab
+        }
+      });
+    } catch (error) {
+      return res.status(500).send({ status: 500, message: "Gagal mengunggah berkas Lab", error: error.message });
+    }
+  },
+  deleteLabFile: async (req, res) => {
+    try {
+      const { noCheckin, fileUrl } = req.body;
+      let targetUrl = fileUrl;
+      let remainingFiles = [];
+
+      if (noCheckin) {
+        const doc = await Checkin.findOne({ noCheckin });
+        if (doc && Array.isArray(doc.filesLab)) {
+          remainingFiles = doc.filesLab.filter((u) => u !== targetUrl);
+        }
+        await Checkin.findOneAndUpdate(
+          { noCheckin },
+          { $set: { filesLab: remainingFiles } }
+        );
+      }
+
+      if (targetUrl) {
+        const relativePath = targetUrl.replace(/^\//, '');
+        const targetFilePath = path.join(process.cwd(), relativePath);
+        if (fs.existsSync(targetFilePath)) {
+          try { fs.unlinkSync(targetFilePath); } catch (e) {}
+        }
+      }
+
+      return res.status(200).send({
+        status: 200,
+        message: "Berkas Lab berhasil dihapus",
+        data: { filesLab: remainingFiles }
+      });
+    } catch (error) {
+      return res.status(500).send({ status: 500, message: "Gagal menghapus berkas Lab", error: error.message });
+    }
+  },
+  uploadRadFile: async (req, res) => {
+    try {
+      let fileBuffer = null;
+      let mime = "";
+
+      if (req.file) {
+        fileBuffer = req.file.buffer;
+        mime = req.file.mimetype || "image/jpeg";
+      } else if (req.body.fileRad || req.body.file || req.body.image) {
+        const raw = req.body.fileRad || req.body.file || req.body.image;
+        if (typeof raw === "string" && raw.startsWith("data:")) {
+          const commaIdx = raw.indexOf(",");
+          if (commaIdx !== -1) {
+            const meta = raw.substring(0, commaIdx);
+            const base64Str = raw.substring(commaIdx + 1).replace(/\s/g, "");
+            const mimeMatch = meta.match(/data:([^;,]+)/);
+            if (mimeMatch) mime = mimeMatch[1];
+            fileBuffer = Buffer.from(base64Str, "base64");
+          } else {
+            fileBuffer = Buffer.from(raw.replace(/\s/g, ""), "base64");
+            mime = "image/jpeg";
+          }
+        } else if (typeof raw === "string") {
+          fileBuffer = Buffer.from(raw.replace(/\s/g, ""), "base64");
+          mime = "image/jpeg";
+        }
+      }
+
+      if (!fileBuffer) {
+        return res.status(400).send({ status: 400, message: "Berkas Radiologi tidak ditemukan", data: null });
+      }
+
+      const noCheckin = req.body.noCheckin || "temp";
+      const noMr = (req.body.noMr || "").replace(/[^a-zA-Z0-9]/g, "");
+      const uniqueSuffix = Date.now() + "_" + Math.random().toString(36).substring(2, 7);
+      const basePrefix = noMr ? `rad_${noMr}_${noCheckin}_${uniqueSuffix}` : `rad_${noCheckin}_${uniqueSuffix}`;
+      const uploadDir = path.join(process.cwd(), "uploads", "radiologi");
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+
+      let fileName = "";
+      let filePath = "";
+
+      const origName = (req.body.fileName || (req.file && req.file.originalname) || "").toLowerCase();
+      const isPdf = mime.includes("pdf") || origName.endsWith(".pdf");
+
+      if (isPdf) {
+        fileName = `${basePrefix}.pdf`;
+        filePath = path.join(uploadDir, fileName);
+        fs.writeFileSync(filePath, fileBuffer);
+      } else {
+        fileName = `${basePrefix}.jpg`;
+        filePath = path.join(uploadDir, fileName);
+        if (sharp) {
+          try {
+            await sharp(fileBuffer)
+              .rotate()
+              .resize({ width: 2000, height: 2000, fit: "inside", withoutEnlargement: true })
+              .jpeg({ quality: 85, progressive: true })
+              .toFile(filePath);
+          } catch (sharpErr) {
+            fs.writeFileSync(filePath, fileBuffer);
+          }
+        } else {
+          fs.writeFileSync(filePath, fileBuffer);
+        }
+      }
+
+      const fileUrl = `/uploads/radiologi/${fileName}`;
+      let filesRadiologi = [];
+
+      if (req.body.noCheckin) {
+        const existing = await Checkin.findOne({ noCheckin: req.body.noCheckin });
+        if (existing && Array.isArray(existing.filesRadiologi)) {
+          filesRadiologi = [...existing.filesRadiologi];
+        }
+        let existingList = req.body.existingFiles;
+        if (typeof existingList === "string") {
+          try { existingList = JSON.parse(existingList); } catch (e) { existingList = [existingList]; }
+        }
+        if (Array.isArray(existingList)) {
+          existingList.forEach((u) => {
+            if (u && typeof u === "string" && !filesRadiologi.includes(u)) {
+              filesRadiologi.push(u);
+            }
+          });
+        }
+        if (!filesRadiologi.includes(fileUrl)) {
+          filesRadiologi.push(fileUrl);
+        }
+
+        await Checkin.findOneAndUpdate(
+          { noCheckin: req.body.noCheckin },
+          { $set: { filesRadiologi: filesRadiologi } },
+          { new: true }
+        );
+      } else {
+        filesRadiologi = [fileUrl];
+      }
+
+      return res.status(200).send({
+        status: 200,
+        message: "Berkas Radiologi berhasil diunggah",
+        data: {
+          url: fileUrl,
+          fileName: fileName,
+          filesRadiologi: filesRadiologi
+        }
+      });
+    } catch (error) {
+      return res.status(500).send({ status: 500, message: "Gagal mengunggah berkas Radiologi", error: error.message });
+    }
+  },
+  deleteRadFile: async (req, res) => {
+    try {
+      const { noCheckin, fileUrl } = req.body;
+      let targetUrl = fileUrl;
+      let remainingFiles = [];
+
+      if (noCheckin) {
+        const doc = await Checkin.findOne({ noCheckin });
+        if (doc && Array.isArray(doc.filesRadiologi)) {
+          remainingFiles = doc.filesRadiologi.filter((u) => u !== targetUrl);
+        }
+        await Checkin.findOneAndUpdate(
+          { noCheckin },
+          { $set: { filesRadiologi: remainingFiles } }
+        );
+      }
+
+      if (targetUrl) {
+        const relativePath = targetUrl.replace(/^\//, '');
+        const targetFilePath = path.join(process.cwd(), relativePath);
+        if (fs.existsSync(targetFilePath)) {
+          try { fs.unlinkSync(targetFilePath); } catch (e) {}
+        }
+      }
+
+      return res.status(200).send({
+        status: 200,
+        message: "Berkas Radiologi berhasil dihapus",
+        data: { filesRadiologi: remainingFiles }
+      });
+    } catch (error) {
+      return res.status(500).send({ status: 500, message: "Gagal menghapus berkas Radiologi", error: error.message });
     }
   },
   saveTataTertibRanap: async (req, res) => {
