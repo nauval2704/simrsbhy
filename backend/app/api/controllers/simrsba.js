@@ -18,6 +18,7 @@ const EdukasiPoli = require("../models/edukasiPoli");
 const CpptIgd = require("../models/cpptIgd");
 const CpptPoli = require("../models/cpptPoli");
 const RingkasanPulang = require("../models/ringkasanPulang");
+const PengantarRawatInap = require("../models/pengantarRawatInap");
 
 function getDoctorDpjpMatch(req) {
   if (req.user && req.user.role !== 'ROLE_ADMIN' && ['ROLE_POLI', 'ROLE_IGD', 'ROLE_INAP'].includes(req.user.role)) {
@@ -4187,6 +4188,27 @@ module.exports = {
       return res.status(200).send({ status: 200, message: "Ok", data: data });
     } catch (error) {
       return res.status(400).send({ status: 400, message: "Gagal mengambil data Ringkasan Pulang", data: null });
+    }
+  },
+  savePengantarRawatInap: async (req, res) => {
+    try {
+      const payload = req.body;
+      const saved = await PengantarRawatInap.findOneAndUpdate(
+        { noCheckin: payload.noCheckin },
+        { $set: payload },
+        { upsert: true, new: true }
+      );
+      return res.status(200).send({ status: 200, message: "Pengantar Rawat Inap berhasil disimpan", data: saved });
+    } catch (error) {
+      return res.status(400).send({ status: 400, message: "Gagal menyimpan Pengantar Rawat Inap", data: null });
+    }
+  },
+  getPengantarRawatInap: async (req, res) => {
+    try {
+      const data = await PengantarRawatInap.findOne({ noCheckin: req.params.noCheckin });
+      return res.status(200).send({ status: 200, message: "Ok", data: data });
+    } catch (error) {
+      return res.status(400).send({ status: 400, message: "Gagal mengambil data Pengantar Rawat Inap", data: null });
     }
   },
   savePemberianObatIgd: async (req, res) => {

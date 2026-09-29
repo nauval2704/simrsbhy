@@ -137197,6 +137197,18 @@ var rb = [
         canActivate: [st],
       },
       {
+        path: "pengantar-rawat-inap",
+        loadComponent: () =>
+          import("./surat/chunk-PENGANTAR-RAWAT-INAP.js?v=" + Date.now()).then((t) => t.PengantarRawatInapComponent),
+        canActivate: [st],
+      },
+      {
+        path: "pengantar-rawat-inap/:nocheckin",
+        loadComponent: () =>
+          import("./surat/chunk-PENGANTAR-RAWAT-INAP.js?v=" + Date.now()).then((t) => t.PengantarRawatInapComponent),
+        canActivate: [st],
+      },
+      {
         path: "inap/:nocheckin",
         component: lk,
         children: [

@@ -92,6 +92,7 @@ class SimrsPatientSidebar extends HTMLElement {
       return `
                 <a href="javascript:void(0)" data-path="satusehat" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> SATUSEHAT</a>
                 <a href="javascript:void(0)" data-path="general-consent" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> General Consent</a>
+                <a href="javascript:void(0)" data-path="pengantar-rawat-inap" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Pengantar Rawat Inap</a>
                 <a href="javascript:void(0)" data-path="hak-kewajiban-pasien" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Hak &amp; Kewajiban Pasien</a>
                 <a href="javascript:void(0)" data-path="tata-tertib-ranap" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Tata Tertib Ranap</a>
                 <a href="javascript:void(0)" data-path="inap" class="list-group-item list-group-item-action"><i class="bi bi-chevron-right"></i> Input Pelayanan Inap</a>

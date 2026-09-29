@@ -211,6 +211,9 @@ router.get("/cppt-poli/:noCheckin", simrsBaController.getCpptPoli);
 router.post("/ringkasan-pulang", simrsBaController.saveRingkasanPulang);
 router.get("/ringkasan-pulang/:noCheckin", simrsBaController.getRingkasanPulang);
 
+router.post("/pengantar-rawat-inap", simrsBaController.savePengantarRawatInap);
+router.get("/pengantar-rawat-inap/:noCheckin", simrsBaController.getPengantarRawatInap);
+
 router.post("/pemberian-obat-igd", simrsBaController.savePemberianObatIgd);
 router.get("/pemberian-obat-igd/:noCheckin", simrsBaController.getPemberianObatIgd);
 

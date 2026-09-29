@@ -8,6 +8,7 @@ let PengkajianAwalPoliComponent = null;
 let CpptIgdComponent = null;
 let PemberianObatIgdComponent = null;
 let GeneralConsentComponent = null;
+let PengantarRawatInapComponent = null;
 let CpptPoliComponent = null;
 let EdukasiPoliComponent = null;
 let buildSuratPdfFilename = null;
@@ -59,6 +60,10 @@ async function loadDependencies() {
   if (!GeneralConsentComponent) {
     const modGc = await import("./chunk-GENERAL-CONSENT.js");
     GeneralConsentComponent = modGc.GeneralConsentComponent;
+  }
+  if (!PengantarRawatInapComponent) {
+    const modPri = await import("./chunk-PENGANTAR-RAWAT-INAP.js");
+    PengantarRawatInapComponent = modPri.PengantarRawatInapComponent;
   }
   if (!CpptPoliComponent) {
     const modCpptPoli = await import("./chunk-CPPT-POLI.js");
