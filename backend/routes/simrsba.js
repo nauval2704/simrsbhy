@@ -50,6 +50,8 @@ router.get(
 router.get("/updatecounter/:nocheckin", simrsBaController.updateCounter);
 router.get("/countSep/:noSep", simrsBaController.countSep);
 router.get("/countNoRujukan/:noRujukan", simrsBaController.countNoRujukan);
+// Endpoint No SEP kronis dibatasi ke pengguna yang sudah terautentikasi.
+router.post("/update-checkin-no-sep", authenticateToken, simrsBaController.updateCheckinNoSep);
 router.get("/caridokter/:term", simrsBaController.cariDokter);
 router.get("/pasienbaru", simrsBaController.pasienBaru);
 router.get("/caripasien/norm/:term", simrsBaController.cariPasienNorm);

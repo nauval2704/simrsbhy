@@ -48,6 +48,38 @@
     return configuredUrl.replace(/\/$/, '');
   }
 
+  // Simpan No SEP yang diedit pada form ke check-in aktif di backend.
+  async function saveCheckinSep(button) {
+    const input = document.querySelector('[data-kronis-field="nomorSEP"]');
+    const noCheckin = getNoCheckin();
+    const noSep = input?.value.trim() || '';
+    // Nomor SEP BPJS dapat mengandung huruf selain angka.
+    if (!noCheckin || !/^[A-Za-z0-9]{13,19}$/.test(noSep)) {
+      window.Swal?.fire({
+        title: 'Data belum valid',
+        text: !noCheckin ? 'Nomor check-in tidak ditemukan.' : 'No SEP harus berisi 13 sampai 19 karakter alfanumerik.',
+        icon: 'warning',
+      });
+      return;
+    }
+
+    button.disabled = true;
+    try {
+      const response = await fetch(`${getApiBaseUrl()}/simrsba/update-checkin-no-sep`, {
+        method: 'POST',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ noCheckin, noSep }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result?.message || `Gagal menyimpan No SEP (${response.status})`);
+
+      checkinPatientData.nomorSEP = noSep;
+      window.Swal?.fire({ title: 'Berhasil', text: 'No SEP berhasil disimpan.', icon: 'success' });
+    } finally {
+      button.disabled = false;
+    }
+  }
+
   function getUnitName(unit) {
     if (typeof unit === 'string' || typeof unit === 'number') return String(unit).trim();
     if (!unit || typeof unit !== 'object') return '';
@@ -581,6 +613,7 @@
         .from-kronis-field{display:grid;gap:5px;color:#374a58;font-size:13px;font-weight:600}
         .from-kronis-field input{width:100%;min-height:40px;padding:8px 10px;border:1px solid #cbd5dc;border-radius:5px;background:#fff;color:#172b3a;font:400 14px Arial,sans-serif}
         .from-kronis-field input:focus{border-color:#377b9a;outline:3px solid #dceef5}
+        .from-kronis-save-sep{justify-self:start}
         .from-kronis-field--wide{grid-column:1/-1}
         .from-kronis-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
         .from-kronis-actions .btn{display:inline-flex;align-items:center;gap:7px}
@@ -637,7 +670,12 @@
           <div class="from-kronis-controls">
             <label class="from-kronis-field">Nama Pasien<input data-kronis-field="namaPasien" value="${escapeHtml(patient.nama)}"></label>
             <label class="from-kronis-field">No Peserta BPJS<input data-kronis-field="nomorBPJS" value="${escapeHtml(patient.nomorBPJS)}"></label>
-            <label class="from-kronis-field">No SEP<input data-kronis-field="nomorSEP" value="${escapeHtml(patient.nomorSEP)}" maxlength="19" inputmode="numeric"></label>
+            <div class="from-kronis-field">
+              <label for="from-kronis-sep-input">No SEP</label>
+              <input id="from-kronis-sep-input" data-kronis-field="nomorSEP" value="${escapeHtml(patient.nomorSEP)}" maxlength="19" inputmode="text">
+              <!-- Tombol simpan memperbarui noSep untuk noCheckin yang sedang dibuka. -->
+              <button type="button" id="from-kronis-save-sep" class="btn btn-primary from-kronis-save-sep">Simpan</button>
+            </div>
             <label class="from-kronis-field">Diagnosa<input data-kronis-field="diagnosis" value="${escapeHtml(patient.diagnosis)}"></label>
           </div>
         </fieldset>
@@ -646,6 +684,14 @@
       <div id="${letterId}"></div>
     `;
     tabContent.appendChild(pane);
+    // Pasang aksi simpan setelah form Kronis dibuat di dalam tab.
+    pane.querySelector('#from-kronis-save-sep')?.addEventListener('click', (event) => {
+      const button = event.currentTarget;
+      saveCheckinSep(button).catch((error) => {
+        console.error('Gagal menyimpan No SEP check-in:', error);
+        window.Swal?.fire({ title: 'Gagal', text: error.message || 'No SEP gagal disimpan.', icon: 'error' });
+      });
+    });
 
     // Sinkronkan canvas yang sedang tampil saat PRMRJ menemukan tanda tangan dokter terbaru.
     document.addEventListener('simrs:prmrj-signature-updated', (event) => {

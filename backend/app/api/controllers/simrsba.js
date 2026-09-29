@@ -1603,6 +1603,46 @@ module.exports = {
       });
     }
   },
+    // Perbarui hanya noSep check-in berdasarkan noCheckin dari form kronis.
+    updateCheckinNoSep: async (req, res) => {
+        const noCheckin = String(req.body?.noCheckin || "").trim();
+        const noSep = String(req.body?.noSep || "").trim();
+        // Nomor SEP BPJS dapat mengandung huruf selain angka.
+        if (!noCheckin || !/^[A-Za-z0-9]{13,19}$/.test(noSep)) {
+          return res.status(400).json({
+            status: "error",
+            message: "noCheckin wajib diisi dan No SEP harus terdiri dari 13 sampai 19 karakter alfanumerik.",
+            data: null,
+          });
+        }
+    
+        try {
+          const updatedCheckin = await Checkin.findOneAndUpdate(
+            { noCheckin },
+            { $set: { noSep } },
+            { new: true, runValidators: true }
+          ).select({ noCheckin: 1, noSep: 1 });
+          if (!updatedCheckin) {
+            return res.status(404).json({
+              status: "error",
+              message: "Data check-in tidak ditemukan.",
+              data: null,
+            });
+          }
+          return res.status(200).json({
+            status: "success",
+            message: "No SEP berhasil diperbarui.",
+            data: { noCheckin: updatedCheckin.noCheckin, noSep: updatedCheckin.noSep },
+          });
+        } catch (error) {
+          console.error("Gagal memperbarui No SEP check-in:", error);
+          return res.status(500).json({
+            status: "error",
+            message: "Gagal memperbarui No SEP.",
+            data: null,
+          });
+        }
+      },// no sep 
   updatenorujukan: async (req, res) => {
     var nocheckin = req.body.nocheckin;
     var norujukan = req.body.norujukan;

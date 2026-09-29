@@ -1222,12 +1222,8 @@
               </div>
               <div class="col-md-2">
                 <label class="form-label small fw-semibold mb-1">Frekuensi / Hari</label>
-                <select id="obat-kronis-quantity" class="form-select">
-                  ${Array.from({ length: 12 }, (_, index) => `<option value="${index + 1}">${index + 1}x</option>`).join('')}
-                  <option value="1/4">1/4x</option>
-                  <option value="1/2">1/2x</option>
-                  <option value="3/4">3/4x</option>
-                </select>
+                <!-- Frekuensi bebas diisi, termasuk pecahan seperti 1/2 atau 1/4. -->
+                <input id="obat-kronis-quantity" type="text" class="form-control" value="1" maxlength="20" placeholder="Contoh: 1 atau 1/2" />
               </div>
               <div class="col-md-3">
                 <label class="form-label small fw-semibold mb-1">Waktu Makan</label>

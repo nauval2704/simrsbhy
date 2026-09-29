@@ -545,12 +545,31 @@
   }
   // diupdate oleh irwansyah tanggal 2026-09-23 - akhir perbaikan pemicu modal resep agar terbuka terlebih dahulu
 
-  function addFractionalDoseOptions() {
-    document.querySelectorAll('app-non-racikan select#quantity, app-non-racikan select#takaran')
+  function useTakaranTextbox() {
+    document.querySelectorAll('app-non-racikan select#takaran:not([data-takaran-textbox])')
       .forEach((select) => {
-        ['1/4', '1/2', '3/4'].forEach((value) => {
-          if (Array.from(select.options).some((option) => option.value === value)) return;
-          select.add(new Option(value, value));
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'form-control';
+        input.value = select.value;
+        input.maxLength = 20;
+        input.placeholder = 'Masukkan takaran';
+        input.setAttribute('aria-label', 'Takaran');
+
+        // Keep Angular's original select control as the form value source.
+        select.dataset.takaranTextbox = 'true';
+        select.hidden = true;
+        select.insertAdjacentElement('beforebegin', input);
+        input.addEventListener('input', () => {
+          const value = input.value.trim();
+          if (value && !Array.from(select.options).some((option) => option.value === value)) {
+            select.add(new Option(value, value));
+          }
+          select.value = value;
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+        select.addEventListener('change', () => {
+          input.value = select.value;
         });
       });
   }
@@ -591,8 +610,8 @@
     // diupdate oleh irwansyah tanggal 2026-09-24 - awal memasang pemantau tabel obat pada modal resep
     observeRecipeTable();
     // diupdate oleh irwansyah tanggal 2026-09-24 - akhir memasang pemantau tabel obat pada modal resep
-    addFractionalDoseOptions();
-    new MutationObserver(addFractionalDoseOptions).observe(document.documentElement, {
+    useTakaranTextbox();
+    new MutationObserver(useTakaranTextbox).observe(document.documentElement, {
       childList: true,
       subtree: true,
     });
