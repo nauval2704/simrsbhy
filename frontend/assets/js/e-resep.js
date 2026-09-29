@@ -1,5 +1,6 @@
 (function () {
   // START CUSTOM: E-Resep report module
+  let eResepSignatureSyncBound = false;
   function safeText(value, fallback) {
     if (value === null || value === undefined || value === '') return fallback;
     return String(value).trim() || fallback;
@@ -339,13 +340,14 @@
     }
     if (sourceSignature && clonedSignature && sourceSignature.toDataURL && hasSignature) {
       const signatureImage = document.createElement('img');
-      signatureImage.src = sourceSignature.toDataURL('image/png');
+      // Tipiskan satu lapis goresan hanya pada salinan tanda tangan untuk hasil PDF.
+      signatureImage.src = window.createThinSignatureExportDataUrl(sourceSignature);
       signatureImage.alt = 'Tanda tangan dokter DPJP';
       signatureImage.style.width = '100%';
-      // diupdate oleh irwansyah tanggal 2026-09-23 - awal mengecilkan tanda tangan pada hasil e-resep
-      signatureImage.style.maxWidth = '320px';
-      signatureImage.style.height = '110px';
-      // diupdate oleh irwansyah tanggal 2026-09-23 - akhir mengecilkan tanda tangan pada hasil e-resep
+      // Kecilkan ukuran gambar tanda tangan untuk hasil PDF tanpa mengubah canvas sumber.
+      signatureImage.style.width = '180px';
+      signatureImage.style.maxWidth = '180px';
+      signatureImage.style.height = '62px';
       signatureImage.style.objectFit = 'contain';
       // diupdate oleh irwansyah tanggal 2026-09-23 - awal penghapusan border tanda tangan pada hasil export
       signatureImage.style.border = '0';
@@ -412,28 +414,98 @@
     return `e-resep-dpjp-signature-${noCheckin}`;
   }
 
-  function saveDpjpSignature(canvas) {
+  function getDpjpSignatureSourceStorageKey() {
+    return `${getDpjpSignatureStorageKey()}-source`;
+  }
+
+  function saveDpjpSignature(canvas, source = 'user') {
     try {
       localStorage.setItem(getDpjpSignatureStorageKey(), canvas.toDataURL('image/png'));
+      // Tandai tanda tangan manual agar refresh default PRMRJ tidak menimpa hasil gambar pengguna.
+      localStorage.setItem(getDpjpSignatureSourceStorageKey(), source);
     } catch (error) {
       // Penyimpanan lokal dapat ditolak oleh mode private browser.
     }
   }
 
-  function restoreDpjpSignature(canvas, context) {
+  function restoreDpjpSignature(canvas, context, wasManuallyChanged) {
+    let signatureData = '';
+    let signatureSource = '';
     try {
-      const signatureData = localStorage.getItem(getDpjpSignatureStorageKey());
-      if (!signatureData) return;
+      signatureData = localStorage.getItem(getDpjpSignatureStorageKey()) || '';
+      signatureSource = localStorage.getItem(getDpjpSignatureSourceStorageKey()) || '';
+    } catch (error) {
+      console.warn('Penyimpanan tanda tangan E-Resep tidak tersedia:', error);
+    }
+    canvas.dataset.signatureSource = signatureSource;
 
+    let imageRequest = 0;
+    function drawSavedSignature(signature, source) {
+      const requestId = ++imageRequest;
       const signatureImage = new Image();
       signatureImage.onload = () => {
+        // Abaikan hasil async dari canvas lama atau data lama yang tiba setelah PRMRJ terbaru.
+        if (!canvas.isConnected || wasManuallyChanged() || requestId !== imageRequest) return;
         context.clearRect(0, 0, canvas.width, canvas.height);
         context.drawImage(signatureImage, 0, 0, canvas.width, canvas.height);
+        if (source === 'prmrj') saveDpjpSignature(canvas, 'prmrj');
       };
-      signatureImage.src = signatureData;
-    } catch (error) {
-      // Penyimpanan lokal dapat tidak tersedia pada browser tertentu.
+      signatureImage.onerror = () => {
+        if (canvas.isConnected && !wasManuallyChanged() && requestId === imageRequest) {
+          drawSignaturePlaceholder(canvas, context);
+        }
+      };
+      signatureImage.src = signature;
     }
+
+    if (signatureSource === 'user' && signatureData) {
+      // Pertahankan tanda tangan yang digambar manual oleh pengguna.
+      drawSavedSignature(signatureData, 'user');
+      return;
+    }
+    if (signatureSource === 'cleared') {
+      drawSignaturePlaceholder(canvas, context);
+      return;
+    }
+
+    // Tampilkan tanda tangan tersimpan sementara, lalu samakan autoload dengan Form Kronis.
+    if (signatureData) drawSavedSignature(signatureData, 'prmrj');
+    else drawSignaturePlaceholder(canvas, context);
+    const loadPrmrjSignature = window.getPrmrjDefaultSignature;
+    if (typeof loadPrmrjSignature !== 'function') return;
+    loadPrmrjSignature(getCurrentNoCheckin(), true).then((prmrjSignature) => {
+      if (!prmrjSignature || !canvas.isConnected || wasManuallyChanged()) return;
+      drawSavedSignature(prmrjSignature, 'prmrj');
+    }).catch((error) => {
+      console.error('Gagal memuat tanda tangan PRMRJ untuk e-resep:', error);
+    });
+  }
+
+  function syncEResepSignatureFromPrmrj(event) {
+    if (String(event.detail?.noCheckin || '') !== String(getCurrentNoCheckin())) return;
+    const canvas = document.querySelector('#e-resep-dpjp-signature');
+    if (!canvas || canvas.dataset.signatureSource === 'user' || canvas.dataset.signatureSource === 'cleared') return;
+    const signature = event.detail?.signature;
+    if (typeof signature !== 'string' || !signature) return;
+    canvas.dataset.pendingPrmrjSignature = signature;
+    const image = new Image();
+    image.onload = () => {
+      if (!canvas.isConnected || canvas.dataset.signatureSource === 'user' ||
+        canvas.dataset.signatureSource === 'cleared' ||
+        canvas.dataset.pendingPrmrjSignature !== signature) return;
+      const context = canvas.getContext('2d');
+      if (!context) return;
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      canvas.dataset.signatureSource = 'prmrj';
+      try {
+        localStorage.setItem(getDpjpSignatureStorageKey(), signature);
+        localStorage.setItem(getDpjpSignatureSourceStorageKey(), 'prmrj');
+      } catch (error) {
+        console.warn('Tanda tangan PRMRJ dimuat tetapi tidak dapat disimpan pada browser ini:', error);
+      }
+    };
+    image.src = signature;
   }
   // diupdate oleh irwansyah tanggal 2026-09-23 - akhir penambahan penyimpanan tanda tangan dokter dpjp
 
@@ -459,6 +531,8 @@
     const context = canvas.getContext('2d');
     let isDrawing = false;
     let hasDrawn = false;
+    let signatureCleared = false;
+    let signatureChangedByUser = false;
 
     const getPoint = (event) => {
       const rect = canvas.getBoundingClientRect();
@@ -471,6 +545,9 @@
 
     const startDrawing = (event) => {
       event.preventDefault();
+      signatureChangedByUser = true;
+      signatureCleared = false;
+      canvas.dataset.signatureSource = 'user';
       context.clearRect(0, 0, canvas.width, canvas.height);
       isDrawing = true;
       hasDrawn = false;
@@ -506,7 +583,7 @@
     canvas.addEventListener('touchstart', startDrawing, { passive: false });
     canvas.addEventListener('touchmove', draw, { passive: false });
     canvas.addEventListener('touchend', stopDrawing);
-    restoreDpjpSignature(canvas, context);
+    restoreDpjpSignature(canvas, context, () => signatureChangedByUser || signatureCleared);
     try {
       if (!localStorage.getItem(getDpjpSignatureStorageKey())) drawSignaturePlaceholder(canvas, context);
     } catch (error) {
@@ -514,8 +591,12 @@
     }
     clearButton.addEventListener('click', () => {
       context.clearRect(0, 0, canvas.width, canvas.height);
+      signatureCleared = true;
+      canvas.dataset.signatureSource = 'cleared';
       try {
         localStorage.removeItem(getDpjpSignatureStorageKey());
+        // Ingat pilihan hapus agar tanda tangan PRMRJ tidak langsung terpasang kembali.
+        localStorage.setItem(getDpjpSignatureSourceStorageKey(), 'cleared');
       } catch (error) {
         console.warn('Failed to clear signature from localStorage:', error); 
       }
@@ -790,6 +871,12 @@
   window.__ERESPEP_ITEMS__ = window.__ERESPEP_ITEMS__ || [];
 
   function startObserver() {
+    // Semua tanda tangan PRMRJ terbaru otomatis diterapkan pada canvas E-Resep yang aktif.
+    if (!eResepSignatureSyncBound) {
+      document.addEventListener('simrs:prmrj-signature-updated', syncEResepSignatureFromPrmrj);
+      eResepSignatureSyncBound = true;
+    }
+
     const trigger = function (forceRefresh = false) {
       const tab = document.querySelector('#farmasi-tab-eresept');
       if (!tab) return;

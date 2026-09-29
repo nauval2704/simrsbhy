@@ -5,6 +5,7 @@
     INAP: 'inap',
   };
   let currentResep = null;
+  let kronisSignatureSyncBound = false;
   // diupdate oleh irwansyah tanggal 2026-09-24 - awal pengendalian pemuatan ulang data obat kronis
   let resepLoading = false;
   // diupdate oleh irwansyah tanggal 2026-09-24 - akhir pengendalian pemuatan ulang data obat kronis
@@ -515,6 +516,35 @@
     return `e-resep-dpjp-signature-${getPageContext().noCheckin || 'default'}`;
   }
 
+  function getDpjpSignatureSourceStorageKey() {
+    return `${getDpjpSignatureStorageKey()}-source`;
+  }
+
+  function syncBillingSignatureFromPrmrj(event) {
+    if (String(event.detail?.noCheckin || '') !== String(getPageContext().noCheckin || '')) return;
+    const canvas = document.querySelector('#kronis-dpjp-signature');
+    if (!canvas || canvas.dataset.signatureSource === 'user' || canvas.dataset.signatureSource === 'cleared') return;
+    const signature = event.detail?.signature;
+    if (typeof signature !== 'string' || !signature) return;
+    const image = new Image();
+    image.onload = () => {
+      if (!canvas.isConnected || canvas.dataset.signatureSource === 'user' ||
+        canvas.dataset.signatureSource === 'cleared') return;
+      const context = canvas.getContext('2d');
+      if (!context) return;
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      canvas.dataset.signatureSource = 'prmrj';
+      try {
+        localStorage.setItem(getDpjpSignatureStorageKey(), signature);
+        localStorage.setItem(getDpjpSignatureSourceStorageKey(), 'prmrj');
+      } catch (error) {
+        console.warn('Tanda tangan PRMRJ dimuat tetapi tidak dapat disimpan pada browser ini:', error);
+      }
+    };
+    image.src = signature;
+  }
+
   // diupdate oleh irwansyah tanggal 2026-09-24 - awal placeholder tanda tangan billing kronis
   function drawSignaturePlaceholder(canvas, context) {
     context.save();
@@ -533,9 +563,17 @@
     const clearButton = host.querySelector('[data-kronis-action="clear-signature"]');
     if (!canvas || !clearButton) return;
 
+    // Pasang satu listener bersama agar polling PRMRJ memperbarui canvas billing aktif.
+    if (!kronisSignatureSyncBound) {
+      document.addEventListener('simrs:prmrj-signature-updated', syncBillingSignatureFromPrmrj);
+      kronisSignatureSyncBound = true;
+    }
+
     const context = canvas.getContext('2d');
     let drawing = false;
     let hasDrawn = false;
+    let signatureChangedByUser = false;
+    let signatureCleared = false;
     const point = (event) => {
       const rect = canvas.getBoundingClientRect();
       const source = event.touches?.[0] || event;
@@ -543,6 +581,9 @@
     };
     const start = (event) => {
       event.preventDefault();
+      signatureChangedByUser = true;
+      signatureCleared = false;
+      canvas.dataset.signatureSource = 'user';
       context.clearRect(0, 0, canvas.width, canvas.height);
       drawing = true;
       hasDrawn = false;
@@ -562,7 +603,13 @@
       drawing = false;
       context.closePath();
       if (hasDrawn) {
-        try { localStorage.setItem(getDpjpSignatureStorageKey(), canvas.toDataURL('image/png')); } catch (error) {}
+        try {
+          localStorage.setItem(getDpjpSignatureStorageKey(), canvas.toDataURL('image/png'));
+          // Tandai tanda tangan yang digambar langsung pada billing sebagai milik pengguna.
+          localStorage.setItem(getDpjpSignatureSourceStorageKey(), 'user');
+        } catch (error) {
+          console.warn('Tanda tangan billing kronis tidak dapat disimpan pada browser ini:', error);
+        }
       } else {
         drawSignaturePlaceholder(canvas, context);
       }
@@ -580,18 +627,70 @@
     canvas.addEventListener('touchmove', draw, { passive: false });
     canvas.addEventListener('touchend', stop);
 
+    let saved = '';
+    let signatureSource = '';
     try {
-      const saved = localStorage.getItem(getDpjpSignatureStorageKey());
+      saved = localStorage.getItem(getDpjpSignatureStorageKey()) || '';
+      signatureSource = localStorage.getItem(getDpjpSignatureSourceStorageKey()) || '';
+    } catch (error) {
+      console.warn('Tanda tangan billing kronis tidak dapat dibaca dari browser:', error);
+    }
+    canvas.dataset.signatureSource = signatureSource;
+    if (saved && signatureSource === 'user') {
+      const image = new Image();
+      image.onload = () => {
+        if (!canvas.isConnected || signatureChangedByUser || signatureCleared) return;
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      };
+      image.src = saved;
+    } else if (signatureSource === 'cleared') {
+      drawSignaturePlaceholder(canvas, context);
+    } else {
       if (saved) {
         const image = new Image();
-        image.onload = () => context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        image.onload = () => {
+          if (!canvas.isConnected || signatureChangedByUser || signatureCleared) return;
+          context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        };
         image.src = saved;
-      } else drawSignaturePlaceholder(canvas, context);
-    } catch (error) { drawSignaturePlaceholder(canvas, context); }
+      } else {
+        drawSignaturePlaceholder(canvas, context);
+      }
+      // Selalu minta PRMRJ terbaru, termasuk ketika localStorage berisi tanda tangan lama.
+      const loadPrmrjSignature = window.getPrmrjDefaultSignature;
+      if (typeof loadPrmrjSignature === 'function') {
+        loadPrmrjSignature(getPageContext().noCheckin, true).then((signature) => {
+          if (!signature || !canvas.isConnected || signatureChangedByUser || signatureCleared) return;
+          const image = new Image();
+          image.onload = () => {
+            if (!canvas.isConnected || signatureChangedByUser || signatureCleared) return;
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.drawImage(image, 0, 0, canvas.width, canvas.height);
+            canvas.dataset.signatureSource = 'prmrj';
+            try {
+              localStorage.setItem(getDpjpSignatureStorageKey(), signature);
+              // Tandai sumber tanda tangan agar E-Resep dapat ikut memperbaruinya.
+              localStorage.setItem(getDpjpSignatureSourceStorageKey(), 'prmrj');
+            } catch (error) {
+              console.warn('Tanda tangan PRMRJ dimuat tetapi tidak dapat disimpan pada browser ini:', error);
+            }
+          };
+          image.src = signature;
+        }).catch((error) => console.error('Gagal memuat tanda tangan PRMRJ untuk billing kronis:', error));
+      }
+    }
 
     clearButton.addEventListener('click', () => {
+      signatureCleared = true;
+      canvas.dataset.signatureSource = 'cleared';
       context.clearRect(0, 0, canvas.width, canvas.height);
-      try { localStorage.removeItem(getDpjpSignatureStorageKey()); } catch (error) {}
+      try {
+        localStorage.removeItem(getDpjpSignatureStorageKey());
+        // Pertahankan pilihan hapus pada E-Resep agar autoload tidak langsung memasangnya kembali.
+        localStorage.setItem(getDpjpSignatureSourceStorageKey(), 'cleared');
+      } catch (error) {
+        console.warn('Pilihan hapus tanda tangan tidak dapat disimpan pada browser ini:', error);
+      }
       drawSignaturePlaceholder(canvas, context);
     });
   }
@@ -665,13 +764,14 @@
     }
     if (sourceCanvas && clonedCanvas && hasSignature) {
       const image = document.createElement('img');
-      image.src = sourceCanvas.toDataURL('image/png');
+      // Tipiskan satu lapis goresan hanya pada salinan tanda tangan untuk hasil PDF.
+      image.src = window.createThinSignatureExportDataUrl(sourceCanvas);
       image.alt = 'Tanda tangan dokter DPJP';
       image.style.width = '100%';
-      // diupdate oleh irwansyah tanggal 2026-09-23 - awal mengecilkan tanda tangan pada hasil billing kronis
-      image.style.maxWidth = '320px';
-      image.style.height = '90px';
-      // diupdate oleh irwansyah tanggal 2026-09-23 - akhir mengecilkan tanda tangan pada hasil billing kronis
+      // Kecilkan ukuran gambar tanda tangan untuk hasil PDF tanpa mengubah canvas sumber.
+      image.style.width = '180px';
+      image.style.maxWidth = '180px';
+      image.style.height = '50px';
       image.style.objectFit = 'contain';
       image.style.border = '0';
       clonedCanvas.replaceWith(image);
@@ -749,6 +849,9 @@
         nama: Array.isArray(item.nama) ? item.nama.join(', ') : item.nama || '',
         frekuensi: item.quantity ? `${item.quantity}x/hari` : '',
         takaran: item.takaran ? `Takaran ${item.takaran}` : '',
+        // Kirim jumlah dan satuan agar uraian di Form Kronis mencantumkan kuantitas obat.
+        jumlah: item.jumlah,
+        satuan: item.satuanObat || item.satuan || item.jenisObat || 'TABLET',
       }));
     document.dispatchEvent(new CustomEvent('simrs:kronis-billing-updated', {
       detail: { items: chronicLetterItems },
@@ -864,7 +967,7 @@
     }
 
     const rows = chronicItems.map((item, index) => {
-      const subtotal = Number(item.jumlah || 0) * Number(item.hargaSatuan || 0);
+      const subtotal = Number(item.jumlah || 0) * Number(item.hargaJualBPJS || 0);
       return `
       <tr>
         <td>${index + 1}</td>
@@ -873,7 +976,7 @@
         <td>${escapeHtml(getUsageText(item))}</td>
         <td>${escapeHtml(item.jumlah ?? 0)}</td>
         <td>${escapeHtml(item.satuanObat || item.satuan || item.jenisObat || 'TABLET')}</td>
-        <td>Rp. ${Number(item.hargaSatuan || 0).toLocaleString('id-ID')}</td>
+        <td>Rp. ${Number(item.hargaJualBPJS || 0).toLocaleString('id-ID')}</td>
         <td>Rp. ${subtotal.toLocaleString('id-ID')}</td>
         <td>
           <button type="button" data-id-obat="${escapeHtml(item.idObat || '')}" class="btn btn-sm btn-danger text-white delete-kronis-btn">Hapus</button>
@@ -882,7 +985,7 @@
     `;
     }).join('');
     const totalSubtotal = chronicItems.reduce(
-      (total, item) => total + Number(item.jumlah || 0) * Number(item.hargaSatuan || 0),
+      (total, item) => total + Number(item.jumlah || 0) * Number(item.hargaJualBPJS || 0),
       0,
     );
     tbody.innerHTML = `${rows}
@@ -1121,6 +1224,9 @@
                 <label class="form-label small fw-semibold mb-1">Frekuensi / Hari</label>
                 <select id="obat-kronis-quantity" class="form-select">
                   ${Array.from({ length: 12 }, (_, index) => `<option value="${index + 1}">${index + 1}x</option>`).join('')}
+                  <option value="1/4">1/4x</option>
+                  <option value="1/2">1/2x</option>
+                  <option value="3/4">3/4x</option>
                 </select>
               </div>
               <div class="col-md-3">

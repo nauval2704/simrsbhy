@@ -604,8 +604,8 @@
       chronicItems.forEach((item) => {
         const name = getName(item) || 'Obat kronis';
         const quantity = getNumber(item?.jumlah, item?.count, item?.qty, item?.quantity);
-        // diupdate oleh irwansyah tanggal 2026-09-26 - awal menyamakan harga obat kronis dengan tab billing kronis
-        const price = getNumber(item?.hargaSatuan);
+        // Harga kronis selalu menggunakan tarif BPJS, sama dengan sumber harga billing non-kronis.
+        const price = getNumber(item?.hargaJualBPJS);
         const key = `${name}|${price}`;
         const current = grouped.get(key) || { name, quantity: 0, subtotal: 0 };
         current.quantity += quantity;
@@ -660,6 +660,7 @@
     const noCheckin = getNoCheckin(host);
     if (!noCheckin) return;
 
+    // Satu-satunya sumber tarif untuk billing kronis maupun non-kronis adalah harga BPJS dari data resep.
     const response = await fetch(`${getApiBaseUrl()}/farmasi/print/obat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
