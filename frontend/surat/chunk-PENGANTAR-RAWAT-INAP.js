@@ -50,6 +50,8 @@ export var PengantarRawatInapComponent = (() => {
         sigDokter: null
       };
 
+      this.rooms = [];
+
       const pathParts = window.location.pathname.split("?")[0].split("#")[0].split("/").filter(Boolean);
       const priIdx = pathParts.indexOf("pengantar-rawat-inap");
       if (priIdx !== -1 && pathParts[priIdx + 1]) {
@@ -65,7 +67,53 @@ export var PengantarRawatInapComponent = (() => {
     }
 
     ngOnInit() {
+      this.fetchRooms();
       this.fetchPatient();
+    }
+
+    fetchRooms() {
+      this.http.get(i.apiUrl + "/simrsba/cariruang/.*").subscribe({
+        next: (res) => {
+          if (Array.isArray(res)) {
+            this.rooms = res;
+            this.updateRoomDatalist();
+          }
+        },
+        error: (err) => {
+          console.warn("Could not load rooms:", err);
+        }
+      });
+    }
+
+    updateRoomDatalist() {
+      const datalist = document.getElementById("pri-kamar-list");
+      if (datalist) {
+        datalist.innerHTML = this.buildRoomOptionsHtml();
+      }
+    }
+
+    buildRoomOptionsHtml() {
+      if (!this.rooms || !this.rooms.length) return "";
+      return this.rooms
+        .map((r) => {
+          const val = this.formatRoomLabel(r);
+          const avail = r.tersedia !== undefined && r.tersedia !== null && r.tersedia !== "" ? ` (Tersedia: ${r.tersedia})` : "";
+          return `<option value="${val}">${val}${avail}</option>`;
+        })
+        .join("");
+    }
+
+    formatRoomLabel(r) {
+      const nama = (r.namaruang || "").trim();
+      let kls = (r.kodeKelas || "").trim();
+      if (/^KL[S]?1$/i.test(kls)) kls = "Kelas 1";
+      else if (/^KL[S]?2$/i.test(kls)) kls = "Kelas 2";
+      else if (/^KL[S]?3$/i.test(kls)) kls = "Kelas 3";
+
+      if (!kls || nama.toLowerCase().includes(kls.toLowerCase()) || kls.toLowerCase().includes(nama.toLowerCase())) {
+        return nama;
+      }
+      return `${nama} (${kls})`;
     }
 
     fetchPatient() {
@@ -310,7 +358,7 @@ export var PengantarRawatInapComponent = (() => {
             <div id="collapse_pri_1" class="accordion-collapse collapse show" data-bs-parent="#accPengantarRawatInap">
               <div class="accordion-body bg-white p-3">
                 <div class="row g-3">
-                  <div class="col-md-6">
+                  <div class="col-md-5">
                     <label class="f-label">Alamat / No. Telepon Pasien</label>
                     <input type="text" id="pri-alamatTelepon" class="f-input" value="${d.alamatTelepon || ''}" placeholder="Alamat lengkap dan nomor telepon...">
                   </div>
@@ -322,9 +370,12 @@ export var PengantarRawatInapComponent = (() => {
                     <label class="f-label">Tgl Keluar (Estimasi)</label>
                     <input type="date" id="pri-tglKeluar" class="f-input" value="${d.tglKeluar || ''}">
                   </div>
-                  <div class="col-md-2">
-                    <label class="f-label">Kamar Rawat</label>
-                    <input type="text" id="pri-kamarRawat" class="f-input" value="${d.kamarRawat || ''}" placeholder="Kamar / Kelas...">
+                  <div class="col-md-3">
+                    <label class="f-label">Kamar Rawat <span class="text-muted fw-normal" style="font-size:11px;">(Pilih / Ketik)</span></label>
+                    <input type="text" id="pri-kamarRawat" list="pri-kamar-list" autocomplete="off" class="f-input" value="${d.kamarRawat || ''}" placeholder="Pilih atau ketik kamar...">
+                    <datalist id="pri-kamar-list">
+                      ${this.buildRoomOptionsHtml()}
+                    </datalist>
                   </div>
                 </div>
               </div>
@@ -450,14 +501,16 @@ export var PengantarRawatInapComponent = (() => {
 
       // Also listen to inputs to auto-update
       root.querySelectorAll("input, textarea").forEach((el) => {
-        el.addEventListener("input", () => {
+        const updateProp = () => {
           if (el.id) {
             const prop = el.id.replace("pri-", "");
             if (this.formData.hasOwnProperty(prop)) {
               this.formData[prop] = el.value;
             }
           }
-        });
+        };
+        el.addEventListener("input", updateProp);
+        el.addEventListener("change", updateProp);
       });
 
       this.renderPrintLayout(noMr, nama, tglLahir, kelamin);

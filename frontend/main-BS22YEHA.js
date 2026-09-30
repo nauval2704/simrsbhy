@@ -136610,6 +136610,18 @@ var rb = [
         canActivate: [st],
       },
       {
+        path: "pengantar-rawat-inap",
+        loadComponent: () =>
+          import("./surat/chunk-PENGANTAR-RAWAT-INAP.js?v=" + Date.now()).then((t) => t.PengantarRawatInapComponent),
+        canActivate: [st],
+      },
+      {
+        path: "pengantar-rawat-inap/:nocheckin",
+        loadComponent: () =>
+          import("./surat/chunk-PENGANTAR-RAWAT-INAP.js?v=" + Date.now()).then((t) => t.PengantarRawatInapComponent),
+        canActivate: [st],
+      },
+      {
         path: "poli/:nocheckin",
         component: B_,
         children: [
@@ -136782,6 +136794,18 @@ var rb = [
         canActivate: [st],
       },
       {
+        path: "pengantar-rawat-inap",
+        loadComponent: () =>
+          import("./surat/chunk-PENGANTAR-RAWAT-INAP.js?v=" + Date.now()).then((t) => t.PengantarRawatInapComponent),
+        canActivate: [st],
+      },
+      {
+        path: "pengantar-rawat-inap/:nocheckin",
+        loadComponent: () =>
+          import("./surat/chunk-PENGANTAR-RAWAT-INAP.js?v=" + Date.now()).then((t) => t.PengantarRawatInapComponent),
+        canActivate: [st],
+      },
+      {
         path: "pemberian-obat/:nocheckin",
         loadComponent: () =>
           import("./surat/chunk-PEMBERIAN-OBAT-IGD.js").then(
@@ -136876,18 +136900,6 @@ var rb = [
         path: "general-consent/:nocheckin",
         loadComponent: () =>
           import("./surat/chunk-GENERAL-CONSENT.js?v=" + Date.now()).then((t) => t.GeneralConsentComponent),
-        canActivate: [st],
-      },
-      {
-        path: "pengantar-rawat-inap",
-        loadComponent: () =>
-          import("./surat/chunk-PENGANTAR-RAWAT-INAP.js?v=" + Date.now()).then((t) => t.PengantarRawatInapComponent),
-        canActivate: [st],
-      },
-      {
-        path: "pengantar-rawat-inap/:nocheckin",
-        loadComponent: () =>
-          import("./surat/chunk-PENGANTAR-RAWAT-INAP.js?v=" + Date.now()).then((t) => t.PengantarRawatInapComponent),
         canActivate: [st],
       },
       {

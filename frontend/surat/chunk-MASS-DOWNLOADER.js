@@ -675,6 +675,14 @@ class SimrsMassDownloader {
         render: (pt, data) => RingkasanPulangComponent.getPrintHtml(pt, data)
       });
       docDefinitions.push({
+        id: "pengantar-rawat-inap",
+        title: "Surat Pengantar Rawat Inap",
+        filename: `IGD_PENGANTAR_RAWAT_INAP_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+        endpoint: `${baseApi}/simrsba/pengantar-rawat-inap/${encodeURIComponent(noCheckin)}`,
+        checkFilled: (data) => data && (data.data || data.keluhanUtama || data.diagnosisKerja || (data.data && (data.data.keluhanUtama || data.data.diagnosisKerja))),
+        render: (pt, data) => PengantarRawatInapComponent.getPrintHtml(pt, (data && data.data) ? Object.assign({}, data.data, data) : data)
+      });
+      docDefinitions.push({
         id: "general-consent",
         title: "General Consent (Persetujuan Umum)",
         filename: `IGD_GENERAL_CONSENT_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
@@ -798,6 +806,14 @@ class SimrsMassDownloader {
         endpoint: `${baseApi}/simrsba/general-consent/${encodeURIComponent(noCheckin)}`,
         checkFilled: (data) => data && (data.namaWali || data.sigPasien || data.sigPetugas || data.tglConsent || data.preAdmisi || data.hubunganWali || data.namaPetugas),
         render: (pt, data) => GeneralConsentComponent.getPrintHtml(pt, (data && data.data) ? Object.assign({}, data.data, data) : data)
+      });
+      docDefinitions.push({
+        id: "pengantar-rawat-inap",
+        title: "Surat Pengantar Rawat Inap",
+        filename: `POLI_PENGANTAR_RAWAT_INAP_${cleanFilename(noMr)}_${cleanFilename(namaPasien)}.pdf`,
+        endpoint: `${baseApi}/simrsba/pengantar-rawat-inap/${encodeURIComponent(noCheckin)}`,
+        checkFilled: (data) => data && (data.data || data.keluhanUtama || data.diagnosisKerja || (data.data && (data.data.keluhanUtama || data.data.diagnosisKerja))),
+        render: (pt, data) => PengantarRawatInapComponent.getPrintHtml(pt, (data && data.data) ? Object.assign({}, data.data, data) : data)
       });
       docDefinitions.push({
         id: "prmrj",
