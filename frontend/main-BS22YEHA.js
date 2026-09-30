@@ -33611,10 +33611,10 @@ var xd = (() => {
               labData.forEach((r) => {
                 if (r.testName && r.testName !== "General Laboratory Report") {
                   testsHtml += `<tr>
-                    <td class="col-jenis indent-item">${r.testName}</td>
-                    <td class="col-hasil"><span class="input-blank">${r.value || "-"}</span></td>
-                    <td class="col-satuan">${r.unit || "-"}</td>
-                    <td class="col-rujukan">${r.referenceRange || "-"}</td>
+                    <td style="border:1px solid black; padding:4px 6px; text-align:left;">${r.testName}</td>
+                    <td style="border:1px solid black; padding:4px 6px; text-align:center; font-weight:600;">${r.value || "-"}</td>
+                    <td style="border:1px solid black; padding:4px 6px; text-align:center;">${r.unit || "-"}</td>
+                    <td style="border:1px solid black; padding:4px 6px; text-align:center;">${r.referenceRange || "-"}</td>
                   </tr>`;
                 }
               });
@@ -33622,143 +33622,24 @@ var xd = (() => {
             if (!testsHtml && Array.isArray(this.dataPasienBaru) && this.dataPasienBaru.length > 0) {
               this.dataPasienBaru.forEach((item) => {
                 testsHtml += `<tr>
-                  <td class="col-jenis">${item.nama || "-"}</td>
-                  <td class="col-hasil text-muted fst-italic">Proses Pemeriksaan</td>
-                  <td class="col-satuan">${item.satuan || "-"}</td>
-                  <td class="col-rujukan">-</td>
+                  <td style="border:1px solid black; padding:4px 6px; text-align:left;">${item.nama || "-"}</td>
+                  <td style="border:1px solid black; padding:4px 6px; text-align:center; color:#666; font-style:italic;">Proses Pemeriksaan</td>
+                  <td style="border:1px solid black; padding:4px 6px; text-align:center;">${item.satuan || "-"}</td>
+                  <td style="border:1px solid black; padding:4px 6px; text-align:center;">-</td>
                 </tr>`;
               });
             }
             if (!testsHtml) {
-              testsHtml = '<tr><td colspan="4" class="text-center text-muted fst-italic py-3">Belum ada rincian pemeriksaan laboratorium</td></tr>';
+              testsHtml = '<tr><td colspan="4" style="border:1px solid black; padding:10px; text-align:center; color:#888; font-style:italic;">Belum ada rincian pemeriksaan laboratorium</td></tr>';
             }
 
-            const lampiranHtml = (modFiles && modFiles.renderLampiranFilesPrintHtml) ? modFiles.renderLampiranFilesPrintHtml(files) : "";
-
-            let html = `
-              <style>
-                #lab-print-container {
-                  background: #e8ecf0;
-                  padding: 24px 16px;
-                  font-family: 'Arial', Helvetica, sans-serif;
-                }
-                .lab-paper {
-                  background: #ffffff;
-                  max-width: 820px;
-                  margin: 0 auto;
-                  padding: 36px 42px 36px 42px;
-                  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
-                  border-radius: 4px;
-                  color: #1a1a1a;
-                  position: relative;
-                }
-                .lab-paper .header-title {
-                  text-align: center;
-                  font-size: 15px;
-                  font-weight: bold;
-                  text-transform: uppercase;
-                  letter-spacing: 1px;
-                  margin: 18px 0;
-                  color: #0a0a0a;
-                  border-bottom: 2px solid #333;
-                  padding-bottom: 6px;
-                }
-                .lab-paper .meta-grid {
-                  display: grid;
-                  grid-template-columns: 1fr 1fr;
-                  gap: 0 28px;
-                  font-size: 12.5px;
-                  line-height: 1.8;
-                  margin-bottom: 18px;
-                  border-bottom: 1px solid #ccc;
-                  padding-bottom: 12px;
-                }
-                .lab-paper .meta-row { display: flex; align-items: baseline; }
-                .lab-paper .meta-label { min-width: 130px; color: #555; }
-                .lab-paper .meta-sep { margin: 0 6px; color: #555; }
-                .lab-paper .meta-value { font-weight: 600; color: #111; flex: 1; border-bottom: 1px dotted #bbb; padding-bottom: 1px; }
-                table.lab-table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 6px; }
-                table.lab-table thead tr { border-top: 2px solid #333; border-bottom: 2px solid #333; background:#f4f6f8; }
-                table.lab-table th { padding: 8px; font-weight: 700; text-align: left; text-transform: uppercase; font-size: 11.5px; letter-spacing: 0.5px; color: #222; }
-                table.lab-table th.col-hasil, table.lab-table th.col-satuan, table.lab-table th.col-rujukan { text-align: center; }
-                table.lab-table tbody tr:nth-child(even) { background: #fbfbfb; }
-                table.lab-table td { padding: 7px 8px; vertical-align: middle; border-bottom: 1px solid #eee; color: #222; }
-                .col-jenis { width: 40%; }
-                .col-hasil { width: 20%; text-align: center; font-weight: 600; }
-                .col-satuan { width: 18%; text-align: center; }
-                .col-rujukan { width: 22%; text-align: center; }
-                .footer-signatures { margin-top: 40px; display: flex; justify-content: space-between; font-size: 12.5px; page-break-inside: avoid; }
-                .sig-box { width: 42%; text-align: center; display: flex; flex-direction: column; justify-content: space-between; min-height: 100px; }
-                .sig-title { font-weight: 700; margin-bottom: 6px; }
-                .sig-container { min-height: 60px; display: flex; align-items: center; justify-content: center; }
-                .sig-line { padding-top: 4px; font-size: 12px; color: #333; font-weight: 600; border-top: 1px solid #777; width: 85%; margin: 4px auto 0; }
-                @media print {
-                  body * { visibility: hidden !important; }
-                  #lab-print-container, #lab-print-container * { visibility: visible !important; }
-                  #lab-print-container { position: absolute; left: 0; top: 0; width: 100%; background: white !important; padding: 0 !important; }
-                  .lab-paper { box-shadow: none !important; max-width: 100% !important; padding: 15mm 15mm !important; }
-                  table.lab-table tbody tr:nth-child(even) { background: #fbfbfb !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                }
-              </style>
-              <div class="d-flex justify-content-end mb-3 d-print-none" style="max-width:820px;margin:0 auto;">
-                <button type="button" class="btn btn-sm btn-primary shadow-sm px-3" onclick="window.print()">
-                  <i class="bi bi-printer me-1"></i> Cetak Dokumen Hasil Lab
-                </button>
-              </div>
-              <div id="lab-print-inner">
-                <div class="lab-paper">
-                  <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-2">
-                    <img src="assets/img/logorsba.png" style="height:70px;width:auto;" alt="RSBA" />
-                    <div class="text-center flex-grow-1 px-2">
-                      <h6 class="m-0 fw-bold" style="font-size:14px;letter-spacing:0.5px;">RUMAH SAKIT BHAYANGKARA TK. III BANDA ACEH</h6>
-                      <div style="font-size:11px;color:#444;">Jl. Cut Nyak Dhien No. 23, Lamtemen Barat, Banda Aceh</div>
-                      <div style="font-size:10.5px;color:#555;">Telp: (0651) 48805 | Email: rsbhayangkarabna@gmail.com</div>
-                    </div>
-                    <img src="assets/img/bygkara1.png" style="height:70px;width:auto;" alt="Polri" />
-                  </div>
-                  <div class="header-title">Hasil Pemeriksaan Laboratorium</div>
-                  <div class="meta-grid">
-                    <div>
-                      <div class="meta-row"><span class="meta-label">No. Lab / No. CM</span><span class="meta-sep">:</span><span class="meta-value">${noCheckin} / ${noMr}</span></div>
-                      <div class="meta-row"><span class="meta-label">Nama Pasien</span><span class="meta-sep">:</span><span class="meta-value">${nama}</span></div>
-                      <div class="meta-row"><span class="meta-label">Jenis Kelamin</span><span class="meta-sep">:</span><span class="meta-value">${kelamin}</span></div>
-                      <div class="meta-row"><span class="meta-label">Tgl. Lahir / Umur</span><span class="meta-sep">:</span><span class="meta-value">${tglLahir}</span></div>
-                    </div>
-                    <div>
-                      <div class="meta-row"><span class="meta-label">Tgl. Registrasi</span><span class="meta-sep">:</span><span class="meta-value">${tglCheckin.split(' ')[0]}</span></div>
-                      <div class="meta-row"><span class="meta-label">Ruangan</span><span class="meta-sep">:</span><span class="meta-value">${ruangan}</span></div>
-                      <div class="meta-row"><span class="meta-label">Jam Pemeriksaan</span><span class="meta-sep">:</span><span class="meta-value">${tglCheckin.split(' ')[1] || '-'}</span></div>
-                      <div class="meta-row"><span class="meta-label">Dokter Pengirim</span><span class="meta-sep">:</span><span class="meta-value">${dpjp}</span></div>
-                    </div>
-                  </div>
-                  <table class="lab-table">
-                    <thead>
-                      <tr>
-                        <th class="col-jenis">Jenis Pemeriksaan</th>
-                        <th class="col-hasil">Hasil</th>
-                        <th class="col-satuan">Satuan</th>
-                        <th class="col-rujukan">Nilai Rujukan</th>
-                      </tr>
-                    </thead>
-                    <tbody>${testsHtml}</tbody>
-                  </table>
-                  ${lampiranHtml}
-                  <div class="footer-signatures">
-                    <div class="sig-box">
-                      <div class="sig-title">Pemeriksa Laboratorium</div>
-                      <div class="sig-container">${labSigPetugasImg}</div>
-                      <div class="sig-line">${labNamaPetugas}</div>
-                    </div>
-                    <div class="sig-box">
-                      <div class="sig-title">Dokter Penanggung Jawab</div>
-                      <div class="sig-container">${labSigDokterImg}</div>
-                      <div class="sig-line">${labNamaDokter}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            `;
-            targetEl.innerHTML = html;
+            if (modFiles && modFiles.renderLabPrintDocument) {
+              targetEl.innerHTML = modFiles.renderLabPrintDocument({
+                noCheckin, noMr, nama, tglLahir, kelamin, tglCheckin, ruangan, dpjp,
+                labNamaPetugas, labNamaDokter, labSigPetugasImg, labSigDokterImg,
+                testsHtml, files: files || []
+              });
+            }
           };
 
           if (modFiles && modFiles.initLabRadTabsAndFiles) {
@@ -33767,6 +33648,7 @@ var xd = (() => {
               type: "LAB",
               noCheckin: noCheckin,
               noMr: noMr,
+              nama: nama,
               initialFiles: p.filesLab || [],
               onRenderPrint: (targetEl, files) => renderPrint(targetEl, files)
             });
@@ -34523,137 +34405,26 @@ var bd = (() => {
               radData.forEach((r) => {
                 const testName = r.testName || r.examName;
                 if (testName && testName !== "General Radiology Report") {
-                  testsHtml += `<tr><td class="fw-bold pb-2 pt-2"><i class="bi bi-record-circle me-2 text-primary"></i> ${testName}</td></tr>`;
+                  testsHtml += `<tr><td style="border:1px solid black; padding:5px 8px; font-weight:600;">• ${testName}</td></tr>`;
                 }
               });
             }
             if (!testsHtml && Array.isArray(this.dataPasienBaru) && this.dataPasienBaru.length > 0) {
               this.dataPasienBaru.forEach((item) => {
-                testsHtml += `<tr><td class="fw-bold pb-2 pt-2"><i class="bi bi-record-circle me-2 text-primary"></i> ${item.nama || "-"}</td></tr>`;
+                testsHtml += `<tr><td style="border:1px solid black; padding:5px 8px; font-weight:600;">• ${item.nama || "-"}</td></tr>`;
               });
             }
             if (!testsHtml) {
-              testsHtml = '<tr><td style="color:#888;font-style:italic;" class="py-2">Tidak ada detail pemeriksaan spesifik</td></tr>';
+              testsHtml = '<tr><td style="border:1px solid black; padding:10px; text-align:center; color:#888; font-style:italic;">Tidak ada detail pemeriksaan spesifik</td></tr>';
             }
 
-            const lampiranHtml = (modFiles && modFiles.renderLampiranFilesPrintHtml) ? modFiles.renderLampiranFilesPrintHtml(files) : "";
-
-            let html = `
-              <style>
-                #rad-print-container {
-                  background: #e8ecf0;
-                  padding: 24px 16px;
-                  font-family: 'Arial', Helvetica, sans-serif;
-                }
-                .rad-paper {
-                  background: #ffffff;
-                  max-width: 820px;
-                  margin: 0 auto;
-                  padding: 36px 42px 36px 42px;
-                  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
-                  border-radius: 4px;
-                  color: #1a1a1a;
-                  position: relative;
-                }
-                .rad-paper .header-title {
-                  text-align: center;
-                  font-size: 15px;
-                  font-weight: bold;
-                  text-transform: uppercase;
-                  letter-spacing: 1px;
-                  margin: 18px 0;
-                  color: #0a0a0a;
-                  border-bottom: 2px solid #333;
-                  padding-bottom: 6px;
-                }
-                .rad-paper .meta-grid {
-                  display: grid;
-                  grid-template-columns: 1fr 1fr;
-                  gap: 0 28px;
-                  font-size: 12.5px;
-                  line-height: 1.8;
-                  margin-bottom: 18px;
-                  border-bottom: 1px solid #ccc;
-                  padding-bottom: 12px;
-                }
-                .rad-paper .meta-row { display: flex; align-items: baseline; }
-                .rad-paper .meta-label { min-width: 130px; color: #555; }
-                .rad-paper .meta-sep { margin: 0 6px; color: #555; }
-                .rad-paper .meta-value { font-weight: 600; color: #111; flex: 1; border-bottom: 1px dotted #bbb; padding-bottom: 1px; }
-                table.rad-table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 6px; }
-                table.rad-table thead tr { border-top: 2px solid #333; border-bottom: 2px solid #333; background:#f4f6f8; }
-                table.rad-table th { padding: 8px; font-weight: 700; text-align: left; text-transform: uppercase; font-size: 11.5px; letter-spacing: 0.5px; color: #222; }
-                table.rad-table tbody tr:nth-child(even) { background: #fbfbfb; }
-                table.rad-table td { padding: 8px; vertical-align: top; border-bottom: 1px solid #eee; color: #222; }
-                .expertise-section { margin-top: 20px; }
-                .expertise-label { font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #333; margin-bottom: 8px; }
-                .expertise-box { border: 1px solid #ccc; border-radius: 4px; padding: 14px 16px; min-height: 100px; white-space: pre-wrap; font-family: 'Arial', Helvetica, sans-serif; font-size: 13px; color: #222; line-height: 1.7; background: #fafafa; }
-                .rad-footer-signatures { margin-top: 40px; display: flex; justify-content: space-between; font-size: 12.5px; page-break-inside: avoid; }
-                .rad-sig-box { width: 42%; text-align: center; display: flex; flex-direction: column; justify-content: space-between; min-height: 100px; }
-                .rad-sig-title { font-weight: 700; margin-bottom: 6px; }
-                .rad-sig-container { min-height: 60px; display: flex; align-items: center; justify-content: center; }
-                .rad-sig-line { padding-top: 4px; font-size: 12px; color: #333; font-weight: 600; border-top: 1px solid #777; width: 85%; margin: 4px auto 0; }
-                @media print {
-                  body * { visibility: hidden !important; }
-                  #rad-print-container, #rad-print-container * { visibility: visible !important; }
-                  #rad-print-container { position: absolute; left: 0; top: 0; width: 100%; background: white !important; padding: 0 !important; }
-                  .rad-paper { box-shadow: none !important; max-width: 100% !important; padding: 15mm 15mm !important; }
-                }
-              </style>
-              <div class="d-flex justify-content-end mb-3 d-print-none" style="max-width:820px;margin:0 auto;">
-                <button type="button" class="btn btn-sm btn-primary shadow-sm px-3" onclick="window.print()">
-                  <i class="bi bi-printer me-1"></i> Cetak Dokumen Hasil Radiologi
-                </button>
-              </div>
-              <div class="rad-paper">
-                <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-2">
-                  <img src="assets/img/logorsba.png" style="height:70px;width:auto;" alt="RSBA" />
-                  <div class="text-center flex-grow-1 px-2">
-                    <h6 class="m-0 fw-bold" style="font-size:14px;letter-spacing:0.5px;">RUMAH SAKIT BHAYANGKARA TK. III BANDA ACEH</h6>
-                    <div style="font-size:11px;color:#444;">Jl. Cut Nyak Dhien No. 23, Lamtemen Barat, Banda Aceh</div>
-                    <div style="font-size:10.5px;color:#555;">Telp: (0651) 48805 | Email: rsbhayangkarabna@gmail.com</div>
-                  </div>
-                  <img src="assets/img/bygkara1.png" style="height:70px;width:auto;" alt="Polri" />
-                </div>
-                <div class="header-title">Hasil Pemeriksaan Radiologi</div>
-                <div class="meta-grid">
-                  <div>
-                    <div class="meta-row"><span class="meta-label">No. Rad / No. CM</span><span class="meta-sep">:</span><span class="meta-value">${noCheckin} / ${noMr}</span></div>
-                    <div class="meta-row"><span class="meta-label">Nama Pasien</span><span class="meta-sep">:</span><span class="meta-value">${nama}</span></div>
-                    <div class="meta-row"><span class="meta-label">Jenis Kelamin</span><span class="meta-sep">:</span><span class="meta-value">${kelamin}</span></div>
-                    <div class="meta-row"><span class="meta-label">Tgl. Lahir / Umur</span><span class="meta-sep">:</span><span class="meta-value">${tglLahir}</span></div>
-                  </div>
-                  <div>
-                    <div class="meta-row"><span class="meta-label">Tgl. Registrasi</span><span class="meta-sep">:</span><span class="meta-value">${tglCheckin.split(' ')[0]}</span></div>
-                    <div class="meta-row"><span class="meta-label">Ruangan</span><span class="meta-sep">:</span><span class="meta-value">${ruangan}</span></div>
-                    <div class="meta-row"><span class="meta-label">Jam Pemeriksaan</span><span class="meta-sep">:</span><span class="meta-value">${tglCheckin.split(' ')[1] || '-'}</span></div>
-                    <div class="meta-row"><span class="meta-label">Dokter Pengirim</span><span class="meta-sep">:</span><span class="meta-value">${dpjp}</span></div>
-                  </div>
-                </div>
-                <table class="rad-table">
-                  <thead><tr><th>Pemeriksaan</th></tr></thead>
-                  <tbody>${testsHtml}</tbody>
-                </table>
-                <div class="expertise-section">
-                  <div class="expertise-label">Hasil Ekspertise / Catatan Klinis :</div>
-                  <div class="expertise-box">${expertiseText || '<span style="color:#999;font-style:italic;">Belum ada ekspertise yang diinputkan oleh dokter radiologi.</span>'}</div>
-                </div>
-                ${lampiranHtml}
-                <div class="rad-footer-signatures">
-                  <div class="rad-sig-box">
-                    <div class="rad-sig-title">Radiografer / Petugas</div>
-                    <div class="rad-sig-container">${radSigPetugasImg}</div>
-                    <div class="rad-sig-line">${radNamaPetugas}</div>
-                  </div>
-                  <div class="rad-sig-box">
-                    <div class="rad-sig-title">Dokter Spesialis Radiologi</div>
-                    <div class="rad-sig-container">${radSigDokterImg}</div>
-                    <div class="rad-sig-line">${radNamaDokter}</div>
-                  </div>
-                </div>
-              </div>
-            `;
-            targetEl.innerHTML = html;
+            if (modFiles && modFiles.renderRadiologiPrintDocument) {
+              targetEl.innerHTML = modFiles.renderRadiologiPrintDocument({
+                noCheckin, noMr, nama, tglLahir, kelamin, tglCheckin, ruangan, dpjp,
+                radNamaPetugas, radNamaDokter, radSigPetugasImg, radSigDokterImg,
+                testsHtml, expertiseText, files: files || []
+              });
+            }
           };
 
           if (modFiles && modFiles.initLabRadTabsAndFiles) {
@@ -34662,6 +34433,7 @@ var bd = (() => {
               type: "RADIOLOGI",
               noCheckin: noCheckin,
               noMr: noMr,
+              nama: nama,
               initialFiles: p.filesRadiologi || [],
               onRenderPrint: (targetEl, files) => renderPrint(targetEl, files)
             });
