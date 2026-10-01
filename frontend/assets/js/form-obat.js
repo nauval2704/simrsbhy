@@ -29,16 +29,24 @@
     return (configuredUrl || (window.location.hostname === 'localhost' ? 'http://localhost:1822' : 'http://36.66.36.106:1822')).replace(/\/$/, '');
   }
 
+  function isRecipeTableRendered(tbody, expectedItems) {
+    if (!tbody) return false;
+    const items = Array.isArray(expectedItems) ? expectedItems : [];
+    if (!items.length) {
+      return tbody.textContent.includes('Belum ada obat non-kronis');
+    }
+    const renderedButtons = tbody.querySelectorAll('.js-hapus-obat-resep');
+    return renderedButtons.length === items.length;
+  }
+
   // diupdate oleh irwansyah tanggal 2026-09-24 - awal merender detail API pada semua komponen input obat
   function renderAllRecipeComponents(recipe) {
     if (!recipe?._id) return;
     document.querySelectorAll('app-input-obat').forEach((component) => {
       const owner = component.closest('.modal') || component;
       const tbody = getRecipeTable(owner);
-      const expectedNames = (recipe.obat || []).map((item) => getMedicineName(item)).filter(Boolean);
-      const visibleNames = Array.from(tbody?.querySelectorAll('.nama-obat-resep') || [])
-        .map((cell) => cell.textContent.trim());
-      if (isModalVisible(owner) && tbody && !expectedNames.every((name) => visibleNames.includes(name))) {
+      const expectedItems = recipe?.detailFromApi ? recipe.obat : getNonChronicItems(recipe?.obat);
+      if (isModalVisible(owner) && tbody && !isRecipeTableRendered(tbody, expectedItems)) {
         renderNonChronicRows(owner, recipe);
       }
     });
@@ -94,15 +102,72 @@
     return Array.isArray(value) ? value.join(', ') : String(value || '').trim();
   }
 
+  function renderMedicineDisplayHtml(item) {
+    const raw = item?.nama || item?.namaObat || item?.namaobat;
+    const isRacikan = item?.jenis === 'RACIKAN' || item?.jenisObat === 'RACIKAN' || Array.isArray(raw) || (typeof raw === 'string' && (raw.includes(' | Jumlah:') || raw.includes(' | ')));
+
+    if (Array.isArray(raw)) {
+      const itemsHtml = raw.map((ing) => {
+        const str = String(ing || '').trim();
+        if (str.includes(' | ')) {
+          const parts = str.split(' | ');
+          const title = parts[0]?.trim();
+          const rest = parts.slice(1).join(' &bull; ');
+          return `<div class="mb-1 ps-2 border-start border-2 border-warning" style="line-height: 1.35;">
+            <div class="fw-semibold text-dark">${escapeHtml(title)}</div>
+            <div class="text-muted" style="font-size: 11px;">${escapeHtml(rest)}</div>
+          </div>`;
+        }
+        return `<div class="mb-1 ps-2 border-start border-2 border-warning" style="line-height: 1.35;">• ${escapeHtml(str)}</div>`;
+      }).join('');
+
+      return `<div>
+        <span class="badge bg-warning text-dark mb-1" style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px;">RACIKAN</span>
+        <div class="mt-1">${itemsHtml}</div>
+      </div>`;
+    }
+
+    const strVal = String(raw || '').trim();
+    if (isRacikan && strVal) {
+      let splitItems = [];
+      if (strVal.includes(', ') && strVal.includes(' | ')) {
+        splitItems = strVal.split(/,\s*(?=[A-Za-z0-9\s\.\-]+\s*\|\s*Jumlah:)/i);
+      } else {
+        splitItems = [strVal];
+      }
+      const itemsHtml = splitItems.map((ing) => {
+        const str = ing.trim();
+        if (str.includes(' | ')) {
+          const parts = str.split(' | ');
+          const title = parts[0]?.trim();
+          const rest = parts.slice(1).join(' &bull; ');
+          return `<div class="mb-1 ps-2 border-start border-2 border-warning" style="line-height: 1.35;">
+            <div class="fw-semibold text-dark">${escapeHtml(title)}</div>
+            <div class="text-muted" style="font-size: 11px;">${escapeHtml(rest)}</div>
+          </div>`;
+        }
+        return `<div class="mb-1 ps-2 border-start border-2 border-warning">• ${escapeHtml(str)}</div>`;
+      }).join('');
+
+      return `<div>
+        <span class="badge bg-warning text-dark mb-1" style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px;">RACIKAN</span>
+        <div class="mt-1">${itemsHtml}</div>
+      </div>`;
+    }
+
+    return `<span class="fw-semibold text-dark">${escapeHtml(strVal || '-')}</span>`;
+  }
+
   function normalizeMedicineItems(items, fallbackItems = []) {
     return getNonChronicItems(items).map((item, index) => {
       const fallback = fallbackItems[index] || {};
-      const itemName = getMedicineName(item);
+      const rawName = Array.isArray(item?.nama) ? item.nama : (Array.isArray(fallback?.nama) ? fallback.nama : null);
+      const itemName = rawName || getMedicineName(item);
       const fallbackName = getMedicineName(fallback);
       return {
         ...fallback,
         ...item,
-        nama: itemName || fallbackName || `Obat non-kronis ${index + 1}`,
+        nama: rawName || itemName || fallbackName || `Obat non-kronis ${index + 1}`,
         jumlah: item?.jumlah ?? item?.count ?? item?.qty ?? fallback?.jumlah ?? fallback?.qty,
       };
     });
@@ -113,9 +178,10 @@
   function normalizeDetailMedicineItems(items, fallbackItems = []) {
     return (Array.isArray(items) ? items : []).map((item, index) => {
       const fallback = fallbackItems[index] || {};
+      const rawName = Array.isArray(item?.nama) ? item.nama : (Array.isArray(fallback?.nama) ? fallback.nama : null);
       return {
         ...item,
-        nama: getMedicineName(item) || getMedicineName(fallback) || `Obat non-kronis ${index + 1}`,
+        nama: rawName || getMedicineName(item) || getMedicineName(fallback) || `Obat non-kronis ${index + 1}`,
         jumlah: item?.jumlah ?? item?.count ?? item?.qty ?? fallback?.jumlah ?? fallback?.qty,
       };
     });
@@ -271,44 +337,46 @@
     if (!tbody) return;
     state.rendering.add(modal);
     try {
-    // diupdate oleh irwansyah tanggal 2026-09-24 - awal menggunakan seluruh item detail API tanpa filter nama obat
-    const items = (recipe?.detailFromApi ? recipe.obat : getNonChronicItems(recipe?.obat)).map((item, index) => ({
-      ...item,
-      nama: getMedicineName(item) || `Obat non-kronis ${index + 1}`, 
-    }));
-    // diupdate oleh irwansyah tanggal 2026-09-24 - akhir menggunakan seluruh item detail API tanpa filter nama obat
-    //console.log("render"+JSON.stringify(items));
-    modal.dataset.nonChronicRowsRendered = 'true';
-    const totalQuantity = items.reduce((total, item) => total + getQuantity(item), 0);
-    const totalPrice = items.reduce((total, item) => total + getTotalPrice(item), 0);
-    // console.log("render"+JSON.stringify(items.length));
-    const rowsHtml = items.length ? items.map((item, index) => `
-      <tr>
-        <td>${index + 1}.</td>
-        <td class="nama-obat-resep">${escapeHtml(getMedicineName(item) || '-')}</td>
-        <td>${formatNumber(getQuantity(item))}</td>
-        <td>${formatNumber(getTotalPrice(item))}</td>
-        <td class="text-end">
-          <button type="button" class="btn btn-sm btn-danger js-hapus-obat-resep" data-index="${index}">
-            <i class="bi bi-trash3-fill"></i> Hapus
-          </button>
-        </td>
-      </tr>
-    `).join('') + `
-      <tr class="table-light fw-bold">
-        <td colspan="2" class="text-end">Total</td>
-        <td>${formatNumber(totalQuantity)}</td>
-        <td>${formatNumber(totalPrice)}</td>
-        <td></td>
-      </tr>
-    ` : '<tr><td colspan="5" class="text-center text-muted">Belum ada obat non-kronis.</td></tr>';
-    // diupdate oleh irwansyah tanggal 2026-09-24 - awal pengisian langsung app-input-obat tbody
-    const recipeTbody = modal.querySelector('app-input-obat tbody') || tbody;
-    recipeTbody.innerHTML = rowsHtml;
-    recipeTbody.hidden = false;
-    // diupdate oleh irwansyah tanggal 2026-09-24 - akhir pengisian langsung app-input-obat tbody
+      // diupdate oleh irwansyah tanggal 2026-09-24 - awal menggunakan seluruh item detail API tanpa filter nama obat
+      const items = (recipe?.detailFromApi ? recipe.obat : getNonChronicItems(recipe?.obat)).map((item, index) => ({
+        ...item,
+        nama: item?.nama || getMedicineName(item) || `Obat non-kronis ${index + 1}`, 
+      }));
+      // diupdate oleh irwansyah tanggal 2026-09-24 - akhir menggunakan seluruh item detail API tanpa filter nama obat
+      modal.dataset.nonChronicRowsRendered = 'true';
+      const totalQuantity = items.reduce((total, item) => total + getQuantity(item), 0);
+      const totalPrice = items.reduce((total, item) => total + getTotalPrice(item), 0);
+      const rowsHtml = items.length ? items.map((item, index) => `
+        <tr>
+          <td>${index + 1}.</td>
+          <td class="nama-obat-resep">${renderMedicineDisplayHtml(item)}</td>
+          <td>${formatNumber(getQuantity(item))}</td>
+          <td>${formatNumber(getTotalPrice(item))}</td>
+          <td class="text-end">
+            <button type="button" class="btn btn-sm btn-danger js-hapus-obat-resep" data-index="${index}">
+              <i class="bi bi-trash3-fill"></i> Hapus
+            </button>
+          </td>
+        </tr>
+      `).join('') + `
+        <tr class="table-light fw-bold">
+          <td colspan="2" class="text-end">Total</td>
+          <td>${formatNumber(totalQuantity)}</td>
+          <td>${formatNumber(totalPrice)}</td>
+          <td></td>
+        </tr>
+      ` : '<tr><td colspan="5" class="text-center text-muted">Belum ada obat non-kronis.</td></tr>';
+      // diupdate oleh irwansyah tanggal 2026-09-24 - awal pengisian langsung app-input-obat tbody
+      const recipeTbody = modal.querySelector('app-input-obat tbody') || tbody;
+      recipeTbody.innerHTML = rowsHtml;
+      recipeTbody.hidden = false;
+      // diupdate oleh irwansyah tanggal 2026-09-24 - akhir pengisian langsung app-input-obat tbody
       recipeTbody.querySelectorAll('.js-hapus-obat-resep').forEach((button) => {
-        button.addEventListener('click', () => deleteRecipeItem(modal, recipe, Number(button.dataset.index)));
+        button.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          deleteRecipeItem(modal, recipe, Number(button.dataset.index), button);
+        });
       });
     } finally {
       state.rendering.delete(modal);
@@ -329,17 +397,9 @@
         return;
       }
       const tbody = getRecipeTable(modal);
-      const expectedNames = (recipe?.detailFromApi ? recipe.obat : getNonChronicItems(recipe?.obat))
-        .map((item) => getMedicineName(item))
-        .filter(Boolean);
-      const visibleNames = Array.from(tbody?.querySelectorAll('.nama-obat-resep') || [])
-        .map((cell) => cell.textContent.trim());
-      const hasExpectedRows = expectedNames.length > 0 &&
-        expectedNames.every((name) => visibleNames.includes(name));
-      if (tbody && !hasExpectedRows) {
-        // diupdate oleh irwansyah tanggal 2026-09-24 - awal memastikan item detail resep dipasang ke tabel
+      const expectedItems = recipe?.detailFromApi ? recipe.obat : getNonChronicItems(recipe?.obat);
+      if (tbody && !isRecipeTableRendered(tbody, expectedItems)) {
         renderNonChronicRows(modal, recipe);
-        // diupdate oleh irwansyah tanggal 2026-09-24 - akhir memastikan item detail resep dipasang ke tabel
       }
     }, 100);
     state.renderTimers.set(modal, timer);
@@ -354,11 +414,21 @@
   // diupdate oleh irwansyah tanggal 2026-09-24 - akhir menjaga nama obat non-kronis dari penimpaan Angular
 
   // diupdate oleh irwansyah tanggal 2026-09-23 - awal penghapusan obat resep dan pemuatan ulang data
-  async function deleteRecipeItem(modal, recipe, index) {
-    const item = (recipe?.obat || []).filter((entry) => !isChronic(entry))[index];
+  async function deleteRecipeItem(modal, recipe, index, buttonElement) {
+    const rawItems = recipe?.detailFromApi ? (recipe.obat || []) : getNonChronicItems(recipe?.obat || []);
+    const item = rawItems[index];
     const context = getContext();
-    const nama = Array.isArray(item?.nama) ? item.nama.join(', ') : item?.nama || item?.namaobat;
-    if (!context.noCheckin || !recipe?._id || !nama) return;
+    if (!context.noCheckin || !recipe?._id || !item) return;
+
+    const isRacikan = item?.jenis === 'RACIKAN' || item?.jenisObat === 'RACIKAN' || Array.isArray(item?.nama) || (typeof item?.nama === 'string' && (item.nama.includes(' | Jumlah:') || item.nama.includes(' | ')));
+    const nama = item?.nama || item?.namaObat || item?.namaobat;
+    if (!nama) return;
+
+    if (buttonElement) {
+      buttonElement.disabled = true;
+      buttonElement.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Hapus...';
+    }
+
     try {
       const response = await fetch(`${getApiBaseUrl()}/farmasi/delete/obat/resep`, {
         method: 'POST',
@@ -366,15 +436,38 @@
         body: JSON.stringify({
           noCheckin: context.noCheckin,
           resepId: recipe._id,
-          dataObat: { nama, noFaktur: item.noFaktur || '' },
+          jenisObat: isRacikan ? 'RACIKAN' : 'NON-RACIKAN',
+          dataObat: {
+            ...item,
+            nama: nama,
+            noFaktur: item.noFaktur || '',
+            index: index,
+          },
         }),
       });
-      if (!response.ok) throw new Error(`Gagal menghapus obat (${response.status})`);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || `Gagal menghapus obat (${response.status})`);
+      }
+
       // diupdate oleh irwansyah tanggal 2026-09-26 - awal memuat ulang data setelah obat resep dihapus
+      if (recipe?._id) {
+        state.detailByRecipeId.delete(String(recipe._id));
+      }
+      if (modal) {
+        delete modal.dataset.resepDetailLoaded;
+        delete modal.dataset.resepDetailLoading;
+      }
       await loadRecipes({ refreshModal: true });
       // diupdate oleh irwansyah tanggal 2026-09-26 - akhir memuat ulang data setelah obat resep dihapus
     } catch (error) {
       console.error('Gagal menghapus obat dari resep:', error);
+      alert('Gagal menghapus obat: ' + (error.message || error));
+      if (buttonElement) {
+        buttonElement.disabled = false;
+        buttonElement.innerHTML = '<i class="bi bi-trash3-fill"></i> Hapus';
+      }
     }
   }
   // diupdate oleh irwansyah tanggal 2026-09-23 - akhir penghapusan obat resep dan pemuatan ulang data
@@ -389,10 +482,8 @@
     if (cachedDetail) {
       state.modalDetails.set(modal, cachedDetail);
       const tbody = getRecipeTable(modal);
-      const expectedNames = (cachedDetail.obat || []).map((item) => getMedicineName(item)).filter(Boolean);
-      const visibleNames = Array.from(tbody?.querySelectorAll('.nama-obat-resep') || [])
-        .map((cell) => cell.textContent.trim());
-      if (tbody && !expectedNames.every((name) => visibleNames.includes(name))) {
+      const expectedItems = cachedDetail?.detailFromApi ? cachedDetail.obat : getNonChronicItems(cachedDetail?.obat);
+      if (tbody && !isRecipeTableRendered(tbody, expectedItems)) {
         renderNonChronicRows(modal, cachedDetail);
         scheduleRecipeRowsRender(modal, cachedDetail);
       }
