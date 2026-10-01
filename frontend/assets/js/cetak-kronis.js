@@ -110,6 +110,7 @@
         nomorSEP: checkin.noSep || checkin.noSEP || '',
         diagnosis: checkin.diagnosa || checkin.diagnosis || '',
         dokter: checkin.dpjp || checkin.dokter || '',
+        tglInput: checkin.tglInput || '',
       };
       Object.entries(checkinPatientData).forEach(([fieldName, fieldValue]) => {
         const input = document.querySelector(`[data-kronis-field="${fieldName === 'nama' ? 'namaPasien' : fieldName}"]`);
@@ -143,12 +144,48 @@
     }).format(new Date());
   }
 
+  function formatCheckinDate(value) {
+    const rawDate = String(value || '').trim();
+    if (!rawDate) return getToday();
+
+    const isoDate = rawDate.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    const indonesianDate = rawDate.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})/);
+    const parts = isoDate
+      ? [Number(isoDate[1]), Number(isoDate[2]), Number(isoDate[3])]
+      : indonesianDate
+        ? [Number(indonesianDate[3]), Number(indonesianDate[2]), Number(indonesianDate[1])]
+        : null;
+
+    if (parts) {
+      const [year, month, day] = parts;
+      const date = new Date(Date.UTC(year, month - 1, day));
+      if (date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day) {
+        return new Intl.DateTimeFormat('id-ID', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+          timeZone: 'UTC',
+        }).format(date);
+      }
+      return rawDate;
+    }
+
+    const date = new Date(rawDate);
+    if (Number.isNaN(date.getTime())) return rawDate;
+    return new Intl.DateTimeFormat('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(date);
+  }
+
   function getPatientData() {
     return {
       nama: checkinPatientData.nama || readSidebarValue('#spd-nama'),
       nomorBPJS: checkinPatientData.nomorBPJS || readSidebarValue('#spd-noKartu'),
       diagnosis: checkinPatientData.diagnosis || readSidebarValue('#spd-diagnosa'),
       dokter: checkinPatientData.dokter || readSidebarValue('#spd-dpjp'),
+      tglCheckin: checkinPatientData.tglInput || readSidebarValue('#spd-tglInput'),
       nomorSEP: checkinPatientData.nomorSEP || document.querySelector('#spd-noSEP, #noSEP, [data-no-sep]')?.textContent?.trim() || '',
       poli: checkinServiceUnit || document.querySelector('[data-kronis-field="poli"]')?.value || document.querySelector('.unit-layanan, #unitLayanan, #spd-poli')?.textContent?.trim() || '',
     };
@@ -210,7 +247,7 @@
         <p>Benar adalah penderita penyakit kronis, dan kami mohon kepada Instalasi Farmasi RS Bhayangkara agar dapat memberikan obat untuk pemakaian selama 30 hari.</p>
         <p>Demikian kami sampaikan, atas kerja samanya diucapkan terima kasih.</p>
         <footer class="kronis-letter__signer">
-          <p>Banda Aceh, ${escapeHtml(getToday())}</p>
+          <p>Banda Aceh, ${escapeHtml(formatCheckinDate(data.tglCheckin))}</p>
           <p>Dokter,</p>
           <div class="kronis-signature-pad">
             <canvas class="kronis-signature-pad__canvas" width="520" height="130" aria-label="Canvas tanda tangan dokter"></canvas>
