@@ -3164,75 +3164,136 @@ module.exports = {
         jenisObat === "RACIKAN" ||
         dataObat?.jenis === "RACIKAN" ||
         dataObat?.jenisObat === "RACIKAN" ||
-        Array.isArray(dataObat?.nama);
+        Array.isArray(dataObat?.nama) ||
+        (typeof dataObat?.nama === "string" && (dataObat.nama.includes(" | Jumlah:") || dataObat.nama.includes(" | ")));
+
+      // Helper untuk mengekstrak daftar nama bahan secara konsisten
+      function extractIngredientNames(namaField) {
+        if (!namaField) return [];
+        if (Array.isArray(namaField)) {
+          return namaField.map((entry) => {
+            if (typeof entry === "string") {
+              return entry.split(" | ")[0].trim().toLowerCase();
+            } else if (entry && typeof entry === "object") {
+              const val = entry.nama || entry.namaObat || entry.namaobat || "";
+              return String(val).split(" | ")[0].trim().toLowerCase();
+            }
+            return "";
+          }).filter(Boolean);
+        }
+        if (typeof namaField === "string") {
+          return namaField
+            .split(/,\s*(?=[A-Za-z0-9\s\.\-]+\s*\|\s*Jumlah:)/i)
+            .map((entry) => entry.split(" | ")[0].trim().toLowerCase())
+            .filter(Boolean);
+        }
+        return [];
+      }
+
+      function parseIngredientInfo(ing) {
+        let ingNama = "";
+        let ingQty = 1;
+        let ingHarga = 0;
+
+        if (typeof ing === "string") {
+          const parts = ing.split(" | ");
+          ingNama = parts[0]?.trim();
+          const jmlPart = parts.find((p) => p.toLowerCase().includes("jumlah:"));
+          if (jmlPart) {
+            const parsed = parseInt(jmlPart.split(":")[1]?.trim(), 10);
+            if (!isNaN(parsed) && parsed > 0) ingQty = parsed;
+          }
+          const hargaPart = parts.find((p) => p.toLowerCase().includes("harga:"));
+          if (hargaPart) {
+            const cleanHarga = hargaPart.split(":")[1]?.replace(/[^\d]/g, "");
+            const parsedH = parseInt(cleanHarga, 10);
+            if (!isNaN(parsedH)) ingHarga = parsedH;
+          }
+        } else if (ing && typeof ing === "object") {
+          ingNama = (ing.nama || ing.namaObat || ing.namaobat || "").trim();
+          if (ing.jumlah !== undefined && !isNaN(Number(ing.jumlah))) {
+            ingQty = Number(ing.jumlah);
+          } else if (ing.qty !== undefined && !isNaN(Number(ing.qty))) {
+            ingQty = Number(ing.qty);
+          }
+          if (ing.harga !== undefined && !isNaN(Number(ing.harga))) {
+            ingHarga = Number(ing.harga);
+          }
+        }
+
+        return { ingNama, ingQty, ingHarga };
+      }
 
       // Cari index item obat dalam resep.obat
       let targetIndex = -1;
 
-      // 1. Jika index eksplisit diberikan dan valid
-      if (
-        dataObat?.index !== undefined &&
-        Number.isInteger(Number(dataObat.index)) &&
-        resep.obat[Number(dataObat.index)]
-      ) {
-        const candidate = resep.obat[Number(dataObat.index)];
-        const candidateIsRacikan =
-          candidate?.jenis === "RACIKAN" ||
-          candidate?.jenisObat === "RACIKAN" ||
-          Array.isArray(candidate?.nama);
-        if (Boolean(candidateIsRacikan) === Boolean(isRacikan)) {
-          targetIndex = Number(dataObat.index);
+      if (isRacikan) {
+        const targetIngredients = extractIngredientNames(dataObat?.nama);
+        const targetSingleName = typeof dataObat?.nama === "string"
+          ? dataObat.nama.trim().toLowerCase()
+          : (dataObat?.namaobat || "").toLowerCase();
+
+        targetIndex = resep.obat.findIndex((item, idx) => {
+          const itemIsRacikan =
+            item?.jenis === "RACIKAN" ||
+            item?.jenisObat === "RACIKAN" ||
+            Array.isArray(item?.nama);
+          if (!itemIsRacikan) return false;
+
+          const itemIngredients = extractIngredientNames(item?.nama);
+          if (targetIngredients.length > 0 && itemIngredients.length > 0) {
+            if (targetIngredients.every((t) => itemIngredients.includes(t))) return true;
+            if (itemIngredients.every((it) => targetIngredients.includes(it))) return true;
+            if (targetIngredients[0] === itemIngredients[0]) return true;
+          }
+
+          if (targetSingleName) {
+            const itemStr = JSON.stringify(item.nama || "").toLowerCase();
+            if (itemStr.includes(targetSingleName)) return true;
+          }
+
+          if (dataObat?.index !== undefined && Number(dataObat.index) === idx && itemIsRacikan) {
+            return true;
+          }
+
+          return false;
+        });
+
+        // Fallback: cari racikan pertama jika resep hanya memiliki satu racikan
+        if (targetIndex === -1) {
+          const racikanIndices = resep.obat
+            .map((item, idx) => (item?.jenis === "RACIKAN" || Array.isArray(item?.nama) ? idx : -1))
+            .filter((idx) => idx !== -1);
+          if (racikanIndices.length === 1) {
+            targetIndex = racikanIndices[0];
+          }
         }
+      } else {
+        const targetName = typeof dataObat?.nama === "string" ? dataObat.nama.trim() : (dataObat?.namaobat || "");
+        targetIndex = resep.obat.findIndex((item, idx) => {
+          if (item?.jenis === "RACIKAN" || Array.isArray(item?.nama)) return false;
+          if (dataObat?.idObat && item?.idObat && String(item.idObat) === String(dataObat.idObat)) {
+            return true;
+          }
+          const itemNama = typeof item?.nama === "string" ? item.nama.trim() : "";
+          if (targetName && itemNama.toLowerCase() === targetName.toLowerCase()) {
+            if (dataObat?.noFaktur && item?.noFaktur) {
+              return item.noFaktur === dataObat.noFaktur;
+            }
+            return true;
+          }
+          if (dataObat?.index !== undefined && Number(dataObat.index) === idx) {
+            return true;
+          }
+          return false;
+        });
       }
 
-      // 2. Jika belum ditemukan berdasarkan index, cocokkan konten
-      if (targetIndex === -1) {
-        if (isRacikan) {
-          targetIndex = resep.obat.findIndex((item) => {
-            const itemIsRacikan =
-              item?.jenis === "RACIKAN" ||
-              item?.jenisObat === "RACIKAN" ||
-              Array.isArray(item?.nama);
-            if (!itemIsRacikan) return false;
-
-            if (Array.isArray(dataObat?.nama) && Array.isArray(item?.nama)) {
-              if (JSON.stringify(item.nama) === JSON.stringify(dataObat.nama)) return true;
-              if (item.nama.length === dataObat.nama.length && item.nama[0] === dataObat.nama[0]) return true;
-            }
-
-            if (typeof dataObat?.nama === "string" && Array.isArray(item?.nama)) {
-              const joined = item.nama.join(", ");
-              if (joined === dataObat.nama || dataObat.nama.includes(item.nama[0])) return true;
-            }
-
-            if (Array.isArray(dataObat?.namaobat) && Array.isArray(item?.namaobat)) {
-              if (JSON.stringify(item.namaobat) === JSON.stringify(dataObat.namaobat)) return true;
-            }
-
-            return false;
-          });
-        } else {
-          const targetName = typeof dataObat?.nama === "string" ? dataObat.nama.trim() : (dataObat?.namaobat || "");
-          targetIndex = resep.obat.findIndex((item) => {
-            if (item?.jenis === "RACIKAN" || Array.isArray(item?.nama)) return false;
-            const itemNama = typeof item?.nama === "string" ? item.nama.trim() : "";
-            if (targetName && itemNama.toLowerCase() === targetName.toLowerCase()) {
-              if (dataObat?.noFaktur && item?.noFaktur) {
-                return item.noFaktur === dataObat.noFaktur;
-              }
-              return true;
-            }
-            return false;
-          });
-        }
-      }
-
-      // Fallback: Jika belum ketemu, cari item yang paling cocok dengan nama
       if (targetIndex === -1 && dataObat?.nama) {
+        const targetIngredients = extractIngredientNames(dataObat?.nama);
         targetIndex = resep.obat.findIndex((item) => {
-          const itemStr = JSON.stringify(item.nama || "");
-          const targetStr = typeof dataObat.nama === "string" ? dataObat.nama : JSON.stringify(dataObat.nama);
-          return itemStr.includes(targetStr) || targetStr.includes(itemStr);
+          const itemIngredients = extractIngredientNames(item?.nama);
+          return targetIngredients.some((t) => itemIngredients.includes(t));
         });
       }
 
@@ -3245,36 +3306,96 @@ module.exports = {
 
       const targetItem = resep.obat[targetIndex];
 
-      // Kembalikan stok obat
+      // Periksa apakah ini penghapusan per-item (bahan tunggal) dari racikan
+      const targetIngIndex = req.body.ingredientIndex !== undefined
+        ? Number(req.body.ingredientIndex)
+        : (dataObat?.ingredientIndex !== undefined ? Number(dataObat.ingredientIndex) : null);
+      const targetIngName = req.body.ingredientName || dataObat?.ingredientName || null;
+
+      if ((isRacikan || Array.isArray(targetItem.nama)) && (targetIngIndex !== null || targetIngName)) {
+        const ingredients = Array.isArray(targetItem.nama) ? targetItem.nama : [targetItem.nama];
+        let ingIdx = -1;
+
+        if (targetIngIndex !== null && Number.isInteger(targetIngIndex) && ingredients[targetIngIndex]) {
+          ingIdx = targetIngIndex;
+        } else if (targetIngName) {
+          const normTarget = targetIngName.toLowerCase().trim();
+          ingIdx = ingredients.findIndex((ing) => {
+            const info = parseIngredientInfo(ing);
+            return info.ingNama.toLowerCase() === normTarget;
+          });
+        }
+
+        if (ingIdx !== -1) {
+          const toDelete = ingredients[ingIdx];
+          const info = parseIngredientInfo(toDelete);
+
+          if (info.ingNama) {
+            const stockModel =
+              targetItem.sumberStock === "IGD" ? stockIgd :
+              targetItem.sumberStock === "INAP" ? stockInap : stockApotek;
+
+            await stockModel.findOneAndUpdate(
+              { nama: { $regex: "(?i)^" + info.ingNama.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$" } },
+              {
+                $inc: { jumlah: +info.ingQty },
+                updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+              }
+            ).sort({ createdAt: 1 });
+          }
+
+          if (ingredients.length > 1) {
+            ingredients.splice(ingIdx, 1);
+            targetItem.nama = ingredients;
+            targetItem.jumlah = Math.max(0, Number(targetItem.jumlah || 0) - info.ingQty);
+            if (info.ingHarga > 0) {
+              targetItem.hargaJualBPJS = Math.max(0, Number(targetItem.hargaJualBPJS || 0) - info.ingHarga);
+              targetItem.hargaJualYANKES = Math.max(0, Number(targetItem.hargaJualYANKES || 0) - info.ingHarga);
+            }
+            const firstInfo = parseIngredientInfo(ingredients[0]);
+            targetItem.namaobat = firstInfo.ingNama || targetItem.namaobat;
+          } else {
+            // Bahan terakhir di racikan dihapus, hapus seluruh racikan
+            resep.obat.splice(targetIndex, 1);
+          }
+
+          resep.markModified("obat");
+          await resep.save();
+          await ResepModel.updateOne(
+            { _id: resep._id },
+            { $set: { obat: resep.obat, updatedAt: moment().format("YYYY-MM-DD HH:mm:ss") } }
+          );
+
+          return res.status(200).send({
+            status: "success",
+            message: "Item bahan racikan berhasil dihapus",
+            data: resep.obat,
+          });
+        }
+      }
+
+      // Hapus seluruh paket racikan atau obat biasa
       if (isRacikan || Array.isArray(targetItem.nama)) {
-        const ingredients = Array.isArray(targetItem.nama)
+        const ingredients = Array.isArray(targetItem.nama) && targetItem.nama.length > 0
           ? targetItem.nama
-          : (Array.isArray(dataObat?.nama) ? dataObat.nama : []);
+          : (Array.isArray(dataObat?.nama) ? dataObat.nama : [dataObat?.nama]);
 
         for (const ing of ingredients) {
-          if (typeof ing === "string") {
-            const parts = ing.split(" | ");
-            const ingNama = parts[0]?.trim();
-            let ingQty = 1;
-            const jmlPart = parts.find((p) => p.toLowerCase().includes("jumlah:"));
-            if (jmlPart) {
-              const parsed = parseInt(jmlPart.split(":")[1]?.trim(), 10);
-              if (!isNaN(parsed) && parsed > 0) ingQty = parsed;
-            }
+          if (!ing) continue;
+          const info = parseIngredientInfo(ing);
 
-            if (ingNama) {
-              const stockModel =
-                targetItem.sumberStock === "IGD" ? stockIgd :
-                targetItem.sumberStock === "INAP" ? stockInap : stockApotek;
+          if (info.ingNama) {
+            const stockModel =
+              targetItem.sumberStock === "IGD" ? stockIgd :
+              targetItem.sumberStock === "INAP" ? stockInap : stockApotek;
 
-              await stockModel.findOneAndUpdate(
-                { nama: { $regex: "(?i)^" + ingNama.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$" } },
-                {
-                  $inc: { jumlah: +ingQty },
-                  updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
-                }
-              ).sort({ createdAt: 1 });
-            }
+            await stockModel.findOneAndUpdate(
+              { nama: { $regex: "(?i)^" + info.ingNama.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$" } },
+              {
+                $inc: { jumlah: +info.ingQty },
+                updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+              }
+            ).sort({ createdAt: 1 });
           }
         }
       } else {

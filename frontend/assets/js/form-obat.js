@@ -102,23 +102,35 @@
     return Array.isArray(value) ? value.join(', ') : String(value || '').trim();
   }
 
-  function renderMedicineDisplayHtml(item) {
+  function renderMedicineDisplayHtml(item, itemIndex = null) {
     const raw = item?.nama || item?.namaObat || item?.namaobat;
     const isRacikan = item?.jenis === 'RACIKAN' || item?.jenisObat === 'RACIKAN' || Array.isArray(raw) || (typeof raw === 'string' && (raw.includes(' | Jumlah:') || raw.includes(' | ')));
 
     if (Array.isArray(raw)) {
-      const itemsHtml = raw.map((ing) => {
+      const itemsHtml = raw.map((ing, ingIdx) => {
         const str = String(ing || '').trim();
+        const deleteBtnHtml = itemIndex !== null
+          ? `<button type="button" class="btn btn-outline-danger btn-sm py-0 px-1 ms-2 js-hapus-bahan-racikan" data-item-index="${itemIndex}" data-ingredient-index="${ingIdx}" title="Hapus bahan ini" style="font-size: 11px; line-height: 1.2;">
+              <i class="bi bi-x-lg"></i>
+            </button>`
+          : '';
+
         if (str.includes(' | ')) {
           const parts = str.split(' | ');
           const title = parts[0]?.trim();
           const rest = parts.slice(1).join(' &bull; ');
-          return `<div class="mb-1 ps-2 border-start border-2 border-warning" style="line-height: 1.35;">
-            <div class="fw-semibold text-dark">${escapeHtml(title)}</div>
-            <div class="text-muted" style="font-size: 11px;">${escapeHtml(rest)}</div>
+          return `<div class="d-flex justify-content-between align-items-center mb-1 ps-2 border-start border-2 border-warning" style="line-height: 1.35;">
+            <div>
+              <div class="fw-semibold text-dark">${escapeHtml(title)}</div>
+              <div class="text-muted" style="font-size: 11px;">${escapeHtml(rest)}</div>
+            </div>
+            ${deleteBtnHtml}
           </div>`;
         }
-        return `<div class="mb-1 ps-2 border-start border-2 border-warning" style="line-height: 1.35;">• ${escapeHtml(str)}</div>`;
+        return `<div class="d-flex justify-content-between align-items-center mb-1 ps-2 border-start border-2 border-warning" style="line-height: 1.35;">
+          <div>• ${escapeHtml(str)}</div>
+          ${deleteBtnHtml}
+        </div>`;
       }).join('');
 
       return `<div>
@@ -135,18 +147,30 @@
       } else {
         splitItems = [strVal];
       }
-      const itemsHtml = splitItems.map((ing) => {
+      const itemsHtml = splitItems.map((ing, ingIdx) => {
         const str = ing.trim();
+        const deleteBtnHtml = itemIndex !== null
+          ? `<button type="button" class="btn btn-outline-danger btn-sm py-0 px-1 ms-2 js-hapus-bahan-racikan" data-item-index="${itemIndex}" data-ingredient-index="${ingIdx}" title="Hapus bahan ini" style="font-size: 11px; line-height: 1.2;">
+              <i class="bi bi-x-lg"></i>
+            </button>`
+          : '';
+
         if (str.includes(' | ')) {
           const parts = str.split(' | ');
           const title = parts[0]?.trim();
           const rest = parts.slice(1).join(' &bull; ');
-          return `<div class="mb-1 ps-2 border-start border-2 border-warning" style="line-height: 1.35;">
-            <div class="fw-semibold text-dark">${escapeHtml(title)}</div>
-            <div class="text-muted" style="font-size: 11px;">${escapeHtml(rest)}</div>
+          return `<div class="d-flex justify-content-between align-items-center mb-1 ps-2 border-start border-2 border-warning" style="line-height: 1.35;">
+            <div>
+              <div class="fw-semibold text-dark">${escapeHtml(title)}</div>
+              <div class="text-muted" style="font-size: 11px;">${escapeHtml(rest)}</div>
+            </div>
+            ${deleteBtnHtml}
           </div>`;
         }
-        return `<div class="mb-1 ps-2 border-start border-2 border-warning">• ${escapeHtml(str)}</div>`;
+        return `<div class="d-flex justify-content-between align-items-center mb-1 ps-2 border-start border-2 border-warning" style="line-height: 1.35;">
+          <div>• ${escapeHtml(str)}</div>
+          ${deleteBtnHtml}
+        </div>`;
       }).join('');
 
       return `<div>
@@ -349,7 +373,7 @@
       const rowsHtml = items.length ? items.map((item, index) => `
         <tr>
           <td>${index + 1}.</td>
-          <td class="nama-obat-resep">${renderMedicineDisplayHtml(item)}</td>
+          <td class="nama-obat-resep">${renderMedicineDisplayHtml(item, index)}</td>
           <td>${formatNumber(getQuantity(item))}</td>
           <td>${formatNumber(getTotalPrice(item))}</td>
           <td class="text-end">
@@ -376,6 +400,13 @@
           e.preventDefault();
           e.stopPropagation();
           deleteRecipeItem(modal, recipe, Number(button.dataset.index), button);
+        });
+      });
+      recipeTbody.querySelectorAll('.js-hapus-bahan-racikan').forEach((button) => {
+        button.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          deleteRecipeIngredient(modal, recipe, Number(button.dataset.itemIndex), Number(button.dataset.ingredientIndex), button);
         });
       });
     } finally {
@@ -412,6 +443,58 @@
     return null;
   }
   // diupdate oleh irwansyah tanggal 2026-09-24 - akhir menjaga nama obat non-kronis dari penimpaan Angular
+
+  async function deleteRecipeIngredient(modal, recipe, itemIndex, ingredientIndex, buttonElement) {
+    const rawItems = recipe?.detailFromApi ? (recipe.obat || []) : getNonChronicItems(recipe?.obat || []);
+    const item = rawItems[itemIndex];
+    const context = getContext();
+    if (!context.noCheckin || !recipe?._id || !item) return;
+
+    if (buttonElement) {
+      buttonElement.disabled = true;
+      buttonElement.innerHTML = '<span class="spinner-border spinner-border-sm" style="width: 10px; height: 10px;" role="status"></span>';
+    }
+
+    try {
+      const response = await fetch(`${getApiBaseUrl()}/farmasi/delete/obat/resep`, {
+        method: 'POST',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          noCheckin: context.noCheckin,
+          resepId: recipe._id,
+          jenisObat: 'RACIKAN',
+          ingredientIndex: ingredientIndex,
+          dataObat: {
+            ...item,
+            nama: item.nama,
+            ingredientIndex: ingredientIndex,
+            index: itemIndex,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || `Gagal menghapus bahan racikan (${response.status})`);
+      }
+
+      if (recipe?._id) {
+        state.detailByRecipeId.delete(String(recipe._id));
+      }
+      if (modal) {
+        delete modal.dataset.resepDetailLoaded;
+        delete modal.dataset.resepDetailLoading;
+      }
+      await loadRecipes({ refreshModal: true });
+    } catch (error) {
+      console.error('Gagal menghapus bahan racikan:', error);
+      alert('Gagal menghapus bahan racikan: ' + (error.message || error));
+      if (buttonElement) {
+        buttonElement.disabled = false;
+        buttonElement.innerHTML = '<i class="bi bi-x-lg"></i>';
+      }
+    }
+  }
 
   // diupdate oleh irwansyah tanggal 2026-09-23 - awal penghapusan obat resep dan pemuatan ulang data
   async function deleteRecipeItem(modal, recipe, index, buttonElement) {
