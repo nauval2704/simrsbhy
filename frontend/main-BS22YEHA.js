@@ -29321,6 +29321,23 @@ function ER(t, s) {
   }
 }
 
+
+function addUnitPuffOptions() {
+  document
+      .querySelectorAll('select#inputGroupSelect01[formcontrolname="jenisObat"]')
+      .forEach((select) => {
+        [["unit", "UNIT"], ["puff", "PUFF"]].forEach(([value, label]) => {
+          if (!select.querySelector(`option[value="${value}"]`)) {
+            const option = document.createElement("option");
+            option.value = value;
+            option.textContent = label;
+            select.appendChild(option);
+          }
+        });
+      });
+}
+
+
 function IR(t, s) {
   t & 1 &&
     (Ft(0),
@@ -29472,6 +29489,7 @@ function IR(t, s) {
     i(107, "div", 1)(108, "div", 2)(109, "div", 8),
     c(110, "input", 51),
     n()()(),
+    queueMicrotask(addUnitPuffOptions),
     jt());
 }
 var Wv = (() => {
@@ -30036,6 +30054,7 @@ function FR(t, s) {
       c(114, "i", 14),
       r(115, " Add "),
       n()()(),
+      queueMicrotask(addUnitPuffOptions),
       jt()),
     t & 2)
   ) {

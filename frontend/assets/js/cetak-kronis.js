@@ -136,6 +136,49 @@
   }
   // diupdate oleh irwansyah tanggal 2026-09-26 - akhir helper noCheckin dan konfigurasi API surat kronis
 
+  // diupdate oleh irwansyah tanggal 2026-10-01 - awal menyamakan diagnosis form kronis dengan ICD-10 PRMRJ terbaru
+  function getPrmrjEntryTimestamp(entry) {
+    const dateTime = entry?.tglDate && entry?.tglTime
+      ? `${entry.tglDate}T${entry.tglTime}`
+      : entry?.tglJam || entry?.tglDate || entry?.updatedAt || entry?.updated_at ||
+        entry?.createdAt || entry?.created_at || '';
+    const timestamp = Date.parse(String(dateTime).replace(' ', 'T'));
+    return Number.isNaN(timestamp) ? 0 : timestamp;
+  }
+
+  async function loadLatestPrmrjDiagnosis() {
+    const noCheckin = getNoCheckin();
+    if (!noCheckin) return;
+
+    const response = await fetch(`${getApiBaseUrl()}/simrsba/prmrj/${encodeURIComponent(noCheckin)}`, {
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
+    });
+    if (!response.ok) throw new Error(`Gagal mengambil data PRMRJ (${response.status})`);
+
+    const payload = await response.json();
+    const prmrj = payload?.data;
+    const entries = Array.isArray(prmrj?.formData?.entries)
+      ? prmrj.formData.entries
+      : Array.isArray(prmrj?.entries)
+        ? prmrj.entries
+        : [];
+    const latestDiagnosis = entries
+      .map((entry, index) => ({
+        diagnosis: typeof entry?.diagnosis === 'string' ? entry.diagnosis.trim() : '',
+        timestamp: getPrmrjEntryTimestamp(entry),
+        index,
+      }))
+      .filter(({ diagnosis }) => diagnosis)
+      .sort((left, right) => right.timestamp - left.timestamp || right.index - left.index)[0]?.diagnosis;
+
+    if (!latestDiagnosis) return;
+    checkinPatientData.diagnosis = latestDiagnosis;
+    const diagnosisInput = document.querySelector('[data-kronis-field="diagnosis"]');
+    if (diagnosisInput) diagnosisInput.value = latestDiagnosis;
+  }
+  // diupdate oleh irwansyah tanggal 2026-10-01 - akhir menyamakan diagnosis form kronis dengan ICD-10 PRMRJ terbaru
+
   function getToday() {
     return new Intl.DateTimeFormat('id-ID', {
       day: 'numeric',
@@ -766,11 +809,21 @@
     // diupdate oleh irwansyah tanggal 2026-09-26 - akhir menerima perubahan billing obat kronis
     // diupdate oleh irwansyah tanggal 2026-09-26 - awal memuat Poli/UPL berdasarkan jenis pelayanan check-in
     document.addEventListener('simrs:kronis-checkin-unit-updated', refreshLetter);
-    loadCheckinServiceUnit().then(refreshLetter);
+    loadCheckinServiceUnit()
+      .then(async () => {
+        await loadLatestPrmrjDiagnosis();
+        refreshLetter();
+      })
+      .catch((error) => {
+        console.error('Gagal memuat ICD-10 PRMRJ untuk form kronis:', error);
+        refreshLetter();
+      });
     // diupdate oleh irwansyah tanggal 2026-09-26 - akhir memuat Poli/UPL berdasarkan jenis pelayanan check-in
     // diupdate oleh irwansyah tanggal 2026-09-26 - awal memuat ulang data peserta saat tab Form Kronis dibuka
     document.addEventListener('simrs:load-kronis-participant-data', () => {
       loadCheckinServiceUnit().then(async () => {
+        // PRMRJ menjadi sumber utama ICD-10 setelah data check-in dimuat.
+        await loadLatestPrmrjDiagnosis();
         // Ambil versi terbaru dari PRMRJ saat tab dibuka agar tidak perlu hard refresh halaman.
         const loadPrmrjSignature = window.getPrmrjDefaultSignature;
         if (doctorSignatureSource !== 'user' && typeof loadPrmrjSignature === 'function') {
@@ -782,7 +835,7 @@
         }
         refreshLetter();
       }).catch((error) => {
-        console.error('Gagal memperbarui tanda tangan PRMRJ untuk form kronis:', error);
+        console.error('Gagal memperbarui data peserta/PRMRJ untuk form kronis:', error);
         refreshLetter();
       });
     });

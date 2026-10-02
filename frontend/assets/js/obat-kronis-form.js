@@ -968,25 +968,10 @@
 
     const rows = chronicItems.map((item, index) => {
       const subtotal = Number(item.jumlah || 0) * Number(item.hargaJualBPJS || 0);
-      const namaHtml = Array.isArray(item.nama)
-        ? `<div class="fw-bold text-warning-emphasis mb-1" style="font-size: 10px;">[RACIKAN]</div>` +
-          item.nama.map((ing) => {
-            const str = String(ing || '').trim();
-            if (str.includes(' | ')) {
-              const parts = str.split(' | ');
-              return `<div class="ps-2 border-start border-2 border-warning mb-1" style="line-height: 1.3;">
-                <div class="fw-semibold">${escapeHtml(parts[0]?.trim())}</div>
-                <div class="text-muted" style="font-size: 11px;">${escapeHtml(parts.slice(1).join(' • '))}</div>
-              </div>`;
-            }
-            return `<div class="ps-2 border-start border-2 border-warning mb-1">• ${escapeHtml(str)}</div>`;
-          }).join('')
-        : escapeHtml(item.nama || '-');
-
       return `
       <tr>
         <td>${index + 1}</td>
-        <td>${namaHtml}</td>
+        <td>${escapeHtml(Array.isArray(item.nama) ? item.nama.join(', ') : item.nama || '-')}</td>
         <td>${escapeHtml(item.createdAt || '-')}</td>
         <td>${escapeHtml(getUsageText(item))}</td>
         <td>${escapeHtml(item.jumlah ?? 0)}</td>
@@ -1223,6 +1208,8 @@
                   <option value="SENDOK TEH">SENDOK TEH</option>
                   <option value="ML (Mili)">ML (Mili)</option>
                   <option value="SEMPROT">SEMPROT</option>
+                  <option value="UNIT">UNIT</option>
+                  <option value="PUFF">PUFF</option>
                 </select>
               </div>
               <div class="col-md-2">
